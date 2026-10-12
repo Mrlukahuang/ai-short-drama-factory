@@ -51,4 +51,14 @@ SELECT 1 FROM sqlite_master WHERE type='table' AND name='drama_drive_receipts_v1
 
 `pytest -q tests/test_turso_preflight.py` 在 Fake DBAPI SQLite 模拟器上测试必须人工确认、没有 Token 的拒绝、只执行 SELECT、引擎校验、是否存在专用表、静态审计 GitHub Workflow 必须是手动触发且不包含 Drive/Gemini 凭证。
 
-**不代表真实 Turso 已经连接。** 真实连通性需要用户创建专用库、私下配置 Secret、明确手动执行后才会确认。后续需要重新设计 Turso 作为所有 Worker/预算事务的权威数据库；这不是本 PR。
+上述 Fake/离线测试本身**不能证明真实 Turso 连接**；真实连接已由下列独立 GitHub Actions 记录证实。后续仍需重新设计 Turso 作为 Worker/预算事务权威数据库；这不属于本阶段。
+
+## PR-30b 真正的 Turso 只读连接验收（2026-10-13）
+
+- **真实运行**：[GitHub Actions #38277564945](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38277564945)，`workflow_dispatch`，`main` commit `8c893ae8efffc43a392b43c8b0583be49d2cc7e0`，`success`。
+- **连接目标**：用户刚创建的独立 `ai-short-drama-factory`，Turso Sydney 区域，`libsql` 引擎。专用 URL 通过严格项目名前缀、区域子域验证；两项 Secret 只注入工作流，不打印凭据。
+- **实际 Job Logs 脱敏回执**：`{"database_modified": false, "dedicated_name_validated": true, "engine": "libsql", "google_drive_operations": 0, "metadata_table_exists": false, "new_ai_model_generation_calls": 0, "reachable": true, "read_only": true}`。
+- **Artifact**：`short-drama-turso-readonly-verification`（仅脱敏结果，GitHub 保留 3 天）。
+- **范围**：真正跑通 SDK 网络连接和两条指定 SELECT；新库没有 `drama_drive_receipts_v1` 表符合预期；没有 DDL/DML、没有视频上传或付费 AI 调用。`read_only=true` 描述**本次只读代码路径**，不是数据库级 Token 权限认证。用户选择了只对本短剧库使用的 Full Access Token，因此不要将其误称为只读 Token。
+- **尚未证明**：远端 INSERT/DDL、写后查询、SQLite 生产事务迁移、跨 Worker 并发、恢复、数据备份或 PR-30c 的真实 Drive 回执写入。此阶段不得因连接成功而自动启用写入。PR-30c 如需重新上传任何素材、写入真实数据库或调整权限，必须另获用户明确授权。
+
