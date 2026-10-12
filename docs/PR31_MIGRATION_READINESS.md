@@ -66,6 +66,17 @@ python -m drama_factory.storage.migration_readiness \
 
 合同 JSON `export_offline_contract_metadata()` 将 `remote_sql_transaction_verified`、`remote_concurrency_verified`、`production_backend_switched`、`live_migration_authorized` 保持 false。真正远端适配器需要另建、新授权、跨 Runner 压测及失败恢复；不能由此获得任何生产开关。
 
+## PR-31c0：离线备份 → 恢复 → 逻辑摘要对账
+
+在**无任何真实云端资源或生产 SQLite 输入**的离线 CI 中，使用全新临时数据库验证 `storage/snapshot_rehearsal.py`：从既有 SQLite 源文件读取一致性快照、在新文件写入备份、恢复到另一个**新的**本地文件，并对所有用户表和整个 SQLite schema 计算稳定的 SHA-256 逻辑摘要与行数。恢复成功仅表示**本地离线备份可恢复**；不能宣称远端 Turso 的并发安全或迁移成功。
+
+- 必须显式调用 `rehearse_local_snapshot(source, backup, restored, operator_approved=True, offline_rehearsal_only=True)`。当前**没有**生产 CLI、HTTP 入口或 Worker 自动调用此方法。
+- 源库以 `sqlite3 mode=ro` 和 `PRAGMA query_only=ON` 打开；快照走 SQLite 备份 API，能够包含 WAL 的已提交数据，源文件不允许任何 DDL/DML。
+- 两个输出文件必须是新建、本地、且不同名的文件；严禁覆盖原始 DB、已有备份、已有恢复文件及 symlink。新文件权限 `0600`。禁止把输出上传 Artifact、Drive 或 Turso。
+- 源库必须通过 PR-31a 的结构、SQLite 完整性和外键检查；验证本地备份、恢复副本的 schema 和每表记录内容摘要一致。BLOB 仅在内部参与 SHA-256 计算，不输出任何原始数据、真实 ID、剧本文本、文件路径或 Token。
+- **风险状态仍不能自动消除**：源库存有 `leased`、`held`、`submission_intent` 等时，只会记录未结数，绝不清除或当作可以切换；`live_cutover_permitted=false`、`remote_transaction_verified=false`、`production_backend_switched=false` 永远保持关闭。
+- 本次只能证明测试数据本地导出/恢复；真实生产源库采集、停写冻结、可验证的远端恢复、在线多 Runner 和工作流回退都未授权且未执行。正式使用仍需独立备份策略、权限、加密存储、审计与人工批准。
+
 ## 安全测试
 
 `pytest -q tests/test_migration_readiness.py` 覆盖不存在文件拒绝且不创建目录、只读扫描前后字节一致、异步/不确定计费与预留锁阻断、外键损坏不修复、旧版缺表/缺列拒绝、异常输出脱敏，以及不导入 Turso/Drive/图像 SDK。常规 Python 3.11/3.13 CI 自动运行，默认无云凭据、无需 FFmpeg 或网络。
