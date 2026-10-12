@@ -69,7 +69,7 @@ def authorize_drive(
         "and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
     )
     response = service.files().list(
-        q=query, spaces="drive", page_size=10,
+        q=query, spaces="drive", pageSize=10,
         fields="nextPageToken,files(id,name,mimeType,parents)",
     ).execute()
     matches = response.get("files", [])

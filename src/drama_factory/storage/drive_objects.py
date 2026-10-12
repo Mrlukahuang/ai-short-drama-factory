@@ -78,7 +78,7 @@ class GoogleDriveApiClient:
         escaped = name.replace("\\", "\\\\").replace("'", "\\'")
         q = f"'{_file_id(parent_id)}' in parents and name = '{escaped}' and trashed = false"
         results = self.service.files().list(
-            q=q, spaces="drive", page_size=100,
+            q=q, spaces="drive", pageSize=100,
             fields="nextPageToken,files(id,name,mimeType,parents,appProperties,size,md5Checksum)",
         )
         items = []
@@ -86,8 +86,8 @@ class GoogleDriveApiClient:
             batch = results.execute()
             items.extend(batch.get("files", []))
             results = self.service.files().list(
-                q=q, spaces="drive", page_size=100,
-                page_token=batch["nextPageToken"],
+                q=q, spaces="drive", pageSize=100,
+                pageToken=batch["nextPageToken"],
                 fields="nextPageToken,files(id,name,mimeType,parents,appProperties,size,md5Checksum)",
             ) if batch.get("nextPageToken") else None
         return items

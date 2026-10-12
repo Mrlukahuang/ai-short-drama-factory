@@ -34,8 +34,11 @@ class DriveService:
         self.created = 0
     def files(self):
         return self
-    def list(self, **kwargs):
-        assert "'root' in parents" in kwargs["q"]
+    def list(self, *, q, spaces, pageSize, fields):
+        # Match the real Google Drive v3 API signature: page_size is invalid.
+        assert "'root' in parents" in q
+        assert spaces == "drive" and pageSize == 10
+        assert "files(id" in fields
         self.op = "list"
         return self
     def create(self, **kwargs):
