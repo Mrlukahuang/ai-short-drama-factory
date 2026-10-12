@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from contextlib import suppress
 
 from drama_factory.storage.turso_receipts import (
@@ -74,5 +75,23 @@ def main(argv=None):
     print(json.dumps(result, sort_keys=True))
 
 
+def run_cli(argv=None) -> int:
+    """Avoid leaking tokens or URLs from third-party SDK exception messages.
+
+    The imported main/check functions still raise for callers and unit tests.
+    Only the GitHub Actions CLI boundary suppresses untrusted exception text.
+    """
+    try:
+        main(argv)
+    except Exception:
+        print(
+            "Turso read-only check failed (error details redacted). "
+            "Verify the selected engine, dedicated database URL and token permissions.",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_cli())

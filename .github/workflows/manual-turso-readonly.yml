@@ -52,6 +52,7 @@ jobs:
           TURSO_ENGINE: ${{ inputs.engine }}
         shell: bash
         run: |
+          set -euo pipefail
           if [[ -z "$TURSO_DATABASE_URL" || -z "$TURSO_AUTH_TOKEN" ]]; then
             echo "::error::Dedicated short-drama Turso URL/token GitHub Secrets are missing"
             exit 1

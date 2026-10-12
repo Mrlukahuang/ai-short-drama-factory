@@ -39,7 +39,7 @@ SELECT 1;
 SELECT 1 FROM sqlite_master WHERE type='table' AND name='drama_drive_receipts_v1';
 ```
 
-返回 `reachable`、`engine`、`metadata_table_exists`、`read_only=true`。不会打印 Token 或 URL、不会向 Turso 创建表、不会修改旧库，也不会上传视频或调用 Gemini。GitHub 的 `short-drama-turso-readonly-verification` 只包含脱敏回执。
+返回 `reachable`、`engine`、`metadata_table_exists`、`read_only=true`。不会打印 Token 或 URL、不会向 Turso 创建表、不会修改旧库，也不会上传视频或调用 Gemini。GitHub 的 `short-drama-turso-readonly-verification` 只包含脱敏回执。第三方 Turso SDK 连接失败时，CLI 不打印原始异常或堆栈，以免报错消息意外包含 Secret；工作流仍返回非零退出码并标记失败。需要排错时先核对引擎、专用数据库 URL、Token 作用域及权限，不应临时把 Secret 打印到 Actions 日志。
 
 第一次连接新库时 `metadata_table_exists=false` 是**正确结果**。先确认 SDK、网络、Token 和独立数据库权限，再后续单独授权实际 metadata insert。
 
