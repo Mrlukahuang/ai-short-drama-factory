@@ -33,7 +33,7 @@ class GoogleImageSpec(BaseModel):
     aspect_ratio: Literal["1:1", "9:16", "16:9"] = "9:16"
     image_size: Literal["1K", "2K"] = "1K"
     # Explicitly an operator acknowledgement, NOT a hard API billing limit.
-    maximum_acknowledged_spend_usd: Decimal = Field(default=Decimal("0"), gt=0)
+    maximum_acknowledged_spend_usd: Decimal = Field(gt=0)
     operator_approved: bool = False
     reference_id: str | None = None
 
