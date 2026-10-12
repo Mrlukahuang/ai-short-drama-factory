@@ -1,0 +1,105 @@
+name: Manual one verified Drive MP4 to Turso receipt (PR-30c)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type UPLOAD_AND_MIRROR_ONE_VERIFIED_MP4 (one private test upload and DB write)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-drama-pr30c-single-drive-turso-receipt
+  cancel-in-progress: false
+
+jobs:
+  one-drive-turso-receipt:
+    if: ${{ inputs.confirmation == 'UPLOAD_AND_MIRROR_ONE_VERIFIED_MP4' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout approved revision
+        uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned FFmpeg and FFprobe binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'ffprobe-binaries-only==0.1.2 --hash=sha256:15b8d28d2ee159145b131450f018bf708b4910dff13a21bfa9b8e13c9309715c' > /tmp/drama-pr30c-ffmpeg.txt
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r /tmp/drama-pr30c-ffmpeg.txt
+          python - <<'PY'
+          import os
+          from importlib.metadata import distribution
+          from pathlib import Path
+          dist = distribution("ffprobe-binaries-only")
+          folder = Path("/tmp/drama-pr30c-ffmpeg")
+          folder.mkdir(exist_ok=True)
+          for name in ("ffmpeg", "ffprobe"):
+              found = [
+                  Path(dist.locate_file(p)).resolve() for p in (dist.files or [])
+                  if Path(str(p)).name == name
+              ]
+              found = [p for p in found if p.is_file()]
+              if len(found) != 1:
+                  raise RuntimeError(f"Expected exactly one bundled {name}")
+              found[0].chmod(found[0].stat().st_mode | 0o111)
+              (folder / name).symlink_to(found[0])
+          with open(os.environ["GITHUB_PATH"], "a", encoding="utf-8") as handle:
+              print(folder, file=handle)
+          PY
+      - name: Install offline video, Drive and libSQL SDKs
+        run: python -m pip install -e '.[test,drive-storage,turso-libsql]'
+      - name: Explicit manual single-file Drive -> Turso verification
+        env:
+          DRAMA_DRIVE_USER_OAUTH_JSON: ${{ secrets.DRAMA_DRIVE_USER_OAUTH_JSON }}
+          DRAMA_DRIVE_PARENT_FOLDER_ID: ${{ secrets.DRAMA_DRIVE_PARENT_FOLDER_ID }}
+          TURSO_DATABASE_URL: ${{ secrets.DRAMA_TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.DRAMA_TURSO_AUTH_TOKEN }}
+          DRAMA_TURSO_CANARY_CONFIRM: UPLOAD_AND_MIRROR_ONE_VERIFIED_MP4
+          DRAMA_DRIVE_SMOKE_CONFIRM: UPLOAD_ONE_PRIVATE_TEST_MP4
+          DRAMA_ENABLE_DRIVE_UPLOAD: 'YES'
+          DRAMA_ENABLE_DRIVE_READ: 'YES'
+          DRAMA_ENABLE_TURSO_METADATA_WRITE: 'YES'
+          DRAMA_TURSO_WRITE_CONFIRM: MIRROR_VERIFIED_DRIVE_METADATA
+          DRAMA_FACTORY_OFFLINE: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$DRAMA_DRIVE_USER_OAUTH_JSON" || -z "$DRAMA_DRIVE_PARENT_FOLDER_ID" || -z "$TURSO_DATABASE_URL" || -z "$TURSO_AUTH_TOKEN" ]]; then
+            echo "::error::Dedicated private Drive/Turso Secrets missing; no canary started"
+            exit 1
+          fi
+          python -m drama_factory.storage.turso_canary --live --out artifacts/pr30c-canary
+      - name: Validate redacted receipt only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path("artifacts/pr30c-canary/turso-canary-verification.json").read_text())
+          assert result["mode"] == "live"
+          assert result["engine"] == "libsql"
+          assert result["drive_round_trip_verified"] is True
+          assert result["uploaded_mp4_count"] == 1
+          assert result["sha256_match"] is True
+          assert result["turso_metadata_inserted"] is True
+          assert result["turso_full_row_readback_verified"] is True
+          assert result["remote_ids_redacted"] is True
+          assert result["new_ai_model_generation_calls"] == 0
+          assert result["production_sqlite_migrated"] is False
+          print("Private single-MP4 metadata verification completed; redacted only")
+          PY
+      - name: Upload verification-only artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr30c-private-drive-turso-receipt-verification
+          path: artifacts/pr30c-canary/turso-canary-verification.json
+          retention-days: 3
+          if-no-files-found: error
