@@ -120,7 +120,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_shot_jobs_provider_task
   ON shot_jobs(provider,provider_task_id) WHERE provider_task_id IS NOT NULL;
 CREATE TABLE IF NOT EXISTS google_existing_files (
  job_id TEXT PRIMARY KEY REFERENCES shot_jobs(id),
- file_id TEXT NOT NULL,
+ file_id TEXT NOT NULL UNIQUE,
  recovery_active INTEGER NOT NULL DEFAULT 0 CHECK(recovery_active IN (0,1)),
  bound_at TEXT NOT NULL
 );
