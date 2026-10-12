@@ -133,6 +133,42 @@ CREATE TRIGGER IF NOT EXISTS shot_job_events_immutable_update
 CREATE TRIGGER IF NOT EXISTS shot_job_events_immutable_delete
  BEFORE DELETE ON shot_job_events
  BEGIN SELECT RAISE(ABORT,'shot job events are append-only'); END;
+CREATE TABLE IF NOT EXISTS budget_policies (
+ id TEXT PRIMARY KEY,
+ scope TEXT NOT NULL CHECK(scope IN ('column','series','provider')),
+ scope_id TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision>0),
+ daily_limit_usd TEXT NOT NULL,
+ max_active_jobs INTEGER NOT NULL CHECK(max_active_jobs BETWEEN 1 AND 100),
+ enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),
+ created_at TEXT NOT NULL,
+ UNIQUE(scope,scope_id,revision)
+);
+CREATE INDEX IF NOT EXISTS idx_budget_policies_scope
+ ON budget_policies(scope,scope_id,revision);
+CREATE TABLE IF NOT EXISTS job_budget_reservations (
+ id TEXT PRIMARY KEY,
+ job_id TEXT NOT NULL UNIQUE REFERENCES shot_jobs(id),
+ column_id TEXT NOT NULL REFERENCES columns(id),
+ series_id TEXT NOT NULL REFERENCES projects(id),
+ provider TEXT NOT NULL,day_utc TEXT NOT NULL,
+ reserved_usd TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('held','released','reconciled')),
+ actual_usd TEXT,evidence_reference TEXT,reviewed_by TEXT,
+ policy_snapshot_json TEXT NOT NULL,
+ created_at TEXT NOT NULL,updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_job_budget_daily
+ ON job_budget_reservations(day_utc,column_id,series_id,provider,status);
+CREATE TABLE IF NOT EXISTS budget_reservation_events (
+ id TEXT PRIMARY KEY,reservation_id TEXT NOT NULL REFERENCES job_budget_reservations(id),
+ action TEXT NOT NULL,details_json TEXT NOT NULL,created_at TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS budget_events_immutable_update
+ BEFORE UPDATE ON budget_reservation_events
+ BEGIN SELECT RAISE(ABORT,'budget events are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS budget_events_immutable_delete
+ BEFORE DELETE ON budget_reservation_events
+ BEGIN SELECT RAISE(ABORT,'budget events are append-only'); END;
 CREATE TABLE IF NOT EXISTS adaptation_jobs (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL, status TEXT NOT NULL,
  request_json TEXT NOT NULL, created_at TEXT NOT NULL,
