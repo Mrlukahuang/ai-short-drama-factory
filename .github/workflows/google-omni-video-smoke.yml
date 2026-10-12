@@ -4,8 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: "Type GENERATE_ONE_PAID_VIDEO to authorize ONE Gemini Omni model request"
+        description: "GENERATE_ONE_PAID_VIDEO (charged) or RECOVER_EXISTING_VIDEO (download only)"
         required: true
+        type: string
+      recovery_file_id:
+        description: "Only for RECOVER_EXISTING_VIDEO: file ID from private recovery artifact"
+        required: false
         type: string
 
 permissions:
@@ -17,7 +21,7 @@ concurrency:
 
 jobs:
   omni-video-smoke:
-    if: ${{ inputs.confirmation == 'GENERATE_ONE_PAID_VIDEO' }}
+    if: ${{ inputs.confirmation == 'GENERATE_ONE_PAID_VIDEO' || inputs.confirmation == 'RECOVER_EXISTING_VIDEO' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -47,9 +51,18 @@ jobs:
       - name: Request ONE potentially paid Omni video and compose MP4
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          DRAMA_ENABLE_PAID_GENERATION: 'YES'
+          DRAMA_ENABLE_PAID_GENERATION: ${{ inputs.confirmation == 'GENERATE_ONE_PAID_VIDEO' && 'YES' || 'NO' }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          RECOVERY_FILE_ID: ${{ inputs.recovery_file_id }}
         run: |
-          python -m drama_factory.providers.omni_video_smoke --paid --out artifacts/omni-video-smoke
+          if [[ "${CONFIRMATION}" == "GENERATE_ONE_PAID_VIDEO" ]]; then
+            python -m drama_factory.providers.omni_video_smoke --paid --out artifacts/omni-video-smoke
+          elif [[ "${CONFIRMATION}" == "RECOVER_EXISTING_VIDEO" ]]; then
+            test -n "${RECOVERY_FILE_ID}" || { echo "::error::recovery_file_id required"; exit 1; }
+            python -m drama_factory.providers.omni_video_smoke --resume-file-id "${RECOVERY_FILE_ID}" --out artifacts/omni-video-smoke
+          else
+            echo "::error::invalid confirmation"; exit 1
+          fi
       - name: Inspect generated clip and assembled episode
         run: |
           test -s artifacts/omni-video-smoke/omni_raw.mp4
@@ -65,3 +78,12 @@ jobs:
             artifacts/omni-video-smoke/manifest.json
           retention-days: 3
           if-no-files-found: error
+
+      - name: Keep recovery-only receipt even if postprocessing fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: omni-video-recovery-receipt
+          path: artifacts/omni-video-smoke/omni_raw.recovery.json
+          retention-days: 3
+          if-no-files-found: ignore
