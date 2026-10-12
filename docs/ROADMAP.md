@@ -54,7 +54,9 @@
 - [x] PR-26a：本机 OAuth 引导、应用创建专用 My Drive 根文件夹、手动 GitHub Actions 单 MP4 上传下载验收入口与 FakeDrive CI（尚未连接真实用户账户）
 - [x] PR-26b：用户手动 OAuth 授权并成功运行真实 Google Drive 单 MP4 上传、下载、SHA256 验收（2026-10-13，GitHub Actions #38263456798）
 - [x] PR-29：Drive 双向验证完成的 MP4 文件 ID、剧集/分集/镜头归属、SHA256 安全映射到专用 Turso 元数据表（仅离线兼容测试，未连接真实 Turso）
-- [ ] PR-30：新建独立 Turso 短剧数据库并核实引擎、权限、真实连接与元数据回执（需用户配合）
+- [x] PR-30a：引擎区分、严格独立数据库域名与只读 Turso 连通性手动 GitHub Actions 工作流（仅离线 Fake 测试）
+- [ ] PR-30b：用户新建专用 Turso 短剧库，配置两个 GitHub Secrets，实际只读连通性与权限测试（需用户配合）
+- [ ] PR-30c：在真实专用 Turso 库登记一次已验证 Drive 视频的元数据回执（需要另外的人工授权）
 - [ ] PR-31：旧 SQLite 生产任务/审批/预算完整迁移及远端交易、幂等与并发验收（未实现）
 - [ ] PR-24：正式云端持续 Worker 与 Google 视频任务 ID 调度（仍需付费审批）
 - [ ] 后续 PR：受鉴权的工作人员任务列表与审片工作台、按生产线可视化调度
