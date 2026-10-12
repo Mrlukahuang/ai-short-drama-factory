@@ -10,7 +10,7 @@
 - [x] 小说上传、文本解析、章节索引、版权登记与基础门槛
 - [x] 本地 Streamlit 原型及模型注册表
 - [x] 测试和 GitHub Actions CI 代码
-- [ ] 新建独立远端 GitHub 仓库并推送 main（当前执行环境的 GitHub 连接器无创建仓库操作）
+- [x] 新建独立 Private GitHub 仓库并推送 main；29 个工程文件已上传，首次 GitHub Actions CI 通过
 
 ## M1：编剧与版权改编分支
 
