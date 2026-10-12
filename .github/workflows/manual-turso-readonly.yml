@@ -1,0 +1,66 @@
+name: Manual Turso read-only database check (no writes)
+
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: "Check the engine shown in Turso dashboard"
+        required: true
+        type: choice
+        options:
+          - libsql
+          - turso
+      confirmation:
+        description: "Type CHECK_DEDICATED_DRAMA_DB (read-only SELECT)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-drama-turso-preflight
+  cancel-in-progress: false
+
+jobs:
+  turso-readonly:
+    if: ${{ inputs.confirmation == 'CHECK_DEDICATED_DRAMA_DB' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the SDK that matches the selected Turso engine
+        env:
+          TURSO_ENGINE: ${{ inputs.engine }}
+        shell: bash
+        run: |
+          case "$TURSO_ENGINE" in
+            libsql) python -m pip install -e '.[turso-libsql]' ;;
+            turso)  python -m pip install -e '.[turso-serverless]' ;;
+            *) exit 1 ;;
+          esac
+      - name: Read-only connectivity check (no schema creation)
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.DRAMA_TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.DRAMA_TURSO_AUTH_TOKEN }}
+          DRAMA_TURSO_READ_CONFIRM: CHECK_DEDICATED_DRAMA_DB
+          TURSO_ENGINE: ${{ inputs.engine }}
+        shell: bash
+        run: |
+          if [[ -z "$TURSO_DATABASE_URL" || -z "$TURSO_AUTH_TOKEN" ]]; then
+            echo "::error::Dedicated short-drama Turso URL/token GitHub Secrets are missing"
+            exit 1
+          fi
+          python -m drama_factory.storage.turso_preflight --engine "$TURSO_ENGINE" --live | tee turso-preflight-verification.json
+      - name: Upload redacted verification receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: short-drama-turso-readonly-verification
+          path: turso-preflight-verification.json
+          retention-days: 3
+          if-no-files-found: error

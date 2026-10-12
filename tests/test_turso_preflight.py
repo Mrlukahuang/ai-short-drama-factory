@@ -1,0 +1,112 @@
+"""Read-only Turso canary cannot mutate DB, expose secrets, or run automatically."""
+from __future__ import annotations
+
+import os
+import sqlite3
+from pathlib import Path
+
+import pytest
+
+from drama_factory.storage.turso_receipts import (
+    TursoMetadataTarget, TursoReceiptError,
+)
+from drama_factory.storage.turso_preflight import check_dedicated_turso, main
+
+
+TARGET = TursoMetadataTarget(
+    url="libsql://ai-short-drama-factory-tests.turso.io", engine="libsql",
+)
+
+
+class ReadOnlyRemote:
+    def __init__(self):
+        self.db = sqlite3.connect(":memory:")
+        self.calls = []
+
+    def execute(self, sql, params=()):
+        # Allow strictly SELECT queries only.
+        assert sql.strip().upper().startswith("SELECT"), sql
+        self.calls.append((sql, params))
+        return self.db.execute(sql, params)
+
+    def close(self):
+        self.db.close()
+
+
+def test_dry_run_refuses_to_connect_until_operator_approves(monkeypatch):
+    monkeypatch.delenv("DRAMA_TURSO_READ_CONFIRM", raising=False)
+    client = ReadOnlyRemote()
+    with pytest.raises(TursoReceiptError, match="confirmation"):
+        check_dedicated_turso(TARGET, operator_approved=True, remote=client)
+    assert client.calls == []
+    monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
+    with pytest.raises(TursoReceiptError, match="confirmation"):
+        check_dedicated_turso(TARGET, operator_approved=False, remote=client)
+    assert client.calls == []
+
+
+def test_turso_preflight_checks_only_selected_table_and_redacts(monkeypatch):
+    monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
+    db = ReadOnlyRemote()
+    result = check_dedicated_turso(TARGET, operator_approved=True, remote=db)
+    assert result == {
+        "reachable": True,
+        "engine": "libsql",
+        "dedicated_name_validated": True,
+        "metadata_table_exists": False,
+        "read_only": True,
+        "database_modified": False,
+        "google_drive_operations": 0,
+        "new_ai_model_generation_calls": 0,
+    }
+    assert len(db.calls) == 2
+    assert "sqlite_master" in db.calls[1][0]
+    assert db.calls[1][1] == ("drama_drive_receipts_v1",)
+    assert "ai-short-drama-factory-tests.turso.io" not in str(result)
+    assert "DRAMA_TURSO_AUTH_TOKEN" not in str(result)
+    assert db.db.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table'").fetchone()[0] == 0
+
+
+def test_preflight_reports_existing_receipt_table_without_writing(monkeypatch):
+    monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
+    db = ReadOnlyRemote()
+    db.db.execute("CREATE TABLE drama_drive_receipts_v1 (id TEXT)")
+    db.db.commit()
+    result = check_dedicated_turso(TARGET, operator_approved=True, remote=db)
+    assert result["metadata_table_exists"] is True
+    assert len(db.calls) == 2
+
+
+def test_cli_requires_live_flag_and_fails_before_sdk_or_network(monkeypatch, capsys):
+    monkeypatch.setenv("TURSO_DATABASE_URL", "libsql://ai-short-drama-factory-tests.turso.io")
+    monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
+    with pytest.raises(TursoReceiptError, match="--live"):
+        main(["--engine", "libsql"])
+    assert capsys.readouterr().out == ""
+
+
+def test_secret_required_before_any_remote_connection(monkeypatch):
+    monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
+    monkeypatch.delenv("TURSO_AUTH_TOKEN", raising=False)
+    with pytest.raises(TursoReceiptError, match="token missing"):
+        check_dedicated_turso(TARGET, operator_approved=True)
+
+
+def test_workflow_is_manual_only_and_has_no_db_write_or_drive_token():
+    workflow = (
+        Path(__file__).resolve().parents[1]
+        / ".github/workflows/manual-turso-readonly.yml"
+    ).read_text()
+    assert "workflow_dispatch:" in workflow
+    assert "pull_request:" not in workflow
+    assert "\n  push:" not in workflow
+    assert "contents: read" in workflow
+    assert "CHECK_DEDICATED_DRAMA_DB" in workflow
+    assert "secrets.DRAMA_TURSO_DATABASE_URL" in workflow
+    assert "secrets.DRAMA_TURSO_AUTH_TOKEN" in workflow
+    assert "turso-libsql" in workflow
+    assert "turso-serverless" in workflow
+    assert "storage.turso_preflight" in workflow
+    assert "DRAMA_DRIVE_USER_OAUTH_JSON" not in workflow
+    assert "GEMINI_API_KEY" not in workflow
+    assert "MIRROR_VERIFIED_DRIVE_METADATA" not in workflow
