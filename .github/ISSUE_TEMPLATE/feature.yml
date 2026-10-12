@@ -1,0 +1,24 @@
+name: Feature / Milestone
+about: One focused production feature with acceptance criteria
+labels: [enhancement]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Objective
+      description: State the user-facing effect and data/schema interfaces.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - Given X, when Y, then Z
+        - Tests pass with fake providers
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Costs, license, security & model risks

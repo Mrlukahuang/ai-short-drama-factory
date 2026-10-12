@@ -1,0 +1,56 @@
+# 开发路线图与 PR 切分（2026-10-12）
+
+采用小 PR、独立验收、默认不花费模型费用。以下是计划，不代表已有实现。
+
+## M0：基座（当前）
+
+- [x] 真人 / 2D / 3D 原创建项 API
+- [x] 分集 JSON 和基础审核状态
+- [x] Fake 模拟（无可播放视频）
+- [x] 小说上传、文本解析、章节索引、版权登记与基础门槛
+- [x] 本地 Streamlit 原型及模型注册表
+- [x] 测试和 GitHub Actions CI 代码
+- [ ] 新建独立远端 GitHub 仓库并推送 main（当前执行环境的 GitHub 连接器无创建仓库操作）
+
+## M1：编剧与版权改编分支
+
+- [ ] PR-01：统一 Story Bible / Actor Bible / Scene / Shot 数据 Schema（冻结版本）
+- [ ] PR-02：TextProvider + FakeTextProvider + 结构化校验 + Prompt 版本
+- [ ] PR-03：安装并审计 Drama Skills；生成原创分集、镜头、中文对白
+- [ ] PR-04：小说 `NovelSource`、`SourceSpan`、`PlotEvent`、`CharacterMention`、`SeasonPlan` 的独立 Schema
+- [ ] PR-05：小说解析的章节级事件抽取（缓存/重试）；引用与溯源
+- [ ] PR-06：改编权限审核（证据/期限/地域/媒介）；改编计划审批
+
+## M2：视觉、声音、Google API
+
+- [ ] PR-07：资产库（演员、妆发、服装、表情、声音、场景和道具）+ 不可变版本
+- [ ] PR-08：Google ImageProvider，Nano Banana 角色资产及参考图检查
+- [ ] PR-09：Google VideoProvider，Omni 1.1 视频提交/查询/下载/可播放性校验
+- [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
+- [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
+
+## M3：生产与成本
+
+- [ ] PR-12：每镜头 job、provider task_id、状态、错误、实际费用及幂等 key
+- [ ] PR-13：独立失败重试、恢复轮询、并发限流、单集/每日/每 Provider 预算
+- [ ] PR-14：自动 QA（解码、字幕音长、演员视觉一致性提示及人工审批）
+
+## M4：后期成片
+
+- [ ] PR-15：FFmpeg 音画规范化、双轨混音、字幕、片尾和交付 MP4
+- [ ] PR-16：Remotion 时间线及审片 UI；逐镜头替换而无需整集重做
+
+## M5：生产部署
+
+- [ ] PR-17：从 SQLite 迁移可追溯至 Turso 的任务元数据
+- [ ] PR-18：R2/S3 对象存储、短期签名下载、加密和生命周期策略
+- [ ] PR-19：身份认证、队列 worker、定时任务、审计、版权与 AI 标识合规
+
+## 验收与门禁
+
+1. 每个 PR 至少有测试、Schema/文档及迁移说明。
+2. 新增付费 Provider 初期**默认关闭**；测试需要手动显式开启。
+3. 视频阶段必须能做到“一个镜头失败、其他通过的镜头原样复用”。
+4. 每个真人试镜案例至少测：双人对话、视线反打、微表情、动作交接。
+5. 未核准的小说或未经授权的面容/声音不得传给外部服务。
+6. 不把模型质量/价格/区域支持的尚未完成测试结果写成既定事实。

@@ -1,0 +1,82 @@
+{
+  "checked_on": "2026-10-12",
+  "default_video": "gemini-omni-1.1-flash",
+  "video_models": [
+    {
+      "id": "gemini-omni-1.1-flash",
+      "vendor": "google",
+      "status": "stable",
+      "production_eligible": true,
+      "api": "Interactions API",
+      "seconds_min": 3,
+      "seconds_max": 10,
+      "portrait": true,
+      "native_audio": true,
+      "features": [
+        "image_reference",
+        "video_edit",
+        "extend",
+        "first_last_frame"
+      ],
+      "limitations": [
+        "voice_edit_not_supported",
+        "upload_audio_reference_not_supported",
+        "non_english_video_not_fully_evaluated"
+      ],
+      "approx_720p_usd_per_second": 0.1,
+      "pricing_type": "output_token_estimate",
+      "docs": "https://ai.google.dev/gemini-api/docs/omni"
+    },
+    {
+      "id": "veo-3.1-fast-generate-preview",
+      "vendor": "google",
+      "status": "sunsetting",
+      "production_eligible": false,
+      "api": "generateContent / generate_videos",
+      "shutdown_date": "2026-10-22",
+      "seconds_options": [
+        4,
+        6,
+        8
+      ],
+      "portrait": true,
+      "native_audio": true,
+      "approx_720p_usd_per_second": 0.1,
+      "pricing_type": "duration",
+      "docs": "https://ai.google.dev/gemini-api/docs/veo"
+    },
+    {
+      "id": "veo-3.1-lite-generate-preview",
+      "vendor": "google",
+      "status": "sunsetting",
+      "production_eligible": false,
+      "shutdown_date": "2026-10-22",
+      "seconds_options": [
+        4,
+        6,
+        8
+      ],
+      "portrait": true,
+      "native_audio": true,
+      "approx_720p_usd_per_second": 0.05,
+      "pricing_type": "duration"
+    }
+  ],
+  "image_default": "gemini-nano-banana-2.1",
+  "tts_default": "gemini-3.8-flash-tts",
+  "tts_budget": "gemini-3.8-flash-lite-tts",
+  "narrative_primary_candidate": "claude-sonnet-5.5",
+  "notice": "Version registry is research configuration only; real provider APIs have not been connected or benchmarked.",
+  "research_video_competitors": [
+    "Seedance 2.5",
+    "Kling 3.0 Omni"
+  ],
+  "music_candidate": "lyria-3.5",
+  "novel_long_context_candidate": "gemini-3.8-flash",
+  "technical_notes": [
+    "Audio reference upload unsupported for Omni generation",
+    "No video voice editing; locked TTS requires independent lip-sync workflow",
+    "Veo 3.1 preview planned shutdown 2026-10-22",
+    "API subscription charged separately from consumer ChatGPT/Claude subscriptions"
+  ]
+}
