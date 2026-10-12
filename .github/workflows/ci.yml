@@ -49,7 +49,7 @@ jobs:
         env:
           DRAMA_FACTORY_OFFLINE: '1'
         run: |
-          pytest -q tests/test_offline_render.py -rs
+          pytest -q tests/test_offline_render.py tests/test_media_ingest.py -rs
           python -c "import shutil; assert shutil.which('ffmpeg') and shutil.which('ffprobe')"
       - name: Create playable 6-second MP4 (no API keys)
         env:
