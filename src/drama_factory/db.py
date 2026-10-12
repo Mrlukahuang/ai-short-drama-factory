@@ -219,6 +219,34 @@ CREATE TRIGGER IF NOT EXISTS cloud_events_immutable_update
 CREATE TRIGGER IF NOT EXISTS cloud_events_immutable_delete
  BEFORE DELETE ON cloud_artifact_events
  BEGIN SELECT RAISE(ABORT,'cloud artifact events are append-only'); END;
+CREATE TABLE IF NOT EXISTS drive_artifacts (
+ id TEXT PRIMARY KEY,
+ artifact_id TEXT NOT NULL REFERENCES stored_artifacts(id),
+ parent_folder_id TEXT NOT NULL,
+ drive_file_id TEXT NOT NULL,
+ remote_folder_id TEXT NOT NULL,
+ object_key TEXT NOT NULL,
+ sha256 TEXT NOT NULL,
+ size_bytes INTEGER NOT NULL CHECK(size_bytes>=1000),
+ created_at TEXT NOT NULL,
+ UNIQUE(artifact_id,parent_folder_id),
+ UNIQUE(parent_folder_id,drive_file_id)
+);
+CREATE INDEX IF NOT EXISTS idx_drive_artifacts_source
+ ON drive_artifacts(artifact_id,created_at);
+CREATE TABLE IF NOT EXISTS drive_artifact_events (
+ id TEXT PRIMARY KEY,
+ drive_copy_id TEXT NOT NULL REFERENCES drive_artifacts(id),
+ action TEXT NOT NULL,
+ sha256 TEXT NOT NULL,
+ created_at TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS drive_events_no_update
+ BEFORE UPDATE ON drive_artifact_events
+ BEGIN SELECT RAISE(ABORT,'drive events are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS drive_events_no_delete
+ BEFORE DELETE ON drive_artifact_events
+ BEGIN SELECT RAISE(ABORT,'drive events are append-only'); END;
 CREATE TABLE IF NOT EXISTS adaptation_jobs (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL, status TEXT NOT NULL,
  request_json TEXT NOT NULL, created_at TEXT NOT NULL,

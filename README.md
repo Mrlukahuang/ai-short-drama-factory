@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### Google Drive 私有视频资产库（PR-25）
+
+已经开始把 Google Drive 作为**优先云端视频存储**：已审核且经 SHA-256 校验的 MP4 可以进入独立的剧集 / 分集 / 镜头文件夹，远端读取并重新计算哈希后才登记 Drive File ID；也能把云端素材恢复到本地资产库再重新合成，且不触发任何 AI 视频模型。默认上传和读取门禁关闭；目前只通过 FakeDrive 客户端测试，**未向个人 Google Drive 上传真实文件**。适用于用户 OAuth 2.0，ChatGPT 已连接的 Drive 并不会自动把凭证授予 GitHub Actions。见 [GOOGLE_DRIVE_STORAGE](docs/GOOGLE_DRIVE_STORAGE.md)。
+
 ### R2/S3 私有云端单文件人工验收入口（PR-24）
 
 已加入 **仅手动启动** 的 GitHub Actions：从零生成一个完全虚构、零 AI 费用的 2 秒 MP4，向私有 Bucket 上传一个已验收的分集文件，再下载、校验 SHA-256 和媒体流；只上传不含密钥的验收 JSON。默认不会运行，须仓库拥有者设置 R2/AWS 私有 Secrets，并输入确认词；运行会产生少量对象存储/请求费用。未接入真实 Bucket 前仅有 FakeS3 CI 测试，不应声称云端已实测。见 [CLOUD_STORAGE](docs/CLOUD_STORAGE.md)。
