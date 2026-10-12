@@ -47,6 +47,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: fictional-actor-single-image
-          path: artifacts/smoke_fictional_actor.png
+          path: artifacts/smoke_fictional_actor.jpg
           retention-days: 3
           if-no-files-found: error

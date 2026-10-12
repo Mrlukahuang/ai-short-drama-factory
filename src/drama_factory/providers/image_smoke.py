@@ -75,11 +75,11 @@ def run_smoke(
             }
         if not paid:
             raise ValueError("Dry-run must not create or charge for a real image")
-        if not result.png_bytes:
+        if not result.jpeg_bytes:
             raise ValueError("Paid provider did not return image bytes")
-        location = (out_dir or Path("artifacts")) / "smoke_fictional_actor.png"
+        location = (out_dir or Path("artifacts")) / "smoke_fictional_actor.jpg"
         location.parent.mkdir(parents=True, exist_ok=True)
-        location.write_bytes(result.png_bytes)
+        location.write_bytes(result.jpeg_bytes)
         return {
             "mode": "paid-manual",
             "is_mock": False,

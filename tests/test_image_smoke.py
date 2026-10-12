@@ -1,10 +1,12 @@
 """Fully offline smoke workflow tests; never call the real Google SDK."""
 from pathlib import Path
+from io import BytesIO
+from PIL import Image
 
 import pytest
 
 from drama_factory.providers.google_image import (
-    GeneratedImage, ImageCallDisabled, PNG_SIGNATURE,
+    GeneratedImage, ImageCallDisabled,
 )
 from drama_factory.providers.image_smoke import run_smoke
 
@@ -43,13 +45,15 @@ class InjectedProvider:
 
 
 def test_injected_provider_writes_a_single_artifact(tmp_path):
-    # Signature-only payload to test the file-wiring path; not a valid displayable PNG.
-    data = PNG_SIGNATURE + b"smoke-test-stub-only"
+    # A valid in-memory JPEG also verifies the artifact's file extension.
+    buf = BytesIO()
+    Image.new("RGB", (12, 16), (100, 120, 140)).save(buf, "JPEG")
+    data = buf.getvalue()
     stub = InjectedProvider(
         GeneratedImage(
             model_id="gemini-nano-banana-2.1",
             sha256="a" * 64,
-            png_bytes=data,
+            jpeg_bytes=data,
             is_mock=False,
             paid_model_calls=1,
         )
@@ -58,7 +62,7 @@ def test_injected_provider_writes_a_single_artifact(tmp_path):
     assert stub.calls == 1
     assert result["paid_model_calls"] == 1
     assert result["image_sha256"] == "a" * 64
-    assert (tmp_path / "smoke_fictional_actor.png").read_bytes() == data
+    assert (tmp_path / "smoke_fictional_actor.jpg").read_bytes() == data
 
 
 def test_fake_response_cannot_claim_paid_success(tmp_path):
