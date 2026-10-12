@@ -58,6 +58,14 @@ python -m drama_factory.storage.migration_readiness \
 
 这些是**本地 SQLite 的已实现语义基线**，不是 Turso、libSQL 或跨 Runner 的远端并发证明。将来所有候选远端实现需在相同合同下独立跑出证据；只有真正的 Turso 事务/并发验收通过才可考虑迁移 Worker。
 
+## PR-31b1：隔离的后端接口合同（离线）
+
+`storage/ledger_backend_contract.py` 明确了现有 `jobs/shots.py`、`jobs/budgets.py` 实际使用的 `LedgerBackend` 结构接口：`connection()`、`one()`、`many()`、`exec()`，每次事务有显式 `BEGIN IMMEDIATE`、支持 rollback、外键、按字段读取。新增的 `OfflineSqliteLedger` **仅能打开已存在的本地 SQLite 文件**、必须手动传入 `offline_test_only=True`，拒绝 `libsql://` URL，并且**不调用初始化/迁移器**。
+
+测试直接以这个候选对象（而非生产 `Database` 实例）调用现有真实镜头领取和三级预算函数，重演两个并发竞争、审核异常时事务回滚，证明业务代码可以使用隔离的交易接口。此结果**不是 Turso 实现**；该候选是第二套 sqlite3 连接器，目的仅为锁定可注入接口的依赖范围和原有不可变语义。既不替换 FastAPI/Worker 当前默认数据库，也不在运行时加载 Turso SDK。
+
+合同 JSON `export_offline_contract_metadata()` 将 `remote_sql_transaction_verified`、`remote_concurrency_verified`、`production_backend_switched`、`live_migration_authorized` 保持 false。真正远端适配器需要另建、新授权、跨 Runner 压测及失败恢复；不能由此获得任何生产开关。
+
 ## 安全测试
 
 `pytest -q tests/test_migration_readiness.py` 覆盖不存在文件拒绝且不创建目录、只读扫描前后字节一致、异步/不确定计费与预留锁阻断、外键损坏不修复、旧版缺表/缺列拒绝、异常输出脱敏，以及不导入 Turso/Drive/图像 SDK。常规 Python 3.11/3.13 CI 自动运行，默认无云凭据、无需 FFmpeg 或网络。
