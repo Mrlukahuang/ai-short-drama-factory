@@ -257,3 +257,65 @@ def test_expired_submission_intent_cannot_auto_retry(client):
     assert flagged["generation_intent_recorded"] == 1
     with pytest.raises(ShotJobError, match="may have been billed"):
         restore_failed_job(db, leased["id"], operator_reviewed=True)
+
+
+def test_true_parallel_workers_claim_each_shot_at_most_once(client):
+    """PR-31b baseline: independent SQLite connections race for two pending jobs."""
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    sid, run, _ = make_production(client, "parallel-migration-baseline")
+    db = client.app.state.db
+    pending = prepare_shot_jobs(db, run)
+    assert len(pending) == 2
+    barrier = Barrier(8)
+
+    def attempt(index):
+        barrier.wait(timeout=10)
+        return claim_next_job(db, f"migration-worker-{index}", production_id=run)
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        outcomes = list(pool.map(attempt, range(8)))
+
+    claimed = [x for x in outcomes if x is not None]
+    assert len(claimed) == 2
+    assert {x["id"] for x in claimed} == {job["id"] for job in pending}
+    assert {x["lease_owner"] for x in claimed} == {
+        "migration-worker-" + str(i)
+        for i, result in enumerate(outcomes) if result is not None
+    }
+    states = db.many(
+        "SELECT id,status,attempts,provider_task_id FROM shot_jobs WHERE production_id=?",
+        (run,),
+    )
+    assert len(states) == 2
+    assert all(x["status"] == "leased" and x["attempts"] == 1 for x in states)
+    assert all(x["provider_task_id"] is None for x in states)
+    for job in pending:
+        events = db.many(
+            "SELECT action FROM shot_job_events WHERE shot_job_id=? AND action='claimed'",
+            (job["id"],),
+        )
+        assert len(events) == 1
+
+
+def test_claim_event_failure_rolls_back_lease_attempt_and_state(client, monkeypatch):
+    """A crashed audit event must not leave an untracked claimed job."""
+    import drama_factory.jobs.shots as shots_module
+
+    _, run, _ = make_production(client, "atomic-audit")
+    db = client.app.state.db
+    pending = prepare_shot_jobs(db, run)
+    def fail_event(*args, **kwargs):
+        raise RuntimeError("deliberately failed local audit insert")
+
+    monkeypatch.setattr(shots_module, "_event", fail_event)
+    with pytest.raises(RuntimeError, match="deliberately failed"):
+        claim_next_job(db, "one-worker", production_id=run)
+    job = db.one("SELECT status, attempts, lease_owner FROM shot_jobs WHERE id=?",
+                 (pending[0]["id"],))
+    assert job == {"status": "pending", "attempts": 0, "lease_owner": None}
+    assert db.one(
+        "SELECT COUNT(*) AS n FROM shot_job_events WHERE shot_job_id=? AND action='claimed'",
+        (pending[0]["id"],),
+    )["n"] == 0
