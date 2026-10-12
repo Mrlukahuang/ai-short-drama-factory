@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### R2/S3 私有云视频备份适配器（PR-23a）
+
+新增与已审核本地 `stored_artifacts` 对接的可选 R2/AWS S3 对象存储，支持私有目录、条件写入、不覆写已有对象，以及**上传后远程完整读取并逐字节 SHA256 验收**。从云端恢复的 MP4 也会重新检查哈希和媒体格式，才能回到本地资产账本。默认双门禁关闭，不配置凭证也能用 FakeS3 跑所有回归测试。**本阶段未做真实云端上传/费用验收、没有公网下载或签名链接，Bucket 私有策略须由运维配置。** 详见 [CLOUD_STORAGE](docs/CLOUD_STORAGE.md)。
+
 ### 独立存储资产恢复到新工作目录（PR-22）
 
 镜头和成片发布到独立资产库后，即使 FFmpeg 原工作目录已经删除，也可使用 `restore_stored_artifact` 恢复 MP4，或用 `recompose_from_stored_shots` 把已完成镜头重新合成为可播放分集；未完成镜头显示为技术占位画面。重新合成**不会再次调用收费视频模型**。存储仍在本地，尚未接通云存储与身份认证。详见 [ARTIFACT_STORAGE](docs/ARTIFACT_STORAGE.md)。
