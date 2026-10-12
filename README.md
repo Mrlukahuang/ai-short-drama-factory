@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### R2/S3 私有云端单文件人工验收入口（PR-24）
+
+已加入 **仅手动启动** 的 GitHub Actions：从零生成一个完全虚构、零 AI 费用的 2 秒 MP4，向私有 Bucket 上传一个已验收的分集文件，再下载、校验 SHA-256 和媒体流；只上传不含密钥的验收 JSON。默认不会运行，须仓库拥有者设置 R2/AWS 私有 Secrets，并输入确认词；运行会产生少量对象存储/请求费用。未接入真实 Bucket 前仅有 FakeS3 CI 测试，不应声称云端已实测。见 [CLOUD_STORAGE](docs/CLOUD_STORAGE.md)。
+
 ### R2/S3 私有云视频备份适配器（PR-23a）
 
 新增与已审核本地 `stored_artifacts` 对接的可选 R2/AWS S3 对象存储，支持私有目录、条件写入、不覆写已有对象，以及**上传后远程完整读取并逐字节 SHA256 验收**。从云端恢复的 MP4 也会重新检查哈希和媒体格式，才能回到本地资产账本。默认双门禁关闭，不配置凭证也能用 FakeS3 跑所有回归测试。**本阶段未做真实云端上传/费用验收、没有公网下载或签名链接，Bucket 私有策略须由运维配置。** 详见 [CLOUD_STORAGE](docs/CLOUD_STORAGE.md)。
