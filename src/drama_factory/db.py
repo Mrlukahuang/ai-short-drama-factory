@@ -94,6 +94,45 @@ CREATE TABLE IF NOT EXISTS novel_analysis_chunks (
 );
 CREATE INDEX IF NOT EXISTS idx_novel_chunks_source
   ON novel_analysis_chunks(source_id,chapter_ordinal,start_offset);
+CREATE TABLE IF NOT EXISTS shot_jobs (
+ id TEXT PRIMARY KEY,
+ production_id TEXT NOT NULL REFERENCES productions(id),
+ episode_id TEXT NOT NULL REFERENCES episodes(id),
+ series_id TEXT NOT NULL REFERENCES projects(id),
+ shot_id TEXT NOT NULL,
+ provider TEXT NOT NULL, model_id TEXT NOT NULL,
+ input_sha256 TEXT NOT NULL, idempotency_key TEXT NOT NULL UNIQUE,
+ max_acknowledged_spend_usd TEXT NOT NULL,
+ actual_vendor_charge_usd TEXT DEFAULT NULL,
+ status TEXT NOT NULL CHECK(status IN ('pending','leased','submission_intent','submitted','succeeded','failed','cancelled')),
+ generation_intent_recorded INTEGER NOT NULL DEFAULT 0 CHECK(generation_intent_recorded IN (0,1)),
+ attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts>=0),
+ max_attempts INTEGER NOT NULL DEFAULT 2 CHECK(max_attempts BETWEEN 1 AND 5),
+ provider_task_id TEXT,
+ lease_owner TEXT, lease_expires_at TEXT,
+ result_sha256 TEXT, result_path TEXT,
+ last_error TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+ UNIQUE(production_id,shot_id)
+);
+CREATE INDEX IF NOT EXISTS idx_shot_jobs_series_status
+  ON shot_jobs(series_id,status,created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_shot_jobs_provider_task
+  ON shot_jobs(provider,provider_task_id) WHERE provider_task_id IS NOT NULL;
+CREATE TABLE IF NOT EXISTS shot_job_events (
+ id TEXT PRIMARY KEY,
+ shot_job_id TEXT NOT NULL REFERENCES shot_jobs(id),
+ action TEXT NOT NULL,
+ previous_state TEXT, next_state TEXT NOT NULL,
+ details_json TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_shot_events_job
+  ON shot_job_events(shot_job_id,created_at);
+CREATE TRIGGER IF NOT EXISTS shot_job_events_immutable_update
+ BEFORE UPDATE ON shot_job_events
+ BEGIN SELECT RAISE(ABORT,'shot job events are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS shot_job_events_immutable_delete
+ BEFORE DELETE ON shot_job_events
+ BEGIN SELECT RAISE(ABORT,'shot job events are append-only'); END;
 CREATE TABLE IF NOT EXISTS adaptation_jobs (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL, status TEXT NOT NULL,
  request_json TEXT NOT NULL, created_at TEXT NOT NULL,

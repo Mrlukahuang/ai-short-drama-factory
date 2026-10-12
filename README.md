@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 镜头级任务状态与安全恢复（PR-16a）
+
+增加独立的 `shot_jobs` / `shot_job_events` SQLite 账本，支持多剧集隔离、不可变幂等键、Worker 租约和供应商任务 ID 回填。**付费请求前必须先持久化提交意图**；一旦回执丢失则阻止自动二次计费，只有人工核查后才能决定恢复。这个阶段仅是离线任务控制模块，**没有真正启动云端批量生成，也没有账单硬上限**。详见 [镜头任务账本](docs/SHOT_JOB_LEDGER.md)。
+
 ### Gemini Omni 单镜头视频实测入口（PR-13a）
 
 已经根据 Google 官方 Interactions API 建立受控的 `gemini-omni-1.1-flash` 视频适配器，包括 FakeProvider、Google Files URI 轮询/下载、内联视频读取、本地 FFprobe 检查，以及将真实视频放进我们的 6 秒混合分集。**测试工作流默认关闭**，仅在仓库拥有者手动输入 `GENERATE_ONE_PAID_VIDEO` 并通过密钥及双重批准后可能产生费用。目前还没做真实视频模型试片，普通 CI 仅离线 stub 测试。见 [OMNI_VIDEO_SMOKE](docs/OMNI_VIDEO_SMOKE.md)。
