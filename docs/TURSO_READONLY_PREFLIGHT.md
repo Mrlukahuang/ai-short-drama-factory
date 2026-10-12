@@ -1,6 +1,6 @@
 # PR-30 — 一次性 Turso 专用数据库只读连通性验收
 
-本功能**不会创建/修改任何 Turso 表**，也不访问 Google Drive。为了保护已经用于其他产品的 Turso 数据库，只接受主机名 `ai-short-drama-factory-<org>.turso.io` 的专用数据库。
+本功能**不会创建/修改任何 Turso 表**，也不访问 Google Drive。为了保护已经用于其他产品的 Turso 数据库，只接受主机名 `ai-short-drama-factory-<org>.turso.io` 或 Turso 控制台返回的区域化主机名 `ai-short-drama-factory-<org>.<region>.turso.io` 的专用数据库。
 
 ## 为什么需要新建独立数据库
 
@@ -8,8 +8,8 @@
 
 Turso Python 远程连接有两种引擎，GitHub 手动工作流需要选择实际类型：
 
-- **libSQL**（旧 Turso Cloud）：`libsql://ai-short-drama-factory-<org>.turso.io`，Python SDK `libsql`，工作流 Engine 选择 `libsql`。
-- **Turso Database**（新引擎）：`https://ai-short-drama-factory-<org>.turso.io`，Python SDK `turso_serverless`，工作流 Engine 选择 `turso`。
+- **libSQL**（旧 Turso Cloud）：`libsql://ai-short-drama-factory-<org>.turso.io` 或区域化 URL `libsql://ai-short-drama-factory-<org>.<region>.turso.io`，Python SDK `libsql`，工作流 Engine 选择 `libsql`。保留控制台显示的完整区域域名，不可自行去掉 `<region>`。
+- **Turso Database**（新引擎）：`https://ai-short-drama-factory-<org>.turso.io`（若控制台返回带区域段的主机名，也必须保留），Python SDK `turso_serverless`，工作流 Engine 选择 `turso`。
 
 官方 Python quickstart: https://github.com/tursodatabase/turso-docs/blob/main/sdk/python/quickstart.mdx
 

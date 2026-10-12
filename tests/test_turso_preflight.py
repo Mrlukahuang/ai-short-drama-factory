@@ -67,6 +67,22 @@ def test_turso_preflight_checks_only_selected_table_and_redacts(monkeypatch):
     assert db.db.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table'").fetchone()[0] == 0
 
 
+def test_preflight_accepts_regional_dashboard_hostname_read_only(monkeypatch):
+    monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
+    regional = TursoMetadataTarget(
+        url="libsql://ai-short-drama-factory-mrlukahuang.aws-ap-southeast-2.turso.io",
+        engine="libsql",
+    )
+    remote = ReadOnlyRemote()
+    result = check_dedicated_turso(regional, operator_approved=True, remote=remote)
+    assert result["reachable"] is True
+    assert result["read_only"] is True
+    assert result["database_modified"] is False
+    assert len(remote.calls) == 2
+    assert all(sql.startswith("SELECT") for sql, _ in remote.calls)
+    remote.close()
+
+
 def test_preflight_reports_existing_receipt_table_without_writing(monkeypatch):
     monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
     db = ReadOnlyRemote()
