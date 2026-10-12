@@ -187,6 +187,7 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
         shot_results.append({"shot_id": shot.shot_id, "fingerprint": key,
                              "cached": reused, "clip_name": name,
                              "media_source": "provided_local_clip" if media_source else "placeholder",
+                             "source_sha256": media_source["sha256"] if media_source else None,
                              "duration_seconds": shot.duration_seconds})
     # The concat list is constructed ONLY from our deterministic hash-based filenames.
     playlist = work / "clips.txt"
@@ -215,7 +216,8 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
         "placeholder_visuals": any(s["media_source"] == "placeholder" for s in shot_results),
         "supplied_local_clips": len(sources),
         "spoken_dialogue_generated": False,
-        "synthetic_tone_audio": True, "has_subtitle_track": True,
+        "synthetic_tone_audio": any(s["media_source"] == "placeholder" for s in shot_results),
+        "has_subtitle_track": True,
         "paid_api_calls": 0,
         "mp4_path": str(final), "mp4_sha256": digest, "media": media,
         "shots": shot_results,
