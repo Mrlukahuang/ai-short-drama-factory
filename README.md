@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### Turso 专用数据库只读连通性检查（PR-30）
+
+新增仅在 GitHub Actions **手动触发** 的 Turso 连通性验收：选清楚 libSQL 或 Turso Database 引擎、使用独立短剧数据库与私有 Token，仅执行 `SELECT 1` 和只查询指定表是否存在。不会创建表、写入账本、访问 Drive 或调用 Gemini。详见 [TURSO_READONLY_PREFLIGHT](docs/TURSO_READONLY_PREFLIGHT.md)。
+
 ### 已验证 Google Drive 资产的 Turso 独立索引（PR-29）
 
 新增 `mirror_verified_drive_receipt(...)`：只有 Drive MP4 完整上传**及**下载回读均通过哈希/媒体验收后，才可将 Series / Production / Episode / Shot、Drive 文件 ID、SHA256 与文件大小写入专门的 Turso 元数据表。默认彻底关闭、必须显式批准、要求使用名称以 `ai-short-drama-factory` 开头的**独立 Turso 数据库**，不允许使用其他项目数据库。完整短剧任务、审核和预算仍在本地 SQLite，**Turso 尚未实测连接**。详见 [TURSO_METADATA](docs/TURSO_METADATA.md)。
