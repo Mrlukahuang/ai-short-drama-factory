@@ -221,7 +221,8 @@ def unlock_stale_google_recovery(
 
 
 def compose_recovered_google_shots(
-    db: Database, production_id: str, media_root: Path,
+    db: Database, production_id: str, media_root: Path, *,
+    store_root: Path | None = None,
 ) -> dict:
     """Recompose one episode from verified recovered shots; gaps remain previews."""
     with db.connection() as conn:
@@ -250,6 +251,22 @@ def compose_recovered_google_shots(
     result["reused_existing_google_shots"] = len(media)
     result["new_model_generation_calls"] = 0
     result["historical_vendor_charge_unverified"] = True
+    # Persistent publication remains strictly opt-in. Only successful verified
+    # Google clips and this preview are eligible; unresolved jobs stay pending.
+    stored_ids = []
+    if store_root is not None:
+        from drama_factory.storage.artifacts import (
+            publish_episode_preview, publish_shot_video,
+        )
+        for row in rows:
+            if row["status"] == "succeeded":
+                stored_ids.append(
+                    publish_shot_video(db, row["id"], media_root, store_root)["id"]
+                )
+        stored_ids.append(
+            publish_episode_preview(db, production_id, media_root, store_root)["id"]
+        )
+    result["stored_artifact_ids"] = stored_ids
     # Persist the compositing handoff without rewriting the compositor's local
     # paid_api_calls=0 scope or inventing historical provider spend.
     output = Path(result["mp4_path"]).parent / "manifest.json"
