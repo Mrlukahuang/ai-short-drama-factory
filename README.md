@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 独立存储资产恢复到新工作目录（PR-22）
+
+镜头和成片发布到独立资产库后，即使 FFmpeg 原工作目录已经删除，也可使用 `restore_stored_artifact` 恢复 MP4，或用 `recompose_from_stored_shots` 把已完成镜头重新合成为可播放分集；未完成镜头显示为技术占位画面。重新合成**不会再次调用收费视频模型**。存储仍在本地，尚未接通云存储与身份认证。详见 [ARTIFACT_STORAGE](docs/ARTIFACT_STORAGE.md)。
+
 ### 已完成视频的独立持久化存储（PR-21）
 
 现在离线 Worker 与已恢复 Google 镜头的合成流程可选择把真实 MP4 镜头/成片发布到**独立本地资产目录**。发布前校验归属、实际 MP4 流、时长和 SHA256；保存后按剧集/分集隔离，重复发布不会覆写对象。即使删除 FFmpeg 临时制作目录，存储区里的资产仍可重新验证和读取。**这不是远程 R2/S3，也不是永久备份承诺；未启用公开下载 API 或云端自动收费。** 详见 [ARTIFACT_STORAGE](docs/ARTIFACT_STORAGE.md)。
