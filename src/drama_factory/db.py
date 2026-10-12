@@ -66,6 +66,17 @@ CREATE TABLE IF NOT EXISTS novel_chapters (
  excerpt TEXT NOT NULL, FOREIGN KEY(source_id) REFERENCES novel_sources(id),
  UNIQUE(source_id, ordinal)
 );
+CREATE TABLE IF NOT EXISTS novel_analysis_chunks (
+ id TEXT PRIMARY KEY, source_id TEXT NOT NULL,
+ chapter_ordinal INTEGER NOT NULL, start_offset INTEGER NOT NULL,
+ end_offset INTEGER NOT NULL, content_sha256 TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('pending','running','completed','failed')),
+ created_at TEXT NOT NULL,
+ FOREIGN KEY(source_id) REFERENCES novel_sources(id),
+ UNIQUE(source_id,chapter_ordinal,start_offset,end_offset,content_sha256)
+);
+CREATE INDEX IF NOT EXISTS idx_novel_chunks_source
+  ON novel_analysis_chunks(source_id,chapter_ordinal,start_offset);
 CREATE TABLE IF NOT EXISTS adaptation_jobs (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL, status TEXT NOT NULL,
  request_json TEXT NOT NULL, created_at TEXT NOT NULL,
