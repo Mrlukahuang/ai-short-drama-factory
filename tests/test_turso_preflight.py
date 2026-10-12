@@ -10,7 +10,7 @@ import pytest
 from drama_factory.storage.turso_receipts import (
     TursoMetadataTarget, TursoReceiptError,
 )
-from drama_factory.storage.turso_preflight import check_dedicated_turso, main
+from drama_factory.storage.turso_preflight import check_dedicated_turso, main, run_cli
 
 
 TARGET = TursoMetadataTarget(
@@ -126,3 +126,43 @@ def test_workflow_is_manual_only_and_has_no_db_write_or_drive_token():
     assert "DRAMA_DRIVE_USER_OAUTH_JSON" not in workflow
     assert "GEMINI_API_KEY" not in workflow
     assert "MIRROR_VERIFIED_DRIVE_METADATA" not in workflow
+
+
+def test_live_cli_redacts_sdk_exceptions_and_token(monkeypatch, capsys):
+    import drama_factory.storage.turso_preflight as preflight
+
+    marker = "SECRET_TOKEN_MUST_NOT_APPEAR_IN_LOGS"
+    monkeypatch.setenv("TURSO_DATABASE_URL", "libsql://ai-short-drama-factory-tests.turso.io")
+    monkeypatch.setenv("TURSO_AUTH_TOKEN", marker)
+    monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
+
+    def failing_open(_target, token):
+        raise RuntimeError(f"SDK error: authorization failed with token={token}")
+
+    monkeypatch.setattr(preflight, "_open_remote", failing_open)
+    assert run_cli(["--engine", "libsql", "--live"]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "details redacted" in captured.err
+    assert marker not in captured.err
+    assert "authorization failed" not in captured.err
+    assert "Traceback" not in captured.err
+
+
+def test_live_cli_emits_successful_redacted_verification(monkeypatch, capsys):
+    import json
+    import drama_factory.storage.turso_preflight as preflight
+
+    monkeypatch.setenv("TURSO_DATABASE_URL", "libsql://ai-short-drama-factory-tests.turso.io")
+    monkeypatch.setenv("TURSO_AUTH_TOKEN", "test-only-token")
+    monkeypatch.setenv("DRAMA_TURSO_READ_CONFIRM", "CHECK_DEDICATED_DRAMA_DB")
+    monkeypatch.setattr(preflight, "_open_remote", lambda target, token: ReadOnlyRemote())
+
+    assert run_cli(["--engine", "libsql", "--live"]) == 0
+    captured = capsys.readouterr()
+    result = json.loads(captured.out)
+    assert result["reachable"] is True
+    assert result["database_modified"] is False
+    assert result["read_only"] is True
+    assert "test-only-token" not in captured.out
+    assert captured.err == ""
