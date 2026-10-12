@@ -87,8 +87,22 @@ def verified(client, tmp_path, monkeypatch, label, fake=None):
 def test_target_engine_url_and_dedicated_namespace_validation():
     TursoMetadataTarget(url="https://ai-short-drama-factory-example.turso.io", engine="turso")
     TursoMetadataTarget(url="https://ai-short-drama-factory-example.turso.io", engine="libsql")
+    # Regional URLs are returned by the real Turso dashboard (Sydney shown here).
+    for url, engine in (
+        ("libsql://ai-short-drama-factory-mrlukahuang.aws-ap-southeast-2.turso.io", "libsql"),
+        ("https://ai-short-drama-factory-mrlukahuang.aws-ap-southeast-2.turso.io", "libsql"),
+        ("https://ai-short-drama-factory-example.aws-ap-southeast-2.turso.io", "turso"),
+    ):
+        TursoMetadataTarget(url=url, engine=engine)
     for bad in (
         ("https://unrelated-project-example.turso.io", "turso"),
+        ("libsql://unrelated-project-example.aws-ap-southeast-2.turso.io", "libsql"),
+        ("libsql://ai-short-drama-factory-example.private.aws-ap-southeast-2.turso.io", "libsql"),
+        ("libsql://ai-short-drama-factory-example.aws-ap-southeast-2.turso.io.evil.example", "libsql"),
+        ("libsql://ai-short-drama-factory-example.aws-ap-southeast-2.turso.io?authToken=secret", "libsql"),
+        ("libsql://user:pass@ai-short-drama-factory-example.aws-ap-southeast-2.turso.io", "libsql"),
+        ("libsql://ai-short-drama-factory-example.aws-ap-southeast-2.turso.io:443", "libsql"),
+        ("libsql://ai-short-drama-factory-example.aws-ap-southeast-2.turso.io/path", "libsql"),
         ("http://ai-short-drama-factory-example.turso.io", "turso"),
         ("libsql://ai-short-drama-factory-example.turso.io", "turso"),
         ("https://ai-short-drama-factory-example.turso.io.evil.com", "turso"),
