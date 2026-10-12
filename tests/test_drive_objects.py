@@ -191,3 +191,41 @@ def test_nonreviewed_artifact_not_uploaded_and_audit_is_append_only(client, tmp_
     with pytest.raises(sqlite3.IntegrityError, match="append-only"):
         db.exec("DELETE FROM drive_artifact_events WHERE id=?", (event["id"],))
     assert fake.upload_calls == 1
+
+
+def test_google_sdk_files_list_uses_camel_case_and_paginates():
+    """Use the Google API v3 keyword signature, not permissive **kwargs fakes."""
+    class StrictDriveService:
+        def __init__(self):
+            self.calls = []
+            self.response = None
+
+        def files(self):
+            return self
+
+        def list(self, *, q, spaces, pageSize, fields, pageToken=None):
+            assert q == "'fakeDriveRoot0001' in parents and name = 'video' and trashed = false"
+            assert spaces == "drive"
+            assert pageSize == 100
+            assert "nextPageToken" in fields
+            self.calls.append(pageToken)
+            if pageToken is None:
+                self.response = {
+                    "files": [{"id": "firstvideo"}],
+                    "nextPageToken": "second-page",
+                }
+            elif pageToken == "second-page":
+                self.response = {"files": [{"id": "secondvideo"}]}
+            else:
+                raise AssertionError("Unexpected Drive pagination token")
+            return self
+
+        def execute(self):
+            return self.response
+
+    service = StrictDriveService()
+    adapter = GoogleDriveApiClient.__new__(GoogleDriveApiClient)
+    adapter.service = service
+    files = adapter.list_named("fakeDriveRoot0001", "video")
+    assert [item["id"] for item in files] == ["firstvideo", "secondvideo"]
+    assert service.calls == [None, "second-page"]
