@@ -24,6 +24,7 @@ class OfflineWorkerError(RuntimeError):
 def run_offline_production(
     db: Database, production_id: str, media_root: Path,
     *, worker_id: str = "offline-worker",
+    store_root: Path | None = None,
 ) -> dict:
     """One production; claiming and processing never leaves its series boundary."""
     jobs = prepare_shot_jobs(
@@ -78,7 +79,20 @@ def run_offline_production(
     )
     if not rows or any(job["status"] != "succeeded" for job in rows):
         raise OfflineWorkerError("Some offline shots did not complete")
+    published = []
+    if store_root is not None:
+        from drama_factory.storage.artifacts import (
+            publish_episode_preview, publish_shot_video,
+        )
+        for job in rows:
+            published.append(
+                publish_shot_video(db, job["id"], media_root, store_root)["id"]
+            )
+        published.append(
+            publish_episode_preview(db, production_id, media_root, store_root)["id"]
+        )
     return {
+        "published_artifact_ids": published,
         "production_id": production_id,
         "series_id": manifest["series_id"],
         "shot_job_count": len(rows),
@@ -94,6 +108,7 @@ def run_offline_production(
 def run_offline_multi_series(
     db: Database, production_ids: list[str], media_root: Path,
     *, max_workers: int = 2,
+    store_root: Path | None = None,
 ) -> list[dict]:
     """Bounded multi-series execution with SQLite-atomic claims.
 
@@ -112,6 +127,7 @@ def run_offline_multi_series(
             pool.submit(
                 run_offline_production, db, run_id, root,
                 worker_id=f"offline_worker_{index:02d}",
+                store_root=store_root,
             )
             for index, run_id in enumerate(production_ids)
         ]
