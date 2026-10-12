@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 长篇小说任务分块（PR-05a）
+
+新增小说章节级离线 chunk 清单与幂等准备 API；记录绝对偏移、原文片段哈希和 pending 状态，不返回正文也不发送给 AI。详见 [NOVEL_CHUNKS](docs/NOVEL_CHUNKS.md)。这不是自动情节抽取，真实 Provider 尚未开启。
+
 ### 小说改编 Blueprint 数据 Schema（PR-04）
 
 新增独立 `NovelSource / SourceSpan / CharacterMention / PlotEvent / SeasonPlan` 数据结构，并校验小说哈希、章节边界、人物关联、情节因果与分集事件映射。这是离线结构校验，**还不是自动拆集**。参见 [小说 Schema](docs/NOVEL_SCHEMAS.md)。
