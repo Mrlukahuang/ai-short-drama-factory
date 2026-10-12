@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 多条短剧线并行离线 Worker（PR-18）
+
+已经可以让同一数据库的多部不同短剧同时领取独立的 Fake 镜头任务，使用 FFmpeg/Pillow 真正合成 MP4，并将每个成功镜头的文件哈希写回各自的任务账本。重复运行会使用已有缓存；某个剧集失败不会自动重新生成其他剧集的镜头。**Fake Worker 不调用任何付费图片/视频/TTS Provider，也不代表真正 AI 视频批量生产已经完成。** 详见 [OFFLINE_WORKERS](docs/OFFLINE_WORKERS.md)。
+
 ### 栏目、剧集、供应商三级费用与并发门禁（PR-17）
 
 新增纯离线预算政策及原子预留，Worker 必须取得当日三层预算预留后才能进入付费生成意图。多部剧共享栏目总额，剧集和供应商可单独设限；确认过的实际费用和未结算预留都会占用额度。**不是供应商账单硬封顶，也没有启用自动付费 Worker。** 详见 [BUDGET_GATES](docs/BUDGET_GATES.md)。
