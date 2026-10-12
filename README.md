@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 已验证 Google Drive 资产的 Turso 独立索引（PR-29）
+
+新增 `mirror_verified_drive_receipt(...)`：只有 Drive MP4 完整上传**及**下载回读均通过哈希/媒体验收后，才可将 Series / Production / Episode / Shot、Drive 文件 ID、SHA256 与文件大小写入专门的 Turso 元数据表。默认彻底关闭、必须显式批准、要求使用名称以 `ai-short-drama-factory` 开头的**独立 Turso 数据库**，不允许使用其他项目数据库。完整短剧任务、审核和预算仍在本地 SQLite，**Turso 尚未实测连接**。详见 [TURSO_METADATA](docs/TURSO_METADATA.md)。
+
 ### Google Drive OAuth 和手动测试（PR-26）
 
 新增运行在用户自己电脑上的一次性 OAuth 引导工具，以及必须由仓库拥有者手动启动的 GitHub Actions：**一个 2 秒原创技术 MP4 上传到个人 Google Drive，下载后完整检查 SHA256**。OAuth 默认只请求 `drive.file`，由应用在 My Drive 创建自己的视频文件夹；刷新令牌只保存在本地受限文件中，需操作者自行通过 GitHub Secrets 安全传入工作流。普通 PR/CI **没有真实 Drive 读写**，仅通过 FakeDrive 测试。详见 [DRIVE_OAUTH_SETUP](docs/DRIVE_OAUTH_SETUP.md)。
