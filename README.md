@@ -51,7 +51,11 @@ flowchart TD
 
 ### 已验证 Google Drive 资产的 Turso 独立索引（PR-29）
 
-新增 `mirror_verified_drive_receipt(...)`：只有 Drive MP4 完整上传**及**下载回读均通过哈希/媒体验收后，才可将 Series / Production / Episode / Shot、Drive 文件 ID、SHA256 与文件大小写入专门的 Turso 元数据表。默认彻底关闭、必须显式批准、要求使用名称以 `ai-short-drama-factory` 开头的**独立 Turso 数据库**，不允许使用其他项目数据库。完整短剧任务、审核和预算仍在本地 SQLite，**Turso 尚未实测连接**。详见 [TURSO_METADATA](docs/TURSO_METADATA.md)。
+新增 `mirror_verified_drive_receipt(...)`：只有 Drive MP4 完整上传**及**下载回读均通过哈希/媒体验收后，才可将 Series / Production / Episode / Shot、Drive 文件 ID、SHA256 与文件大小写入专门的 Turso 元数据表。默认彻底关闭、必须显式批准、要求使用名称以 `ai-short-drama-factory` 开头的**独立 Turso 数据库**，不允许使用其他项目数据库。完整短剧任务、审核和预算仍在本地 SQLite。**专用 Turso 已通过真实只读连通（PR-30b）及单条已验证 Drive 元数据写入回读（PR-30c）**；这并非生产 SQLite 迁移。详见 [TURSO_METADATA](docs/TURSO_METADATA.md) 和 [TURSO_PR30C_WRITE_CANARY](docs/TURSO_PR30C_WRITE_CANARY.md)。
+
+### 生产 SQLite 迁移体检（PR-31a）
+
+新增一个**仅本地只读** SQLite 源库体检器：检查结构完整性、外键异常、未结租约、供应商提交意图、预算预留和 Google 恢复锁，不打印个人数据、身份 ID 或内容。即使全部离线检查通过，也**不会允许迁移或切换远端生产数据库**。详见 [PR31_MIGRATION_READINESS](docs/PR31_MIGRATION_READINESS.md)。
 
 ### Google Drive OAuth 和手动测试（PR-26）
 
