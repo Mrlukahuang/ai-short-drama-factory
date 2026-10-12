@@ -175,6 +175,23 @@ CREATE TRIGGER IF NOT EXISTS budget_events_immutable_update
 CREATE TRIGGER IF NOT EXISTS budget_events_immutable_delete
  BEFORE DELETE ON budget_reservation_events
  BEGIN SELECT RAISE(ABORT,'budget events are append-only'); END;
+CREATE TABLE IF NOT EXISTS stored_artifacts (
+ id TEXT PRIMARY KEY,
+ production_id TEXT NOT NULL REFERENCES productions(id),
+ episode_id TEXT NOT NULL REFERENCES episodes(id),
+ series_id TEXT NOT NULL REFERENCES projects(id),
+ shot_job_id TEXT REFERENCES shot_jobs(id),
+ kind TEXT NOT NULL CHECK(kind IN ('episode_preview','shot_video')),
+ object_key TEXT NOT NULL UNIQUE,
+ sha256 TEXT NOT NULL,
+ size_bytes INTEGER NOT NULL CHECK(size_bytes>=1000),
+ media_json TEXT NOT NULL,
+ created_at TEXT NOT NULL,
+ CHECK((kind='episode_preview' AND shot_job_id IS NULL)
+    OR (kind='shot_video' AND shot_job_id IS NOT NULL))
+);
+CREATE INDEX IF NOT EXISTS idx_stored_artifacts_production
+ ON stored_artifacts(production_id,kind,created_at);
 CREATE TABLE IF NOT EXISTS adaptation_jobs (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL, status TEXT NOT NULL,
  request_json TEXT NOT NULL, created_at TEXT NOT NULL,
