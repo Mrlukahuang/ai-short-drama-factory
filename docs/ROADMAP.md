@@ -16,7 +16,7 @@
 
 - [x] PR-01：Column → Series → Episode 层级、Story/Actor/Scene/Voice/Prop 契约与独立资产库；旧项目自动归入默认栏目、跨剧引用阻断。并发 Worker 仍在 M3。
 - [x] PR-02：TextProvider + FakeTextProvider + 结构化校验 + Prompt 版本（模拟草稿，尚无真实 AI 文本生成）
-- [ ] PR-03：安装并审计 Drama Skills；生成原创分集、镜头、中文对白
+- [x] PR-03：审阅 Drama Skills（MIT/Agent 工作流），建立真人分集/镜头/对白的严格契约、跨剧引用校验和人工提交接口；**真实 AI 创作尚未接入**
 - [ ] PR-04：小说 `NovelSource`、`SourceSpan`、`PlotEvent`、`CharacterMention`、`SeasonPlan` 的独立 Schema
 - [ ] PR-05：小说解析的章节级事件抽取（缓存/重试）；引用与溯源
 - [ ] PR-06：改编权限审核（证据/期限/地域/媒介）；改编计划审批
