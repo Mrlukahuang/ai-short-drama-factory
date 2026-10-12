@@ -1,6 +1,6 @@
 # PR-30c — 一次性真实 Drive MP4 → 专用 Turso 回执写入验收
 
-> **状态：代码准备/离线 CI；不是实测完成记录。** 只有下述独立手动 GitHub Actions 成功、日志和脱敏 Artifact 经过检查后，才能将 PR-30c 标为真实写入成功。
+> **状态：真实验收成功（2026-10-13）。** 手动 GitHub Actions [#38279948391](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38279948391) 已成功完成一次 Drive MP4 双向验证和短剧专用 Turso 的单条元数据 INSERT/完整回读。这次一次性写入测试**不可重复执行**，需要新的明确授权才能再上传/写入。
 
 ## 授权与严格边界
 
@@ -36,8 +36,17 @@
 - 工程端 `mirror_verified_drive_receipt` 不用 UPDATE/DELETE/REPLACE，使用主键和 Drive ID 唯一约束保护已有回执，不一致直接拒绝；故障恢复及跨运行幂等仍属未来改造范围。
 - 任何权限、生产迁移、正式批量视频调用、公共部署都**不在** PR-30c 范围。
 
-## 离线验证和后续实测证据
+## 离线验证与真实验收证据
 
 本 PR 添加 FakeDrive + SQLite 内存远程 SQL Adapter 单条联调测试、损坏下载阻断镜像、完整写入前置门禁、脱敏异常及 Workflow 手动触发静态约束。FFmpeg 专项 Job 强制运行 `tests/test_turso_canary.py`，正常 Python 3.11/3.13 CI 也运行不需要外部 Secrets 的测试。
 
-PR-30b 真只读成功记录：[Actions #38277564945](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38277564945)，不能替代 PR-30c 的真实写入验收。
+PR-30b 真只读成功记录：[Actions #38277564945](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38277564945)，它只证明两条 SELECT-only 查询。PR-30c 的写入另由以下运行真实证明：
+
+### PR-30c 单次真实运行 #38279948391
+
+- **来源/版本**：[GitHub Actions #38279948391](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38279948391)，`workflow_dispatch`，`main` commit `5f0f63b92b4214d59b3185ca857e33c647aad2ab`，GitHub 结论为 `success`。
+- **实际日志**：`{"database_modified": true, "dedicated_name_validated": true, "drive_round_trip_verified": true, "engine": "libsql", "mode": "live", "new_ai_model_generation_calls": 0, "production_sqlite_migrated": false, "remote_ids_redacted": true, "sha256_match": true, "size_bytes": 62676, "turso_full_row_readback_verified": true, "turso_metadata_inserted": true, "turso_table": "drama_drive_receipts_v1", "uploaded_mp4_count": 1}`。
+- **确认步骤**：安装 FFmpeg/FFprobe、Drive SDK、libSQL SDK 成功；私有 Drive MP4 生成/上传/下载及恢复校验成功；Turso `drama_drive_receipts_v1` 表创建与一次元数据 INSERT 成功；代码用 SELECT 将远端所有字段与本地已验证回执逐项比对成功。
+- **只存脱敏数据**：GitHub Artifact `pr30c-private-drive-turso-receipt-verification` 已上传（Artifact ID `11760961144`，GitHub 保留 3 天）。日志输出没有远端文件 ID、账号密钥或 OAuth Token。
+- **不能推断的能力**：未验证其他数据库，不代表整套生产 SQLite 迁到 Turso；未验证跨 Runner/跨任务多写并发或新视频生成 API；临时本地 SQLite 本次运行结束后不保留为正式持久生产账本。
+- **授权状态**：2026-10-13 的**一次性**测试写入授权已经用完。以后不要再次触发本工作流，除非先获得针对新的 Drive 上传和 Turso 写入的明确授权。后续 PR-31 需单独规划、评审和验收。

@@ -1,4 +1,8 @@
-# PR-29 — Google Drive 验收后的 Turso 元数据索引（**离线准备，未连接真库**）
+# PR-29 — Google Drive 验收后的 Turso 元数据索引（已于 PR-30c 完成真实单条写入验收）
+
+## 实测进展（2026-10-13）
+
+已在独立短剧 Turso libSQL 库通过 PR-30b 真只读验收 [Actions #38277564945](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38277564945)，并通过 PR-30c 一次实际 Google Drive MP4 双向校验 → 远端表创建、单条 INSERT、全字段回读验收 [Actions #38279948391](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38279948391)。后者报告 MP4 大小 62,676 字节、SHA256 匹配、`turso_metadata_inserted=true`、`turso_full_row_readback_verified=true`，AI 调用次数为 0。**这是专用元数据表的实际写入，不是旧 SQLite 整库迁移或生产并发验收。** 详见 [TURSO_PR30C_WRITE_CANARY](TURSO_PR30C_WRITE_CANARY.md)。
 
 ## 目标与边界
 
@@ -44,6 +48,6 @@ Turso 现有 **libSQL（原 Turso Cloud）** 与新版 **Turso Database** 的 Py
 - 认证门禁、引擎 URL 约束、双向 Drive 验证不可缺、远端字段逐项复核、同内容重复运行幂等、冲突/跨剧隔离、文件损坏拒绝。
 - 在 GitHub 的 FFmpeg 专项 CI **强制运行**相关测试。这个结果证明的是镜像逻辑，而非真实 Turso 云端数据库的兼容性；PR-30 将用独立新库实测引擎及权限后才能称为云端可用。
 
-## 还没有完成的项目
+## 仍待完成的项目
 
-当前真实 Drive 单文件工作流仍以临时 SQLite 测试为主，本 PR **不会悄悄创建、连接或修改用户 Turso 的任何数据库**。以后 PR-30 需显式配置新的 Turso 数据库与 Secret，然后受控打通实际索引回执；PR-31 再单独设计生产数据库的原子交易、租约、预算审核迁移及断线恢复。不得将这一步的 metadata mirror 说成已经迁移了整个短剧生产数据库。
+PR-30b/PR-30c 已在独立短剧数据库真实验收一条 metadata mirror。但短剧工作流仍依赖 Runner 临时 SQLite 生成源回执，完成后 Runner 本地账本不作跨运行持久化承诺。下一阶段 PR-31 需另行规划生产数据库的原子交易、租约、预算审核迁移与断线恢复，**不能将这一步的 metadata mirror 说成整套短剧生产数据库已经迁移**。本次一次性云写入授权已使用，不得未经新授权重复触发上传或写入。
