@@ -35,3 +35,26 @@ python -m drama_factory.providers.omni_video_smoke --out artifacts/offline-demo
 ```
 
 离线 CI 通过 Fake Provider / 注入 SDK stub 测试，确保 provider gate、URI 轮询/下载、内联 Base64、媒体校验、后期衔接不依赖 Google API。
+
+
+## PR-14：首次视频试片失败与下载恢复机制
+
+2026-10-12 [GitHub Actions #38229227030](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38229227030) 在提交 Omni 视频生成请求之后收到 `output_video.uri`，但旧版本将 URI 最后一段按纯 ID 检查，未能接受 Google 的 `:download?alt=media` 后缀，故失败为 `InvalidVideoResponse: Invalid Google video file URI`。**密钥检查成功，SDK 安装成功，但视频未下载、未完成合成；Google 侧可能已计费，需看账号账单。**
+
+按照 [Google 官方 Omni URI 视频交付文档](https://ai.google.dev/gemini-api/docs/omni) 修正 URI 解析：支持 `https://generativelanguage.googleapis.com/v1beta/files/文件ID:download?alt=media`，严格限制 Google 官方域名与文件路径，并将不含密钥、原始 URL 或提示词的文件 ID 写入仅仓库私有的 `omni-video-recovery-receipt` Artifact（保留 3 天）。FFmpeg 或文件下载失败时，该凭据仍尽可能上传。
+
+### 免费恢复已有结果（不提交新的视频生成）
+
+当先前的运行已经生成 `omni-video-recovery-receipt`，但因为视频下载、后期或验收失败而未完成成片：
+
+1. 打开那次运行，下载 `omni-video-recovery-receipt` 并读取其 `file_id`（只用于私有仓库）。
+2. 从本仓库 **最新 main** 的 Actions → `Google Omni one-video to episode (manual, may incur cost)` 新开工作流。
+3. `confirmation` 输入 **`RECOVER_EXISTING_VIDEO`**，`recovery_file_id` 填写上一步的 ID。
+4. 系统仅用 `client.files.get` / `client.files.download` 查询及获取以前的已生成文件，再交给现有 FFmpeg 合成管线；**绝不调用 `interactions.create`**，不再次提交视频生成请求。
+5. 这不保证 Google 文件永久保留或能被所有账号访问；若文件失效会失败，但不会自动再付费生成。保存的文件 ID 不应公开发布。
+
+本次 #38229227030 使用旧代码，**没有保存恢复 Artifact，不能凭现有日志取得文件 ID**；因此本次无法直接使用免费恢复功能。
+
+### 新的真实试片
+
+只有在用户检查了先前 Google 账单并认可再次收费测试后，才可以从最新 main 的手动 Workflow 输入 `GENERATE_ONE_PAID_VIDEO` 启动新的**单次**视频生成请求。失败后优先检查新创建的恢复 Artifact，不要直接点击 Re-run jobs。
