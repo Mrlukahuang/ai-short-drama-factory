@@ -30,7 +30,9 @@
 - [x] PR-08a：Google Nano Banana 2.1 受控 SDK Provider + Fake + 门禁测试；未实际调用、未存储媒体、尚无参考图条件输入
 - [x] PR-09a：手动单张 Google 图片冒烟测试工作流、私有 Secret 和零调用默认模式；**真实 API 调用尚未执行**
 - [ ] PR-08b：Google 图片生成端到端真实试片、参考图载入、审核后保存资产版本（需用户设置 Secret 并确认预算）
-- [ ] PR-09：Google VideoProvider，Omni 1.1 视频提交/查询/下载/可播放性校验
+- [x] PR-13a：Omni 1.1 VideoProvider + Fake、URI/内联交付模拟测试及一次性手动付费工作流（尚未真实试片）
+- [ ] PR-13b：真实 Omni 单镜头试片及端到端合成、账单实测（需用户手动触发）
+- [ ] PR-09：生产级 Omni 视频任务状态记录、恢复轮询/下载和可播放性校验
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
 - [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
 
