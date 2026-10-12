@@ -197,3 +197,70 @@ def test_operator_entered_over_reserve_charge_cannot_hide_overspend(client):
     second = claim_next_job(db, "worker2", series_id=sid)
     with pytest.raises(BudgetDenied, match="daily budget"):
         reserve_job_budget(db, second["id"], estimated_charge_usd="0.10")
+
+
+def test_true_concurrent_budget_reservations_never_exceed_limits(client):
+    """PR-31b source baseline: simultaneous reservations cannot double-spend."""
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    sid, _ = prepared(client, "two simultaneous budget requests")
+    db = client.app.state.db
+    configure_three(
+        db, sid, column_limit="0.60", series_limit="0.60",
+        provider_limit="0.60", parallel=2,
+    )
+    first = claim_next_job(db, "parallel-budget-a", series_id=sid)
+    second = claim_next_job(db, "parallel-budget-b", series_id=sid)
+    assert first["id"] != second["id"]
+    gate = Barrier(2)
+
+    def reserve(job_id):
+        gate.wait(timeout=10)
+        try:
+            return reserve_job_budget(
+                db, job_id, estimated_charge_usd="0.40",
+            )["status"]
+        except BudgetDenied:
+            return "denied"
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        outcomes = list(pool.map(reserve, (first["id"], second["id"])))
+
+    assert sorted(outcomes) == ["denied", "held"]
+    reservations = db.many("SELECT job_id,reserved_usd,status FROM job_budget_reservations")
+    assert len(reservations) == 1
+    assert reservations[0]["reserved_usd"] == "0.40"
+    assert reservations[0]["status"] == "held"
+    assert db.one(
+        "SELECT COUNT(*) AS n FROM budget_reservation_events WHERE action='held'"
+    )["n"] == 1
+    assert db.one(
+        "SELECT COUNT(*) AS n FROM shot_jobs WHERE generation_intent_recorded=1"
+    )["n"] == 0
+
+
+def test_budget_audit_failure_undoes_reservation_without_overspending(client, monkeypatch):
+    """Reservation and audit must commit or roll back together."""
+    import drama_factory.jobs.budgets as budgets_module
+
+    sid, _ = prepared(client, "migration-atomic-budget-audit")
+    db = client.app.state.db
+    configure_three(db, sid)
+    job = claim_next_job(db, "budget-worker", series_id=sid)
+
+    def fail_event(*args, **kwargs):
+        raise RuntimeError("simulated reservation audit failure")
+
+    monkeypatch.setattr(budgets_module, "_event", fail_event)
+    with pytest.raises(RuntimeError, match="simulated reservation audit failure"):
+        reserve_job_budget(db, job["id"], estimated_charge_usd="0.40")
+    assert db.one(
+        "SELECT COUNT(*) AS n FROM job_budget_reservations"
+    )["n"] == 0
+    assert db.one(
+        "SELECT COUNT(*) AS n FROM budget_reservation_events"
+    )["n"] == 0
+    assert db.one(
+        "SELECT status FROM shot_jobs WHERE id=?", (job["id"],),
+    )["status"] == "leased"
