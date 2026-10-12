@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -73,7 +74,19 @@ def build_offline_demo(out: Path) -> dict:
         production = _post(client, f"/api/v1/episodes/{episode_id}/productions")["production_id"]
         _post(client, f"/api/v1/productions/{production}/approve-script")
         _post(client, f"/api/v1/productions/{production}/approve-characters")
-        result = render_approved_preview(client.app.state.db, production, out / "working")
+        # A moving, locally generated clip stands in for a future Google/Kling/Seedance
+        # download. No model is used; this deliberately tests external-media ingress.
+        test_footage = out / "synthetic-moving-input.mp4"
+        subprocess.run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-f", "lavfi", "-i", "testsrc2=size=640x360:rate=24",
+            "-t", "2", "-c:v", "libx264", "-preset", "ultrafast",
+            "-pix_fmt", "yuv420p", str(test_footage),
+        ], capture_output=True, text=True, timeout=90, check=True)
+        result = render_approved_preview(
+            client.app.state.db, production, out / "working",
+            source_clips={"S002": test_footage},
+        )
     shutil.copyfile(result["mp4_path"], out / "demo.mp4")
     (out / "manifest.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return result
@@ -88,7 +101,8 @@ def main(argv: list[str] | None = None):
         "success": True, "preview_file": str(args.out / "demo.mp4"),
         "duration": manifest["media"]["duration_seconds"],
         "shots": len(manifest["shots"]), "paid_api_calls": 0,
-        "placeholder_visuals": True,
+        "placeholder_visuals": manifest["placeholder_visuals"],
+        "supplied_local_clips": manifest["supplied_local_clips"],
     }))
 
 
