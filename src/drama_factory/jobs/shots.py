@@ -199,6 +199,14 @@ def record_submission_intent(
     with db.connection() as conn:
         conn.execute("BEGIN IMMEDIATE")
         _leased(conn, job_id, worker_id, now)
+        reserve = conn.execute(
+            """SELECT day_utc FROM job_budget_reservations
+            WHERE job_id=? AND status='held'""", (job_id,),
+        ).fetchone()
+        if reserve is None or reserve["day_utc"] != _at(now)[:10]:
+            raise ShotJobError(
+                "A current-day held budget reservation is required before paid intent"
+            )
         conn.execute(
             """UPDATE shot_jobs SET status='submission_intent',
                generation_intent_recorded=1,updated_at=? WHERE id=?""",
