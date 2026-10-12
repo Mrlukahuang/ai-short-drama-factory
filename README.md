@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 小说版权审核与调用门禁（PR-06a）
+
+记录人工审核版本、影视改编范围、语言/地域/媒介、有效期、第三方 AI 处理许可，并提供 `rights-eligibility` 查询。当前没有管理员认证，**只能作为本地开发和待核实声明；即使资格通过也不会启用外部模型**。详见 [NOVEL_RIGHTS](docs/NOVEL_RIGHTS.md)。
+
 ### 长篇小说任务分块（PR-05a）
 
 新增小说章节级离线 chunk 清单与幂等准备 API；记录绝对偏移、原文片段哈希和 pending 状态，不返回正文也不发送给 AI。详见 [NOVEL_CHUNKS](docs/NOVEL_CHUNKS.md)。这不是自动情节抽取，真实 Provider 尚未开启。

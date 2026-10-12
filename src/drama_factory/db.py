@@ -66,6 +66,13 @@ CREATE TABLE IF NOT EXISTS novel_chapters (
  excerpt TEXT NOT NULL, FOREIGN KEY(source_id) REFERENCES novel_sources(id),
  UNIQUE(source_id, ordinal)
 );
+CREATE TABLE IF NOT EXISTS novel_rights_reviews (
+ id TEXT PRIMARY KEY, source_id TEXT NOT NULL, version INTEGER NOT NULL CHECK(version>0),
+ review_json TEXT NOT NULL, created_at TEXT NOT NULL,
+ FOREIGN KEY(source_id) REFERENCES novel_sources(id), UNIQUE(source_id,version)
+);
+CREATE INDEX IF NOT EXISTS idx_novel_rights_reviews
+ ON novel_rights_reviews(source_id,version);
 CREATE TABLE IF NOT EXISTS novel_analysis_chunks (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL,
  chapter_ordinal INTEGER NOT NULL, start_offset INTEGER NOT NULL,
