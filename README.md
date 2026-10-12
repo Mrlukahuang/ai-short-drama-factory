@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 已完成视频的独立持久化存储（PR-21）
+
+现在离线 Worker 与已恢复 Google 镜头的合成流程可选择把真实 MP4 镜头/成片发布到**独立本地资产目录**。发布前校验归属、实际 MP4 流、时长和 SHA256；保存后按剧集/分集隔离，重复发布不会覆写对象。即使删除 FFmpeg 临时制作目录，存储区里的资产仍可重新验证和读取。**这不是远程 R2/S3，也不是永久备份承诺；未启用公开下载 API 或云端自动收费。** 详见 [ARTIFACT_STORAGE](docs/ARTIFACT_STORAGE.md)。
+
 ### 多栏目生产状态与预算只读总览（PR-20）
 
 新增 `production_operations(db, column_id=..., series_id=...)`，可对各个栏目和剧集分别汇总镜头状态、已提交但未核实费用、异常租约、下载恢复锁，以及栏目/剧集/Provider 预算占用。**只读内部 Python 函数，未向公网开放未鉴权接口，也不调用模型。** 详见 [OPERATIONS_MONITOR](docs/OPERATIONS_MONITOR.md)。
