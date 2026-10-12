@@ -192,6 +192,33 @@ CREATE TABLE IF NOT EXISTS stored_artifacts (
 );
 CREATE INDEX IF NOT EXISTS idx_stored_artifacts_production
  ON stored_artifacts(production_id,kind,created_at);
+CREATE TABLE IF NOT EXISTS cloud_artifacts (
+ id TEXT PRIMARY KEY,
+ artifact_id TEXT NOT NULL REFERENCES stored_artifacts(id),
+ provider TEXT NOT NULL CHECK(provider IN ('r2','s3')),
+ bucket TEXT NOT NULL,
+ target_id TEXT NOT NULL,
+ object_key TEXT NOT NULL,
+ sha256 TEXT NOT NULL,
+ size_bytes INTEGER NOT NULL CHECK(size_bytes >= 1000),
+ created_at TEXT NOT NULL,
+ UNIQUE(artifact_id,target_id)
+);
+CREATE INDEX IF NOT EXISTS idx_cloud_artifacts_local
+ ON cloud_artifacts(artifact_id,provider);
+CREATE TABLE IF NOT EXISTS cloud_artifact_events (
+ id TEXT PRIMARY KEY,
+ cloud_copy_id TEXT NOT NULL REFERENCES cloud_artifacts(id),
+ action TEXT NOT NULL,
+ sha256 TEXT NOT NULL,
+ created_at TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS cloud_events_immutable_update
+ BEFORE UPDATE ON cloud_artifact_events
+ BEGIN SELECT RAISE(ABORT,'cloud artifact events are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS cloud_events_immutable_delete
+ BEFORE DELETE ON cloud_artifact_events
+ BEGIN SELECT RAISE(ABORT,'cloud artifact events are append-only'); END;
 CREATE TABLE IF NOT EXISTS adaptation_jobs (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL, status TEXT NOT NULL,
  request_json TEXT NOT NULL, created_at TEXT NOT NULL,
