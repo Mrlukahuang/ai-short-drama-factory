@@ -27,7 +27,8 @@
 
 - [x] PR-07a：人物/场景/声样媒体参考版本、来源许可与审核记录（只登记元数据，无二进制存储）
 - [ ] PR-07b：安全媒体上传、对象存储、真正的妆发/服装/表情资产编辑界面与审片工作台
-- [ ] PR-08：Google ImageProvider，Nano Banana 角色资产及参考图检查
+- [x] PR-08a：Google Nano Banana 2.1 受控 SDK Provider + Fake + 门禁测试；未实际调用、未存储媒体、尚无参考图条件输入
+- [ ] PR-08b：Google 图片生成端到端真实试片、参考图载入、审核后保存资产版本（需用户提供密钥与预算授权）
 - [ ] PR-09：Google VideoProvider，Omni 1.1 视频提交/查询/下载/可播放性校验
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
 - [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
