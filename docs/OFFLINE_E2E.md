@@ -44,3 +44,8 @@ ffprobe -hide_banner artifacts/offline-demo/demo.mp4
 此接口仅供可信本地程序调用；不接收 URL、没有公网下载器或不可信用户媒体上传接口。恶意媒体的隔离解码、签名视频存储、实际 Provider 授权/任务/成本记录仍需后续实现，不应直接暴露在公网。
 
 CI 在安装 FFmpeg 的离线作业里必须强制执行 `pytest -q tests/test_offline_render.py tests/test_media_ingest.py` 后才能上传新样片；生成的样片第 2 镜头具有明显动态画面，仍**没有调用任何 AI 视频或配音模型**。
+
+
+## PR-13a Gemini Omni Adapter
+
+Gemini Omni 的可选远端视频生成器已接到 `build_offline_demo(out, source_override=Path(...))`。生成后，真实 MP4 先通过本地 ffprobe 检查，再作为第二镜头送往 FFmpeg 统一转码和全片字幕合成。真实生成由 [OMNI_VIDEO_SMOKE](OMNI_VIDEO_SMOKE.md) 的手动一次性工作流单独控制，不会被普通 CI 自动触发。当前没有做过真实 Omni 试片。

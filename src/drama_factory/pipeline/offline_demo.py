@@ -19,7 +19,7 @@ def _post(client, path, body=None):
     return response.json()
 
 
-def build_offline_demo(out: Path) -> dict:
+def build_offline_demo(out: Path, *, source_override: Path | None = None) -> dict:
     """Exercise real FastAPI schema, review gates, and local FFmpeg, with zero model calls."""
     out = Path(out).resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -76,13 +76,14 @@ def build_offline_demo(out: Path) -> dict:
         _post(client, f"/api/v1/productions/{production}/approve-characters")
         # A moving, locally generated clip stands in for a future Google/Kling/Seedance
         # download. No model is used; this deliberately tests external-media ingress.
-        test_footage = out / "synthetic-moving-input.mp4"
-        subprocess.run([
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            "-f", "lavfi", "-i", "testsrc2=size=640x360:rate=24",
-            "-t", "2", "-c:v", "libx264", "-preset", "ultrafast",
-            "-pix_fmt", "yuv420p", str(test_footage),
-        ], capture_output=True, text=True, timeout=90, check=True)
+        test_footage = Path(source_override) if source_override else out / "synthetic-moving-input.mp4"
+        if source_override is None:
+            subprocess.run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-f", "lavfi", "-i", "testsrc2=size=640x360:rate=24",
+                "-t", "2", "-c:v", "libx264", "-preset", "ultrafast",
+                "-pix_fmt", "yuv420p", str(test_footage),
+            ], capture_output=True, text=True, timeout=90, check=True)
         result = render_approved_preview(
             client.app.state.db, production, out / "working",
             source_clips={"S002": test_footage},
