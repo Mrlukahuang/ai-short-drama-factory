@@ -104,7 +104,7 @@ def prepare_shot_jobs(
             }
             fingerprint = hashlib.sha256(_json(payload).encode("utf-8")).hexdigest()
             existing = conn.execute(
-                "SELECT id,input_sha256,provider,model_id FROM shot_jobs WHERE production_id=? AND shot_id=?",
+                "SELECT id,input_sha256,provider,model_id,max_acknowledged_spend_usd,max_attempts FROM shot_jobs WHERE production_id=? AND shot_id=?",
                 (production_id, shot.shot_id),
             ).fetchone()
             if existing:
