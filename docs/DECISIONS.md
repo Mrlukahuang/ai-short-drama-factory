@@ -29,3 +29,7 @@
 ## ADR-007 本地小说文件与权益
 
 **状态：Accepted**。先解析本地文本、存储章节和 SHA-256；上传 ≠ 具备改编权。生产部署中必须人工核实地域、期限、媒介、AI 处理/外包授权、电子书格式和发布权。未经许可/审核，不发送给外部模型。
+
+## ADR-008 栏目 / 剧集 / 资产隔离（2026-10-12）
+
+**状态：Accepted**。`Column → Series → Episode → Production` 为正式生产层级。现有 projects 表在迁移期表示 Series，旧 API 保持兼容。角色、场景、声音和道具归属 Series；默认不可跨剧引用，即使同名亦不共享。Story Bible 和资产版本只追加不覆盖。视频真实多队列并发留在 M3，用户权限隔离留在 M5。详见 [MULTI_COLUMN](MULTI_COLUMN.md)。

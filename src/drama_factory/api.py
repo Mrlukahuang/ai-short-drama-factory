@@ -5,9 +5,9 @@ import sqlite3
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel, Field
-from .db import Database, timestamp, new_id
+from .db import Database, DEFAULT_COLUMN_ID, timestamp, new_id
 from .models import (OriginalProjectCreate, EpisodeDraft, AdaptationRequest,
-                     RightsStatus, ProductionState)
+                     RightsStatus, ProductionState, ColumnCreate, AssetCreate, AssetKind, StoryBible)
 from .novels.reader import extract_text, split_chapters, ReaderError, SUPPORTED_EXTENSIONS, MAX_UPLOAD_BYTES
 
 class RightsInfo(BaseModel):
@@ -35,21 +35,135 @@ def create_app(data_dir: str | Path = "./data") -> FastAPI:
             return json.loads(cfg.read_text(encoding="utf-8"))
         return {"default_video": "gemini-omni-1.1-flash", "notice": "Research config only; provider is disabled"}
 
+    def require_column(column_id: str) -> dict:
+        column = db.one("SELECT * FROM columns WHERE id=?", (column_id,))
+        if not column:
+            raise HTTPException(404, "Unknown column")
+        return column
+
+    def require_series(series_id: str) -> dict:
+        row = db.one("SELECT * FROM projects WHERE id=?", (series_id,))
+        if not row:
+            raise HTTPException(404, "Unknown series")
+        return row
+
+    @app.post("/api/v1/columns", status_code=201)
+    def create_column(body: ColumnCreate):
+        column_id = new_id("col")
+        try:
+            db.exec("INSERT INTO columns VALUES (?,?,?,?,?,?)", (
+                column_id, body.slug, body.name, body.description,
+                body.default_visual_style.value, timestamp()))
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(409, "Column slug already exists") from exc
+        return {"column_id": column_id, "slug": body.slug, "name": body.name}
+
+    @app.get("/api/v1/columns")
+    def list_columns():
+        return db.many("SELECT * FROM columns ORDER BY created_at,id")
+
+    def create_series(body: OriginalProjectCreate, column_id: str) -> dict:
+        require_column(column_id)
+        if body.column_id is not None and body.column_id != column_id:
+            raise HTTPException(422, "Body column_id disagrees with path column_id")
+        series_id = new_id("proj")  # Preserve v0.1 external project IDs.
+        db.exec("""INSERT INTO projects
+            (id,title,premise,visual_style,ratio,created_at,column_id)
+            VALUES (?,?,?,?,?,?,?)""", (
+            series_id, body.title, body.premise, body.visual_style.value,
+            body.default_ratio, timestamp(), column_id))
+        return {"project_id": series_id, "series_id": series_id,
+                "column_id": column_id, "kind": "original", "status": "created"}
+
     @app.post("/api/v1/projects", status_code=201)
     def new_original_project(body: OriginalProjectCreate):
-        project_id = new_id("proj")
-        db.exec("INSERT INTO projects VALUES (?,?,?,?,?,?)", (
-            project_id, body.title, body.premise, body.visual_style.value, body.default_ratio, timestamp()))
-        return {"project_id": project_id, "kind": "original", "status": "created"}
+        return create_series(body, body.column_id or DEFAULT_COLUMN_ID)
 
     @app.get("/api/v1/projects")
-    def projects():
-        return db.many("SELECT * FROM projects ORDER BY created_at DESC")
+    def projects(column_id: str | None = None):
+        if column_id is not None:
+            require_column(column_id)
+            return db.many("SELECT * FROM projects WHERE column_id=? ORDER BY created_at DESC,id",
+                           (column_id,))
+        return db.many("SELECT * FROM projects ORDER BY created_at DESC,id")
+
+    @app.post("/api/v1/columns/{column_id}/series", status_code=201)
+    def create_column_series(column_id: str, body: OriginalProjectCreate):
+        return create_series(body, column_id)
+
+    @app.get("/api/v1/columns/{column_id}/series")
+    def list_column_series(column_id: str):
+        require_column(column_id)
+        return db.many("SELECT * FROM projects WHERE column_id=? ORDER BY created_at DESC,id", (column_id,))
+
+    @app.get("/api/v1/series/{series_id}")
+    def get_series(series_id: str):
+        return require_series(series_id)
+
+    @app.post("/api/v1/series/{series_id}/assets", status_code=201)
+    def create_asset(series_id: str, body: AssetCreate):
+        require_series(series_id)
+        if body.kind == AssetKind.ACTOR and body.specification.get("voice_asset_id"):
+            ref = db.one("SELECT id FROM series_assets WHERE id=? AND series_id=? AND kind='voice'",
+                         (body.specification["voice_asset_id"], series_id))
+            if ref is None:
+                raise HTTPException(422, "Actor voice_asset_id must refer to a voice in this series")
+        asset_id = new_id("asset")
+        with db.connection() as conn:
+            # Serialize version allocation per SQLite writer; avoid duplicate versions under concurrent requests.
+            conn.execute("BEGIN IMMEDIATE")
+            version = conn.execute("""SELECT COALESCE(MAX(version),0)+1 FROM series_assets
+                                     WHERE series_id=? AND kind=? AND asset_key=?""",
+                                   (series_id,body.kind.value,body.key)).fetchone()[0]
+            conn.execute("""INSERT INTO series_assets
+                    (id,series_id,kind,asset_key,version,specification_json,created_at)
+                    VALUES (?,?,?,?,?,?,?)""",
+                    (asset_id,series_id,body.kind.value,body.key,version,
+                     db.to_json(body.specification),timestamp()))
+        return {"asset_id": asset_id, "series_id": series_id, "kind": body.kind.value,
+                "key": body.key, "version": version}
+
+    @app.get("/api/v1/series/{series_id}/assets")
+    def list_assets(series_id: str, kind: AssetKind | None = None):
+        require_series(series_id)
+        if kind:
+            return db.many("""SELECT * FROM series_assets WHERE series_id=? AND kind=?
+                               ORDER BY asset_key,version DESC""", (series_id,kind.value))
+        return db.many("""SELECT * FROM series_assets WHERE series_id=?
+                          ORDER BY kind,asset_key,version DESC""",(series_id,))
+
+    @app.post("/api/v1/series/{series_id}/story-bibles", status_code=201)
+    def save_story_bible(series_id: str, body: StoryBible):
+        require_series(series_id)
+        bible_id = new_id("bible")
+        with db.connection() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            version = conn.execute("SELECT COALESCE(MAX(version),0)+1 FROM story_bibles WHERE series_id=?",
+                                   (series_id,)).fetchone()[0]
+            conn.execute("INSERT INTO story_bibles VALUES (?,?,?,?,?)",
+                         (bible_id,series_id,version,body.model_dump_json(),timestamp()))
+        return {"story_bible_id": bible_id,"series_id": series_id,"version": version}
+
+    @app.get("/api/v1/series/{series_id}/story-bibles")
+    def list_story_bibles(series_id: str):
+        require_series(series_id)
+        return db.many("SELECT * FROM story_bibles WHERE series_id=? ORDER BY version DESC",
+                       (series_id,))
 
     @app.post("/api/v1/projects/{project_id}/episodes", status_code=201)
     def add_episode(project_id: str, episode: EpisodeDraft):
         if not db.one("SELECT id FROM projects WHERE id=?", (project_id,)):
             raise HTTPException(404, "Unknown project")
+        # Shot references are scoped to this series; matching names in another series do not grant access.
+        for shot in episode.shots:
+            refs = ([(ref, "actor") for ref in shot.character_ids] +
+                    ([(shot.scene_id, "scene")] if shot.scene_id else []) +
+                    [(ref, None) for ref in shot.reference_asset_ids])
+            for asset_id, kind in refs:
+                asset = db.one("SELECT kind FROM series_assets WHERE id=? AND series_id=?",
+                               (asset_id, project_id))
+                if asset is None or (kind is not None and asset["kind"] != kind):
+                    raise HTTPException(422, f"Shot {shot.shot_id} references an asset outside this series or wrong kind: {asset_id}")
         episode_id = new_id("ep")
         try:
             db.exec("INSERT INTO episodes VALUES (?,?,?,?,?,?)", (
@@ -74,8 +188,24 @@ def create_app(data_dir: str | Path = "./data") -> FastAPI:
         return {"production_id": run_id, "status": ProductionState.SCRIPT_REVIEW.value}
 
     @app.get("/api/v1/productions")
-    def productions():
-        return db.many("SELECT * FROM productions ORDER BY created_at DESC")
+    def productions(column_id: str | None = None, series_id: str | None = None):
+        if column_id is not None:
+            require_column(column_id)
+        if series_id is not None:
+            require_series(series_id)
+        if column_id is None and series_id is None:
+            return db.many("SELECT * FROM productions ORDER BY created_at DESC,id")
+        clauses, params = [], []
+        if column_id:
+            clauses.append("p.column_id=?")
+            params.append(column_id)
+        if series_id:
+            clauses.append("p.id=?")
+            params.append(series_id)
+        return db.many("""SELECT productions.* FROM productions
+            JOIN episodes e ON productions.episode_id=e.id JOIN projects p ON e.project_id=p.id
+            WHERE """ + " AND ".join(clauses) + " ORDER BY productions.created_at DESC,productions.id",
+            tuple(params))
 
     @app.post("/api/v1/productions/{production_id}/approve-script")
     def approve_script(production_id: str):

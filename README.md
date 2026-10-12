@@ -36,6 +36,15 @@ flowchart TD
   C --> O[审片 + 交付 MP4]
 ```
 
+## 多栏目生产隔离（PR-01 已实现）
+
+- 正式层级：**栏目 Column → 剧集 Series → 分集 Episode → 生产 Run**。
+- 每个剧集独立的角色、场景、声音、道具及 Story Bible 版本库；同名素材在不同剧集是独立的 `asset_id`。
+- 新建分集时核对演员/场景/参考素材归属，禁止未经授权的跨剧引用。
+- 原有 `/api/v1/projects` 保留：旧项目属于默认栏目，SQLite 自动迁移保留旧数据。
+- Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
+- [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
+
 ## 2. 目前已经能运行的能力（v0.1）
 
 | 模块 | 已实现 | 尚未实现 |
@@ -149,7 +158,7 @@ config/model_registry.json  # 研究性质的模型清单与弃用信息
 docs/                       # 详细架构、小说设计、路线图、决策、安全
 .github/workflows/          # 免费/假模型测试 CI
 tests/                      # 本机测试，不调用线上模型
-scripts/                    # 手动发布 / 灾备恢复辅助脚本
+scripts/                    # 将来发布到 GitHub 的辅助脚本
 ```
 
 ## 8. 安全、许可、当前限制
@@ -163,7 +172,7 @@ scripts/                    # 手动发布 / 灾备恢复辅助脚本
 
 ## 9. 发布为独立的 GitHub 私有仓库
 
-**已发布**：[`Mrlukahuang/ai-short-drama-factory`](https://github.com/Mrlukahuang/ai-short-drama-factory)（Private，默认分支 `main`）。初始框架共 29 个源文件，GitHub Actions 首次 CI 已通过（Python 3.11 / 3.13）；代码仍处于离线 Mock 骨架阶段，尚未连接付费模型或实现真实视频成片。
+目标：`Mrlukahuang/ai-short-drama-factory`（Private）。远端仓库由仓库所有者在 GitHub 页面创建后，将其加入 ChatGPT GitHub App 的 Selected repositories 授权名单；**未被授权的私有仓库对连接器表现为 404，不意味着仓库不存在**。
 
 创建后优先使用已连接的 GitHub 工具一次性提交框架并验证 GitHub Actions。若连接器尚未获得权限，仓库所有者也可以在本机使用 `gh` 备选发布方式（需先 `gh auth login`）。从源码 ZIP 解压进入项目根目录运行：
 
