@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -166,3 +168,45 @@ def test_live_cli_emits_successful_redacted_verification(monkeypatch, capsys):
     assert result["read_only"] is True
     assert "test-only-token" not in captured.out
     assert captured.err == ""
+
+
+def test_readonly_preflight_imports_without_media_or_pillow_packages():
+    """Exercise a fresh process where optional video/Pillow imports are forbidden."""
+    script = """
+import builtins
+import os
+import sqlite3
+
+original_import = builtins.__import__
+
+def forbid_media_imports(name, *args, **kwargs):
+    if name == "drama_factory.storage.artifacts" or name == "PIL" or name.startswith("PIL."):
+        raise ImportError("Optional media dependency unexpectedly loaded: " + name)
+    return original_import(name, *args, **kwargs)
+
+builtins.__import__ = forbid_media_imports
+
+from drama_factory.storage.turso_preflight import check_dedicated_turso
+from drama_factory.storage.turso_receipts import TursoMetadataTarget
+
+os.environ["DRAMA_TURSO_READ_CONFIRM"] = "CHECK_DEDICATED_DRAMA_DB"
+remote = sqlite3.connect(":memory:")
+target = TursoMetadataTarget(
+    url="libsql://ai-short-drama-factory-tests.aws-ap-southeast-2.turso.io",
+    engine="libsql",
+)
+result = check_dedicated_turso(target, operator_approved=True, remote=remote)
+assert result["reachable"] is True
+assert result["read_only"] is True
+assert result["database_modified"] is False
+assert result["metadata_table_exists"] is False
+remote.close()
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
