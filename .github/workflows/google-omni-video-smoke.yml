@@ -48,7 +48,7 @@ jobs:
             echo "::error::GEMINI_API_KEY secret missing"
             exit 1
           fi
-      - name: Request ONE potentially paid Omni video and compose MP4
+      - name: Generate once OR recover a prior video without generating
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DRAMA_ENABLE_PAID_GENERATION: ${{ inputs.confirmation == 'GENERATE_ONE_PAID_VIDEO' && 'YES' || 'NO' }}
