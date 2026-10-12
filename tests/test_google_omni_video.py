@@ -147,6 +147,13 @@ def test_model_video_enters_complete_episode_without_additional_calls(tmp_path):
     assert outcome["preview"]["supplied_local_clips"] == 1
     assert outcome["preview"]["media"]["subtitle_codec"] == "mov_text"
     assert Path(outcome["final_mp4"]).is_file()
+    audit = json.loads((tmp_path / "delivery" / "manifest.json").read_text())["pipeline_audit"]
+    assert audit["new_model_generation_calls"] == 1
+    assert audit["compositor_paid_api_calls"] == 0
+    assert audit["total_new_paid_api_calls"] == 1
+    assert audit["vendor_charge_usd"] is None
+    assert audit["vendor_charge_verified"] is False
+    assert audit["vendor_billing_status"] == "unverified_paid_request"
 
 
 def test_real_documented_uri_suffix_parsed_correctly():
@@ -244,3 +251,19 @@ def test_download_only_recovery_flows_into_episode_without_generation(tmp_path, 
     assert result["provider_calls"] == 0
     assert result["preview"]["supplied_local_clips"] == 1
     assert Path(result["final_mp4"]).exists()
+    audit = json.loads((tmp_path / "restore-run" / "manifest.json").read_text())["pipeline_audit"]
+    assert audit["total_new_paid_api_calls"] == 0
+    assert audit["source_was_previously_generated"] is True
+    assert audit["vendor_billing_status"] == "no_new_generation_request"
+
+
+@pytest.mark.skipif(not shutil.which("ffmpeg"), reason="ffmpeg required")
+def test_offline_mode_ledger_reports_zero_generation_calls(tmp_path):
+    outcome = run_manual_test(tmp_path / "offline-delivery", paid=False)
+    audit = json.loads(
+        (tmp_path / "offline-delivery" / "manifest.json").read_text()
+    )["pipeline_audit"]
+    assert outcome["provider_calls"] == 0
+    assert audit["execution_mode"] == "offline"
+    assert audit["total_new_paid_api_calls"] == 0
+    assert audit["vendor_charge_usd"] is None

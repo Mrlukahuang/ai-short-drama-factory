@@ -19,6 +19,45 @@ VIDEO_PROMPT = (
 )
 
 
+
+def _record_pipeline_audit(
+    output: Path, preview: dict, *, mode: str,
+    new_generation_calls: int, receipt: dict | None = None,
+) -> dict:
+    """Audit both the external generation step and the offline compositor.
+
+    The compositor's existing paid_api_calls=0 remains true for that stage.
+    The exported artifact adds the actual model generation count; do not
+    invent a dollar figure without a verified Google billing record.
+    """
+    expected_calls = 1 if mode == "paid-manual" else 0
+    if new_generation_calls != expected_calls:
+        raise RuntimeError("Unexpected video generation call count for this mode")
+    audit = {
+        "execution_mode": mode,
+        "new_model_generation_calls": new_generation_calls,
+        "compositor_paid_api_calls": preview["paid_api_calls"],
+        "total_new_paid_api_calls": new_generation_calls + preview["paid_api_calls"],
+        "vendor_charge_usd": None,
+        "vendor_charge_verified": False,
+        "vendor_billing_status": (
+            "unverified_paid_request" if mode == "paid-manual"
+            else "no_new_generation_request"
+        ),
+        "source_was_previously_generated": mode == "recover-only",
+        "source_video_sha256": (
+            receipt.get("source_sha256") if receipt else None
+        ),
+    }
+    result = {**preview, "pipeline_audit": audit}
+    # This is the delivered artifact manifest. The in-workdir manifest remains
+    # explicitly scoped to the zero-model-call compositor stage.
+    (output / "manifest.json").write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8",
+    )
+    return result
+
+
 def run_manual_test(
     out: Path, *, paid: bool = False,
     recovery_file_id: str | None = None, provider=None,
@@ -40,6 +79,10 @@ def run_manual_test(
         )
         if preview["supplied_local_clips"] != 1:
             raise RuntimeError("Recovered clip did not reach the compositor")
+        preview = _record_pipeline_audit(
+            output, preview, mode="recover-only",
+            new_generation_calls=0, receipt=receipt,
+        )
         return {
             "mode": "recover-only", "provider_calls": 0,
             "model_receipt": receipt, "final_mp4": str(output / "demo.mp4"),
@@ -47,6 +90,9 @@ def run_manual_test(
         }
     if not paid:
         preview = build_offline_demo(output)
+        preview = _record_pipeline_audit(
+            output, preview, mode="offline", new_generation_calls=0,
+        )
         return {
             "mode": "offline", "provider_calls": 0,
             "final_mp4": str(output / "demo.mp4"),
@@ -66,6 +112,10 @@ def run_manual_test(
     )
     if preview["supplied_local_clips"] != 1:
         raise RuntimeError("Generated video did not reach the compositor")
+    preview = _record_pipeline_audit(
+        output, preview, mode="paid-manual",
+        new_generation_calls=1, receipt=receipt,
+    )
     return {
         "mode": "paid-manual", "provider_calls": 1,
         "model_receipt": receipt, "final_mp4": str(output / "demo.mp4"),
@@ -87,6 +137,8 @@ def main(argv: list[str] | None = None) -> None:
     )
     print(json.dumps({
         "mode": result["mode"], "provider_calls": result["provider_calls"],
+        "pipeline_model_calls": result["preview"]["pipeline_audit"]["total_new_paid_api_calls"],
+        "vendor_charge_usd": None,
         "final_mp4": result["final_mp4"],
         "video_codec": result["preview"]["media"]["video_codec"],
         "audio_codec": result["preview"]["media"]["audio_codec"],
