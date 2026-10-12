@@ -43,6 +43,10 @@ SELECT 1 FROM sqlite_master WHERE type='table' AND name='drama_drive_receipts_v1
 
 第一次连接新库时 `metadata_table_exists=false` 是**正确结果**。先确认 SDK、网络、Token 和独立数据库权限，再后续单独授权实际 metadata insert。
 
+## 最小依赖验收（2026-10-13）
+
+首次手动运行 [Actions #38276881688](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38276881688) 安装 libSQL SDK 成功，两个专用 Secrets 也已注入，但 Python 导入 `turso_receipts` 时提前导入了媒体资产验证模块，导致缺少可选 Pillow 包的 `ModuleNotFoundError: No module named 'PIL'`，还未执行任何真实 Turso SQL。修复把媒体校验导入延迟到**已授权单条镜像写入**时，保持只读预检仅需 libSQL SDK 和核心依赖，不扩大线上工作流依赖。新增独立 Python 子进程测试，故意阻止导入 `PIL` 和视频资产模块，仍须通过只读预检。此项属于离线兼容修复，不代表已成功连接 Turso；修复合并后需要再次手动启动真实工作流。
+
 ## 本 PR 的验证范围
 
 `pytest -q tests/test_turso_preflight.py` 在 Fake DBAPI SQLite 模拟器上测试必须人工确认、没有 Token 的拒绝、只执行 SELECT、引擎校验、是否存在专用表、静态审计 GitHub Workflow 必须是手动触发且不包含 Drive/Gemini 凭证。
