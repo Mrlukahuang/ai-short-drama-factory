@@ -24,3 +24,10 @@
 ## 测试范围
 
 包括两个独立 Series 的任务隔离、审批门禁、幂等任务准备、变更后的输入拒绝、并发式领取排他、租约过期不自动重新付费、供应商任务 ID 的恢复与去重、意图后丢失回执的隔离、事件日志不可修改、额度输入校验。
+
+
+## PR-19 Google 已生成媒体桥接
+
+新增 `google_existing_files`，将操作者审核过的 Google 文件 ID 唯一地绑定到**已经拥有 generation_intent 和 provider_task_id 的 Google shot_job**。恢复程序只调用 Google 的 `files.get` / `files.download`，并写回已有镜头结果 SHA256，绝不调用 `interactions.create`；镜头若已成功则验证缓存复用。
+
+人工下载占用持久恢复锁；若进程崩溃需人工确认后解除锁，避免并行下载。同一 File ID 禁止重复绑定到不同镜头，跨剧集不能直接重用媒体路径。成本账本仍保留历史预留，新的下载不计算成一次新生成。

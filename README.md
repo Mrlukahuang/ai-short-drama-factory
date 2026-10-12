@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### Google 已生成视频的镜头级恢复入库（PR-19）
+
+新增 **仅下载既有 Google 视频** 的镜头级恢复接口：先人工绑定 Google Files ID 到已经提交且拥有供应商 Task ID 的 Google 镜头工作项，再校验下载的 MP4、计算 SHA256 并写回对应镜头账本。支持下载后中断恢复、独立剧集素材隔离、针对指定已恢复镜头重新合成完整 MP4。默认不调用任何付费视频生成接口；账单仍以 Google 为准。详见 [GOOGLE_EXISTING_VIDEO_RECOVERY](docs/GOOGLE_EXISTING_VIDEO_RECOVERY.md)。
+
 ### 多条短剧线并行离线 Worker（PR-18）
 
 已经可以让同一数据库的多部不同短剧同时领取独立的 Fake 镜头任务，使用 FFmpeg/Pillow 真正合成 MP4，并将每个成功镜头的文件哈希写回各自的任务账本。重复运行会使用已有缓存；某个剧集失败不会自动重新生成其他剧集的镜头。**Fake Worker 不调用任何付费图片/视频/TTS Provider，也不代表真正 AI 视频批量生产已经完成。** 详见 [OFFLINE_WORKERS](docs/OFFLINE_WORKERS.md)。
