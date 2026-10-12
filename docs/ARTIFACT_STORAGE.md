@@ -37,3 +37,15 @@ assert checked["verified"]
 ## 测试
 
 CI 在具备真实 FFmpeg/FFprobe 的作业强制运行 `tests/test_artifact_storage.py`，验证工作目录删除后的可恢复读取、镜头+整集重复发布、被篡改的原始文件及独立存储对象的拒绝、符号链接路径阻断、两部剧并行发布各自隔离以及未审核任务无法发布。
+
+
+## PR-22：删除旧工作目录后恢复已有成片与镜头
+
+提供两个新的内部函数，基于 PR-21 已记录的资产目录，**不会调用任何生成模型或修改历史付费任务**：
+
+- `restore_stored_artifact(db, artifact_id, store_root, new_work_root)`：先重新检查独立存储中的 MP4、文件大小和 SHA256，使用 catalog 固定的 Series / Production / Artifact ID 在新的工作目录中生成目标路径，独占暂存并不可覆盖地复制，复制后重新比对哈希。可恢复镜头 MP4，也可恢复完整分集 MP4；重复操作安全幂等。
+- `recompose_from_stored_shots(db, production_id, store_root, new_work_root)`：只选择该 Production 关联的 `succeeded` 镜头记录，验证每个镜头任务/哈希/Series 一致性，恢复视频到新目录，然后把这些视频交给现有 FFmpeg 合成器。尚未恢复的镜头保持**明确的技术占位画面**。最终返回 `new_model_generation_calls=0` 和所用资产 ID。
+
+这使“产物归档”和“剪辑素材恢复”变成可验证闭环，不需要留下早期 FFmpeg 临时目录。还不具备任意视频版本的人工选择、永久云端保存、公开下载或真实生产环境的 RBAC。
+
+**新增真实 FFmpeg 验收**：删除整个制作目录后用两段镜头恢复出带字幕的 MP4；直接恢复原始完整分集文件；存储被篡改时拒绝重新合成；另一个 Production 没有素材时绝不能偷用本 Production 的媒体。
