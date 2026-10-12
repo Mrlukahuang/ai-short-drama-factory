@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### Google Nano Banana 图像适配器（PR-08a）
+
+已实现 Gemini Interactions API 的 Google 图片 Provider 和 FakeProvider。真实调用要求 `DRAMA_ENABLE_PAID_GENERATION=YES`、人工逐次批准和本机 `GEMINI_API_KEY`；目前 **HTTP API 不暴露真实调用接口，也没有做过付费真人图片测试**。见 [Google Image Provider](docs/GOOGLE_IMAGE_PROVIDER.md)。
+
 ### 演员、场景与声样参考媒体版本（PR-07a）
 
 新增系列专属 `asset_references`，记录角色定妆参考、服装、场景、音色样本等的 SHA256、来源许可、同意记录与批准版本。**目前仅元数据注册，不上传或生成图片/音频**。详见 [ASSET_REFERENCES](docs/ASSET_REFERENCES.md)。
