@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 可替换的视频模型素材接口（PR-12）
+
+离线成片可以按镜头导入本地 MP4/MOV/WEBM/MKV，检查文件哈希、时长及视频轨并转成统一的 H.264/AAC，重合成时复用其他不变的镜头。GitHub CI 样片的第 2 镜头现已换为本地 FFmpeg 生成的**动态测试图案**，后续 Gemini/Seedance/Kling 真实输出可以从这个入口接入；当前没有调用真实视频模型。见 [视频导入与成片文档](docs/OFFLINE_E2E.md)。
+
 ### 全流程离线可播放 MP4 技术预览（PR-11）
 
 已接通从 Story Bible / 人物场景资产 / 结构化分镜，经明确审核、逐镜占位视频生成、镜头缓存、静态字幕和合成提示音，直到 FFmpeg 产出 **H.264 + AAC + mov_text 字幕** 的真实可播放竖屏 MP4。GitHub Python CI 自动生成 6 秒 `offline-end-to-end-mp4` Artifact，可以下载实际样片，不用 Google API Key，费用为零。它是**静态预览卡片而不是真人 AI 视频**。详见 [离线成片说明](docs/OFFLINE_E2E.md)。

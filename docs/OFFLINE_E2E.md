@@ -6,9 +6,9 @@
 
 `Column → Series → Story Bible → 演员/场景资产 → Screenplay JSON → 无副作用 /validate → 人工明确 /commit → Episode → Production → 批准剧本 → 批准角色 → 每镜头缓存素材 → FFmpeg 合成 → 字幕轨 → ffprobe 验收 → MP4 + manifest`
 
-用 `python -m drama_factory.pipeline.offline_demo --out artifacts/offline-demo` 启动独立离线演示；所有剧情、角色与数据都是测试用虚构数据。Demo 创建临时 SQLite 记录，通过真实 FastAPI 内部 TestClient 发起审核和分集 API 请求（不需要外网），而非跳过校验直接输出电影文件。
+用 `python -m drama_factory.pipeline.offline_demo --out artifacts/offline-demo` 启动独立离线演示；所有剧情、角色与数据都是测试用虚构数据。Demo 创建临时 SQLite 记录，通过真实 FastAPI 内部 TestClient 发起审核和分集 API 请求（不需要外网），而非跳过校验直接输出电影文件。PR-12 把第 2 镜头替换为 FFmpeg 生成的本地动态测试画面。
 
-- 视频：逐镜头使用 Pillow 生成静态技术预览卡片，FFmpeg 编码 H.264/yuv420p、360×640、15fps。
+- 视频：没有提供外部片段的镜头使用 Pillow 生成静态技术预览卡片；提供本地 MP4/MOV/WEBM/MKV 时经 media_ingest 适配器读取、校验时长与视频轨，再转码为 H.264/yuv420p、360×640、15fps。
 - 音频：FFmpeg 生成非常小声的人工合成提示音，AAC/48kHz；**不是 AI 配音，也不是中文对白**。
 - 字幕：按已批准 Episode 的 `ShotDraft.dialogue` 生成 SRT，并封装为 MP4 `mov_text` 可开关软字幕。它是文字，不是口型。
 - 后期：每镜头先规范化单独视频片段，再用 FFmpeg concat 合并，统一一条视频、一条音频、一条字幕轨。
@@ -35,3 +35,12 @@ ffprobe -hide_banner artifacts/offline-demo/demo.mp4
 - 没有向公网提供未认证的转码 API，也没有在 Git 仓库永久保存任何输出媒体。
 - 离线预览卡片只是验证工厂总线可产出合法可播放 MP4 的技术夹具，不应称为正式短剧。
 - AI VideoProvider、镜头级持久化付费任务/外部 task_id、预算和并发仍按原计划逐步开发。
+
+
+## PR-12 视频供应商交付衔接
+
+使用 `render_approved_preview(db, run_id, root, source_clips={"S002": Path("clip.mp4")})` 可以指定已批准镜头的本地媒体文件。系统检查视频文件 SHA256、视频轨道、实际时长（必须不短于该镜头时长）及大小上限（200 MB），统一转码并保留已有音轨或补静音 AAC。其他没有替换的镜头继续使用离线卡片。每个镜头的缓存指纹包含输入视频哈希；仅修改一个输入片段不会重新生成其他镜头。
+
+此接口仅供可信本地程序调用；不接收 URL、没有公网下载器或不可信用户媒体上传接口。恶意媒体的隔离解码、签名视频存储、实际 Provider 授权/任务/成本记录仍需后续实现，不应直接暴露在公网。
+
+CI 在安装 FFmpeg 的离线作业里必须强制执行 `pytest -q tests/test_offline_render.py tests/test_media_ingest.py` 后才能上传新样片；生成的样片第 2 镜头具有明显动态画面，仍**没有调用任何 AI 视频或配音模型**。

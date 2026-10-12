@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from drama_factory.db import Database, timestamp
 from drama_factory.models import EpisodeDraft
+from drama_factory.pipeline.media_ingest import inspect_source, normalize_local_video
 
 WIDTH, HEIGHT, FPS = 360, 640, 15
 RENDER_REVISION = "offline-card-v1"
@@ -81,10 +82,11 @@ def _card(path: Path, shot, number: int, total: int) -> None:
     image.save(path, "PNG")
 
 
-def _shot_key(series_id: str, episode_id: str, shot) -> str:
+def _shot_key(series_id: str, episode_id: str, shot, source_sha256: str | None = None) -> str:
     payload = json.dumps({
         "revision": RENDER_REVISION, "series": series_id, "episode": episode_id,
-        "shot": shot.model_dump(mode="json"), "width": WIDTH, "height": HEIGHT,
+        "shot": shot.model_dump(mode="json"), "source_sha256": source_sha256,
+        "width": WIDTH, "height": HEIGHT,
         "fps": FPS,
     }, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -96,7 +98,8 @@ def _srt_time(seconds: int) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d},000"
 
 
-def render_approved_preview(db: Database, production_id: str, root: Path) -> dict:
+def render_approved_preview(db: Database, production_id: str, root: Path, *,
+                            source_clips: dict[str, Path] | None = None) -> dict:
     """Render a playable offline preview only after the existing two approvals."""
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
         raise PreviewError("ffmpeg and ffprobe must be installed")
@@ -123,6 +126,14 @@ def render_approved_preview(db: Database, production_id: str, root: Path) -> dic
             if db.one("SELECT id FROM series_assets WHERE id=? AND series_id=? AND kind=?",
                       (asset_id, series_id, kind)) is None:
                 raise PreviewError("Foreign actor or scene reference in episode")
+    source_clips = source_clips or {}
+    unknown_shots = set(source_clips) - {s.shot_id for s in episode.shots}
+    if unknown_shots:
+        raise PreviewError("Source clips reference unknown shot IDs")
+    # Inspect every input before writing output or changing the production status.
+    sources = {shot_id: inspect_source(path, next(
+        shot.duration_seconds for shot in episode.shots if shot.shot_id == shot_id))
+        for shot_id, path in source_clips.items()}
     root = Path(root).resolve()
     work = root / series_id / production_id
     clips_dir = work / "clips"
@@ -130,7 +141,9 @@ def render_approved_preview(db: Database, production_id: str, root: Path) -> dic
     clips, shot_results, captions = [], [], []
     subtitle_at = 0
     for index, shot in enumerate(episode.shots, start=1):
-        key = _shot_key(series_id, record["episode_id"], shot)
+        media_source = sources.get(shot.shot_id)
+        key = _shot_key(series_id, record["episode_id"], shot,
+                        media_source["sha256"] if media_source else None)
         name = f"{index:03d}_{key[:24]}.mp4"
         clip = clips_dir / name
         reused = False
@@ -142,18 +155,22 @@ def render_approved_preview(db: Database, production_id: str, root: Path) -> dic
                 clip.unlink()
         if not reused:
             card = clips_dir / f"{index:03d}_{key[:24]}.png"
-            _card(card, shot, index, len(episode.shots))
             temp_clip = clips_dir / f"{name}.tmp.mp4"
             try:
-                _run([
-                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                    "-loop", "1", "-framerate", str(FPS), "-i", str(card),
-                    "-f", "lavfi", "-i", "sine=frequency=330:sample_rate=48000",
-                    "-t", str(shot.duration_seconds), "-vf", "format=yuv420p",
-                    "-c:v", "libx264", "-preset", "ultrafast", "-r", str(FPS),
-                    "-c:a", "aac", "-ar", "48000", "-ac", "1", "-af", "volume=0.02",
-                    "-movflags", "+faststart", str(temp_clip),
-                ])
+                if media_source:
+                    normalize_local_video(media_source, shot.duration_seconds, temp_clip,
+                                          width=WIDTH, height=HEIGHT, fps=FPS)
+                else:
+                    _card(card, shot, index, len(episode.shots))
+                    _run([
+                        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                        "-loop", "1", "-framerate", str(FPS), "-i", str(card),
+                        "-f", "lavfi", "-i", "sine=frequency=330:sample_rate=48000",
+                        "-t", str(shot.duration_seconds), "-vf", "format=yuv420p",
+                        "-c:v", "libx264", "-preset", "ultrafast", "-r", str(FPS),
+                        "-c:a", "aac", "-ar", "48000", "-ac", "1", "-af", "volume=0.02",
+                        "-movflags", "+faststart", str(temp_clip),
+                    ])
                 inspect_mp4(temp_clip, shot.duration_seconds)
                 temp_clip.replace(clip)
             finally:
@@ -169,6 +186,8 @@ def render_approved_preview(db: Database, production_id: str, root: Path) -> dic
         subtitle_at += shot.duration_seconds
         shot_results.append({"shot_id": shot.shot_id, "fingerprint": key,
                              "cached": reused, "clip_name": name,
+                             "media_source": "provided_local_clip" if media_source else "placeholder",
+                             "source_sha256": media_source["sha256"] if media_source else None,
                              "duration_seconds": shot.duration_seconds})
     # The concat list is constructed ONLY from our deterministic hash-based filenames.
     playlist = work / "clips.txt"
@@ -194,8 +213,11 @@ def render_approved_preview(db: Database, production_id: str, root: Path) -> dic
     manifest = {
         "production_id": production_id, "series_id": series_id,
         "episode_id": record["episode_id"], "status": "offline_preview_finished",
-        "placeholder_visuals": True, "spoken_dialogue_generated": False,
-        "synthetic_tone_audio": True, "has_subtitle_track": True,
+        "placeholder_visuals": any(s["media_source"] == "placeholder" for s in shot_results),
+        "supplied_local_clips": len(sources),
+        "spoken_dialogue_generated": False,
+        "synthetic_tone_audio": any(s["media_source"] == "placeholder" for s in shot_results),
+        "has_subtitle_track": True,
         "paid_api_calls": 0,
         "mp4_path": str(final), "mp4_sha256": digest, "media": media,
         "shots": shot_results,
