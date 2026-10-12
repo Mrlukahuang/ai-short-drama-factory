@@ -1,0 +1,52 @@
+name: Google single-image smoke (manual, may incur cost)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type GENERATE_ONE_PAID_IMAGE to authorize exactly one model request"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-google-image-smoke
+  cancel-in-progress: false
+
+jobs:
+  image-smoke:
+    if: ${{ inputs.confirmation == 'GENERATE_ONE_PAID_IMAGE' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image adapter dependencies
+        run: python -m pip install -e '.[google-image]'
+      - name: Check API secret exists (never print)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        shell: bash
+        run: |
+          if [[ -z "${GEMINI_API_KEY}" ]]; then
+            echo "::error::Repository secret GEMINI_API_KEY is missing"
+            exit 1
+          fi
+      - name: Generate ONE fictional portrait, no retries
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DRAMA_ENABLE_PAID_GENERATION: "YES"
+        run: python -m drama_factory.providers.image_smoke --paid --out artifacts
+      - name: Upload resulting image for private review
+        uses: actions/upload-artifact@v4
+        with:
+          name: fictional-actor-single-image
+          path: artifacts/smoke_fictional_actor.png
+          retention-days: 3
+          if-no-files-found: error
