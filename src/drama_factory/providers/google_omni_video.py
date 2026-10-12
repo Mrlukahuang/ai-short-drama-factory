@@ -81,6 +81,24 @@ class OmniVideoSpec(BaseModel):
 
 
 class FakeOmniVideoProvider:
+    def generate(self, spec: OmniVideoSpec, destination: Path) -> dict:
+        return {
+            "model": spec.model_id, "is_mock": True, "model_calls": 0,
+            "media_path": None, "source_sha256": None,
+        }
+
+
+class GoogleOmniVideoProvider:
+    """Exactly one generate request; bounded poll/download, never resubmit.
+
+    maximum_acknowledged_spend_usd is an acknowledgement, NOT a provider billing cap.
+    """
+
+    def __init__(self, client=None, poll_interval: float = 5.0, max_polls: int = 60):
+        self._client = client
+        self.poll_interval = poll_interval
+        self.max_polls = max_polls
+
     def _client_or_raise(self):
         if self._client is not None:
             return self._client
@@ -141,24 +159,6 @@ class FakeOmniVideoProvider:
         )
         receipt["recovered_existing"] = True
         return receipt
-
-    def generate(self, spec: OmniVideoSpec, destination: Path) -> dict:
-        return {
-            "model": spec.model_id, "is_mock": True, "model_calls": 0,
-            "media_path": None, "source_sha256": None,
-        }
-
-
-class GoogleOmniVideoProvider:
-    """Exactly one generate request; bounded poll/download, never resubmit.
-
-    maximum_acknowledged_spend_usd is an acknowledgement, NOT a provider billing cap.
-    """
-
-    def __init__(self, client=None, poll_interval: float = 5.0, max_polls: int = 60):
-        self._client = client
-        self.poll_interval = poll_interval
-        self.max_polls = max_polls
 
     def generate(self, spec: OmniVideoSpec, destination: Path) -> dict:
         if os.getenv("DRAMA_ENABLE_PAID_GENERATION") != "YES":
