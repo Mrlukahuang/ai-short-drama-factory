@@ -321,6 +321,8 @@ def create_app(data_dir: str | Path = "./data") -> FastAPI:
     app.include_router(screenplay_router)
     from .novels.chunk_routes import router as chunk_router
     app.include_router(chunk_router)
+    from .novels.rights_routes import router as rights_router
+    app.include_router(rights_router)
     return app
 
 app = create_app()
