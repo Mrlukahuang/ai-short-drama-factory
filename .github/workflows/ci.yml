@@ -35,10 +35,26 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install FFmpeg and FFprobe from a pinned setup action
-        uses: AnimMouse/setup-ffmpeg@178e0b4a408f06ce40d896c3cd79f50fa6f8b0c3
-        with:
-          version: '7.1'
+      - name: Install hash-pinned FFmpeg/FFprobe binaries from PyPI
+        shell: bash
+        run: |
+          printf '%s\\n' 'ffprobe-binaries-only==0.1.2 --hash=sha256:15b8d28d2ee159145b131450f018bf708b4910dff13a21bfa9b8e13c9309715c' > /tmp/ffmpeg-requirements.txt
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r /tmp/ffmpeg-requirements.txt
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from ffprobe_binaries import get_ffmpeg_path, get_ffprobe_path
+          target = Path("/tmp/shortdrama-ffmpeg")
+          target.mkdir(exist_ok=True)
+          for name, source in (("ffmpeg", get_ffmpeg_path()), ("ffprobe", get_ffprobe_path())):
+              binary = Path(source).resolve()
+              if not binary.is_file():
+                  raise RuntimeError(f"Missing bundled {name} binary")
+              binary.chmod(binary.stat().st_mode | 0o111)
+              (target / name).symlink_to(binary)
+          with open(os.environ["GITHUB_PATH"], "a", encoding="utf-8") as handle:
+              handle.write(str(target) + "\\n")
+          PY
       - name: Verify FFmpeg tools
         run: |
           command -v ffmpeg
