@@ -25,3 +25,38 @@ jobs:
         run: pytest -q
       - name: Compile source
         run: python -m compileall -q src
+
+  offline-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure ffmpeg and ffprobe are available
+        run: |
+          if ! command -v ffmpeg || ! command -v ffprobe; then
+            sudo apt-get update -qq
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
+      - name: Install offline dependencies
+        run: python -m pip install -e '.[test]'
+      - name: Create playable 6-second MP4 (no API keys)
+        env:
+          DRAMA_FACTORY_OFFLINE: '1'
+        run: python -m drama_factory.pipeline.offline_demo --out artifacts/offline-demo
+      - name: Verify output streams and duration
+        run: |
+          ffprobe -v error -show_entries format=duration:stream=codec_type,codec_name,width,height -of json artifacts/offline-demo/demo.mp4
+          test -s artifacts/offline-demo/manifest.json
+      - name: Upload free demo MP4 and manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-end-to-end-mp4
+          path: |
+            artifacts/offline-demo/demo.mp4
+            artifacts/offline-demo/manifest.json
+          retention-days: 7
+          if-no-files-found: error
