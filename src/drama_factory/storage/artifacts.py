@@ -194,7 +194,9 @@ def publish_episode_preview(
     episode = db.one("SELECT body_json FROM episodes WHERE id=?", (p["episode_id"],))
     expected_duration = EpisodeDraft.model_validate_json(episode["body_json"]).target_duration_seconds
     expected = Path(work_root).resolve() / series_id / production_id / "preview.mp4"
-    if Path(manifest.get("mp4_path", "")).resolve() != expected:
+    # Compare lexical paths before resolving; _canonical_input below rejects
+    # any symlink in the actual source path, rather than disguising it as a mismatch.
+    if Path(manifest.get("mp4_path", "")).absolute() != expected:
         raise ArtifactStoreError("Preview manifest path does not match production")
     if manifest.get("series_id") != series_id or manifest.get("production_id") != production_id:
         raise ArtifactStoreError("Preview manifest scope is inconsistent")
