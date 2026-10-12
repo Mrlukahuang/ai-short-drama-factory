@@ -1,5 +1,6 @@
 """All Omni Video tests use fake SDK clients and local FFmpeg; never call Google."""
 import base64
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -9,7 +10,8 @@ import pytest
 
 from drama_factory.providers.google_omni_video import (
     FakeOmniVideoProvider, GoogleOmniVideoProvider, InvalidVideoResponse,
-    OmniVideoSpec, VideoCallDisabled,
+    OmniVideoSpec, VideoCallDisabled, parse_google_video_file_id,
+    google_video_download_uri,
 )
 from drama_factory.providers.omni_video_smoke import run_manual_test
 
@@ -45,7 +47,10 @@ class FilesStub:
         return SimpleNamespace(state=SimpleNamespace(name=state))
 
     def download(self, *, file, destination):
-        assert file.endswith("/files/generated123")
+        assert file == (
+            "https://generativelanguage.googleapis.com/v1beta/"
+            "files/generated123:download?alt=media"
+        )
         self.download_count += 1
         Path(destination).write_bytes(self.input_path.read_bytes())
 
@@ -59,7 +64,8 @@ class ClientStub:
     def create(self, **kwargs):
         self.calls.append(kwargs)
         return SimpleNamespace(output_video=SimpleNamespace(
-            uri="https://generativelanguage.googleapis.com/v1beta/files/generated123",
+            # Exact Google official REST example shape, not a simplified stub.
+            uri="https://generativelanguage.googleapis.com/v1beta/files/generated123:download?alt=media",
             data=None,
         ))
 
@@ -141,3 +147,71 @@ def test_model_video_enters_complete_episode_without_additional_calls(tmp_path):
     assert outcome["preview"]["supplied_local_clips"] == 1
     assert outcome["preview"]["media"]["subtitle_codec"] == "mov_text"
     assert Path(outcome["final_mp4"]).is_file()
+
+
+def test_real_documented_uri_suffix_parsed_correctly():
+    """Regression for Actions run 38229227030: ':download?alt=media' is NOT part of the file ID."""
+    uri = "https://generativelanguage.googleapis.com/v1beta/files/generated123:download?alt=media"
+    assert parse_google_video_file_id(uri) == "generated123"
+    assert parse_google_video_file_id("files/generated123") == "generated123"
+    assert parse_google_video_file_id(
+        "https://generativelanguage.googleapis.com/v1beta/files/id_123-abc"
+    ) == "id_123-abc"
+    assert google_video_download_uri("id_123-abc") == (
+        "https://generativelanguage.googleapis.com/v1beta/files/id_123-abc:download?alt=media"
+    )
+
+
+@pytest.mark.parametrize("invalid_uri", [
+    "https://evil.example/v1beta/files/generated123:download?alt=media",
+    "http://generativelanguage.googleapis.com/v1beta/files/generated123",
+    "https://generativelanguage.googleapis.com.evil.example/v1beta/files/generated123",
+    "https://generativelanguage.googleapis.com/v1beta/files/../secret:download",
+    "https://generativelanguage.googleapis.com/v1beta/files/generated123:download#fragment",
+    "https://generativelanguage.googleapis.com/v1beta/other/generated123",
+    "files/../../generated123",
+    "files/generated123:delete",
+    "https://user:pass@generativelanguage.googleapis.com/v1beta/files/generated123",
+])
+def test_provider_rejects_untrusted_video_uri(invalid_uri):
+    with pytest.raises(InvalidVideoResponse):
+        parse_google_video_file_id(invalid_uri)
+
+
+@pytest.mark.skipif(not shutil.which("ffmpeg"), reason="ffmpeg required")
+def test_recovery_receipt_and_download_only_never_create_another_video(tmp_path, monkeypatch):
+    monkeypatch.setenv("DRAMA_ENABLE_PAID_GENERATION", "YES")
+    source = make_local_video(tmp_path / "mock-video.mp4")
+    stub = ClientStub(source)
+    provider = GoogleOmniVideoProvider(stub, poll_interval=0, max_polls=4)
+    first = provider.generate(video_spec(approved=True), tmp_path / "first.mp4")
+    assert first["model_calls"] == 1
+    metadata_file = tmp_path / "first.recovery.json"
+    metadata = json.loads(metadata_file.read_text())
+    assert metadata["file_id"] == "generated123"
+    assert metadata["generation_submitted"] is True
+    assert "api_key" not in str(metadata).lower()
+    assert "https:" not in str(metadata)
+    # A completely new client can recover from the file ID while paid mode is DISABLED.
+    monkeypatch.delenv("DRAMA_ENABLE_PAID_GENERATION", raising=False)
+    new_stub = ClientStub(source)
+    new_provider = GoogleOmniVideoProvider(new_stub, poll_interval=0, max_polls=4)
+    recovered = new_provider.recover_existing(
+        metadata["file_id"], tmp_path / "recovered.mp4", operator_approved=True,
+    )
+    assert recovered["model_calls"] == 0
+    assert recovered["recovered_existing"] is True
+    assert new_stub.calls == []  # Critical: recovery NEVER calls interactions.create!
+    assert new_stub.files.download_count == 1
+    assert (tmp_path / "recovered.mp4").read_bytes() == source.read_bytes()
+
+
+def test_recovery_requires_manual_approval(tmp_path):
+    stub = ClientStub(tmp_path / "no-file.mp4")
+    provider = GoogleOmniVideoProvider(stub, poll_interval=0)
+    with pytest.raises(VideoCallDisabled):
+        provider.recover_existing("generated123", tmp_path / "file.mp4")
+    with pytest.raises(InvalidVideoResponse):
+        provider.recover_existing("../secret", tmp_path / "file.mp4", operator_approved=True)
+    assert stub.calls == []
+    assert stub.files.download_count == 0
