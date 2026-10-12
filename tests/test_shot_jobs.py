@@ -107,7 +107,7 @@ def test_provider_task_id_prevents_another_paid_submission(client):
     assert submitted["attempts"] == 1
     assert submitted["provider_task_id"] == "tasks/provider001"
     assert claim_next_job(db, "worker-B")["id"] != job["id"]
-    with pytest.raises(ShotJobError, match="not leased"):
+    with pytest.raises(ShotJobError, match="generation intent"):
         record_submission(db, job["id"], "worker-A", "tasks/double-paid")
     failed = record_failure(db, job["id"], "Video download failed", worker_id="worker-A")
     assert failed["status"] == "failed"
@@ -155,7 +155,7 @@ def test_lease_expiry_never_auto_requeues_and_no_second_claim(client):
     old = list_stalled_jobs(db, now=moment + timedelta(seconds=11))
     assert [j["id"] for j in old] == [leased["id"]]
     with pytest.raises(ShotJobError, match="expired"):
-        record_submission(db, leased["id"], "worker1", "tasks/late", now=moment+timedelta(seconds=11))
+        record_submission_intent(db, leased["id"], "worker1", now=moment+timedelta(seconds=11))
     other = claim_next_job(db, "worker2", now=moment + timedelta(seconds=11))
     assert other["id"] != leased["id"]
     assert db.one("SELECT status FROM shot_jobs WHERE id=?", (leased["id"],))["status"] == "leased"
