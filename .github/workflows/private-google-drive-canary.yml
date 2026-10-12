@@ -1,0 +1,104 @@
+name: Manual private Google Drive MP4 canary
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type UPLOAD_ONE_PRIVATE_TEST_MP4 to authorize one Drive MP4 transfer"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-google-drive-mp4-canary
+  cancel-in-progress: false
+
+jobs:
+  manual-google-drive-mp4-canary:
+    if: ${{ inputs.confirmation == 'UPLOAD_ONE_PRIVATE_TEST_MP4' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact selected revision
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install FFmpeg and FFprobe reproducibly
+        shell: bash
+        run: |
+          echo 'ffprobe-binaries-only==0.1.2 --hash=sha256:15b8d28d2ee159145b131450f018bf708b4910dff13a21bfa9b8e13c9309715c' > /tmp/drive-ffmpeg.txt
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r /tmp/drive-ffmpeg.txt
+          python - <<'PY'
+          import os
+          from importlib.metadata import distribution
+          from pathlib import Path
+          dist = distribution("ffprobe-binaries-only")
+          folder = Path("/tmp/drama-drive-ffmpeg")
+          folder.mkdir(exist_ok=True)
+          for name in ("ffmpeg", "ffprobe"):
+              found = [
+                  Path(dist.locate_file(p)).resolve() for p in (dist.files or [])
+                  if Path(str(p)).name == name
+              ]
+              found = [p for p in found if p.is_file()]
+              if len(found) != 1:
+                  raise RuntimeError(f"Missing bundled {name}")
+              found[0].chmod(found[0].stat().st_mode | 0o111)
+              (folder / name).symlink_to(found[0])
+          with open(os.environ["GITHUB_PATH"], "a", encoding="utf-8") as handle:
+              print(folder, file=handle)
+          PY
+      - name: Install Drive OAuth SDK and local video pipeline
+        run: python -m pip install -e '.[test,cloud-s3]'
+      - name: Verify credentials and app-owned folder are configured
+        env:
+          DRAMA_DRIVE_USER_OAUTH_JSON: ${{ secrets.DRAMA_DRIVE_USER_OAUTH_JSON }}
+          DRAMA_DRIVE_PARENT_FOLDER_ID: ${{ secrets.DRAMA_DRIVE_PARENT_FOLDER_ID }}
+        shell: bash
+        run: |
+          if [[ -z "${DRAMA_DRIVE_USER_OAUTH_JSON}" || -z "${DRAMA_DRIVE_PARENT_FOLDER_ID}" ]]; then
+            echo "::error::Drive OAuth or private app-owned folder ID missing"
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          import os
+          data = json.loads(os.environ["DRAMA_DRIVE_USER_OAUTH_JSON"])
+          assert data.get("refresh_token"), "OAuth refresh token not configured"
+          assert data.get("client_id"), "OAuth client ID not configured"
+          assert data.get("client_secret"), "OAuth client secret not configured"
+          print("OAuth secret structure accepted; values not printed")
+          PY
+      - name: Upload exactly ONE synthetic MP4 and verify restored Google Drive bytes
+        env:
+          DRAMA_DRIVE_USER_OAUTH_JSON: ${{ secrets.DRAMA_DRIVE_USER_OAUTH_JSON }}
+          DRAMA_DRIVE_PARENT_FOLDER_ID: ${{ secrets.DRAMA_DRIVE_PARENT_FOLDER_ID }}
+          DRAMA_DRIVE_SMOKE_CONFIRM: UPLOAD_ONE_PRIVATE_TEST_MP4
+          DRAMA_ENABLE_DRIVE_UPLOAD: 'YES'
+          DRAMA_ENABLE_DRIVE_READ: 'YES'
+          DRAMA_FACTORY_OFFLINE: '1'
+        run: python -m drama_factory.storage.drive_canary --live --out artifacts/private-google-drive-canary
+      - name: Verify canary report and offline-only footage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("artifacts/private-google-drive-canary/canary-verification.json").read_text())
+          assert a["verified"] is True
+          assert a["sha256_before"] == a["sha256_after"]
+          assert a["new_ai_model_generation_calls"] == 0
+          assert a["uploaded_mp4_count"] == 1
+          assert a["drive_file_id_redacted"] is True
+          print("Private Google Drive MP4 round-trip verified; no AI model calls")
+          PY
+      - name: Upload verification-only artifact (no tokens or file IDs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-google-drive-canary-verification
+          path: artifacts/private-google-drive-canary/canary-verification.json
+          retention-days: 3
+          if-no-files-found: error

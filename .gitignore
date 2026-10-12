@@ -19,3 +19,10 @@ artifacts/
 *.jpg
 *.jpeg
 .DS_Store
+
+# Never commit OAuth desktop credentials or refresh tokens
+credentials.json
+token.json
+drive-user-oauth.json
+client_secret*.json
+oauth-client*.json
