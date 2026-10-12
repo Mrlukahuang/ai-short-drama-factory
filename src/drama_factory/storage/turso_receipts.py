@@ -23,7 +23,12 @@ class TursoReceiptError(ValueError):
 
 # Remote database must be dedicated to THIS factory, not a shared Turso DB
 # belonging to the user's unrelated apps.
-_DB_HOST = re.compile(r"ai-short-drama-factory-[a-z0-9-]+\.turso\.io")
+# Turso may include a regional hostname label: <db>-<org>.<region>.turso.io.
+# Keep the dedicated-project prefix and accept no more than one region label.
+_DB_HOST = re.compile(
+    r"ai-short-drama-factory-[a-z0-9]+(?:-[a-z0-9]+)*"
+    r"(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)?\.turso\.io"
+)
 _SHA = re.compile(r"[0-9a-f]{64}")
 _RECEIPT_COLUMNS = (
     "drive_copy_id", "artifact_id", "series_id", "production_id",
