@@ -48,3 +48,29 @@ result = restore_cloud_artifact(db, record["id"], target, new_local_root,
 ## 强制验收
 
 普通 Python 3.11/3.13：配置/域名校验、默认禁止真实云端调用、Fake S3 合同；FFmpeg 专项 CI：用真正生成的 H264/AAC/mov_text MP4 试验 R2/S3 请求头、远端传输前后完整 SHA256、重复上传不覆写、错误返回/重启续传、两部剧隔离、伪造/损坏对象拒绝，以及把两段从模拟云端下载到全新本地对象目录后重新剪出带字幕完整分集。
+
+
+## PR-24：一次性手动真实私有云端验收（未触发）
+
+单独的 [GitHub Actions 工作流](../.github/workflows/private-cloud-canary.yml) 标题 **Manual private R2/S3 MP4 canary (may incur storage charges)**，仅在管理员从 GitHub Actions UI 显式 Run workflow 并输入 `TEST_ONE_PRIVATE_CLOUD_MP4` 时可能运行真实云操作。PR、push、CI 不会触发这个工作流。Workflow `permissions: contents: read` 且通过 concurrency 序列化执行。
+
+### 仓库所有者手动设置的 Secrets
+
+在私有仓库 Settings → Secrets and variables → Actions 添加：
+
+- `CLOUD_STORAGE_ACCESS_KEY_ID`：该私有 Bucket 的最小权限 S3/R2 access key。
+- `CLOUD_STORAGE_SECRET_ACCESS_KEY`：对应 secret key。
+- `CLOUD_STORAGE_BUCKET`：新建或已经批准用于测试的**私有** Bucket 名称。
+- Cloudflare R2 选择时另加 `CLOUD_R2_ACCOUNT_ID`（32 位十六进制 Account ID）；AWS S3 选择时另加 `CLOUD_AWS_REGION`（如 `ap-southeast-2`）。
+
+**不得把任何密钥发到 ChatGPT、GitHub Issue/PR 或提交到 Git。** 本仓库不要求额外的 `GEMINI_API_KEY`，也不会生成任何收费 AI 视频。
+
+### 手动操作
+
+打开仓库 Actions，选择 `Manual private R2/S3 MP4 canary (may incur storage charges)`，点击 `Run workflow`，选最新 `main`、`provider=r2` 或 `s3`，输入 `TEST_ONE_PRIVATE_CLOUD_MP4`。工作流创建独立测试剧集与双审核分集，用本地 FFmpeg 渲染**一个 2 秒虚构技术成片**，并对这**一个** MP4 执行私有对象上传、远端完整 GET SHA256、恢复下载并重算媒体格式。成功后会提供不含密钥的 `private-cloud-canary-verification` Artifact：包含 SHA256、对象键、真实已读回数据与 `new_ai_model_generation_calls: 0`。
+
+**费用/保留提醒**：R2/S3 的 PUT、GET 和存储及可能的数据传输可能计费；单次只创建一个对象，**不自动删除云端对象**，避免影响其他数据。管理员在确认备份和审计后，自行通过云控制台的正确前缀删除测试对象或启用合适生命周期规则。测试仅证明当前凭证有权限并且上传下载内容一致，**不能证明 Bucket 无公开策略或 IAM 最小权限配置正确**，这些还需用户独立核验。
+
+在没有云 Secrets、没有手动确认时，工作流不运行且云操作代码立即 fail-closed。普通 CI 的 `tests/test_cloud_canary.py` 使用 FakeS3 Client，不接触真实云；另外模拟了手动 live 执行的相同 Python 调用路径、回执验收和默认锁定。
+
+本工作流是操作员触发的私有存储验证，**未提供给最终用户公开上传或下载入口，也没有启用签名 URL 或后台定时任务。**

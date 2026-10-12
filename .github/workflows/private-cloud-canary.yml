@@ -1,0 +1,119 @@
+name: Manual private R2/S3 MP4 canary (may incur storage charges)
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: "Cloud provider whose private bucket is configured"
+        required: true
+        type: choice
+        options:
+          - r2
+          - s3
+      confirmation:
+        description: "Type TEST_ONE_PRIVATE_CLOUD_MP4 to allow ONE MP4 upload and read-back"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-cloud-mp4-canary
+  cancel-in-progress: false
+
+jobs:
+  private-cloud-mp4-canary:
+    if: ${{ inputs.confirmation == 'TEST_ONE_PRIVATE_CLOUD_MP4' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact selected revision
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install FFmpeg and FFprobe reproducibly
+        shell: bash
+        run: |
+          echo 'ffprobe-binaries-only==0.1.2 --hash=sha256:15b8d28d2ee159145b131450f018bf708b4910dff13a21bfa9b8e13c9309715c' > /tmp/cloud-ffmpeg.txt
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r /tmp/cloud-ffmpeg.txt
+          python - <<'PY'
+          import os
+          from importlib.metadata import distribution
+          from pathlib import Path
+          dist = distribution("ffprobe-binaries-only")
+          folder = Path("/tmp/drama-cloud-ffmpeg")
+          folder.mkdir(exist_ok=True)
+          for name in ("ffmpeg", "ffprobe"):
+              found = [
+                  Path(dist.locate_file(p)).resolve() for p in (dist.files or [])
+                  if Path(str(p)).name == name
+              ]
+              found = [p for p in found if p.is_file()]
+              if len(found) != 1:
+                  raise RuntimeError(f"Missing bundled {name}")
+              found[0].chmod(found[0].stat().st_mode | 0o111)
+              (folder / name).symlink_to(found[0])
+          with open(os.environ["GITHUB_PATH"], "a", encoding="utf-8") as handle:
+              print(folder, file=handle)
+          PY
+      - name: Install storage SDK and local video pipeline
+        run: python -m pip install -e '.[test,cloud-s3]'
+      - name: Check required private storage secrets exist (no secret output)
+        shell: bash
+        env:
+          CLOUD_STORAGE_ACCESS_KEY_ID: ${{ secrets.CLOUD_STORAGE_ACCESS_KEY_ID }}
+          CLOUD_STORAGE_SECRET_ACCESS_KEY: ${{ secrets.CLOUD_STORAGE_SECRET_ACCESS_KEY }}
+          CLOUD_STORAGE_BUCKET: ${{ secrets.CLOUD_STORAGE_BUCKET }}
+          CLOUD_R2_ACCOUNT_ID: ${{ secrets.CLOUD_R2_ACCOUNT_ID }}
+          CLOUD_AWS_REGION: ${{ secrets.CLOUD_AWS_REGION }}
+          SELECTED_PROVIDER: ${{ inputs.provider }}
+        run: |
+          if [[ -z "${CLOUD_STORAGE_ACCESS_KEY_ID}" || -z "${CLOUD_STORAGE_SECRET_ACCESS_KEY}" || -z "${CLOUD_STORAGE_BUCKET}" ]]; then
+            echo "::error::Cloud credentials or bucket secret missing"
+            exit 1
+          fi
+          if [[ "${SELECTED_PROVIDER}" == "r2" && -z "${CLOUD_R2_ACCOUNT_ID}" ]]; then
+            echo "::error::Cloudflare R2 Account ID secret missing"
+            exit 1
+          fi
+          if [[ "${SELECTED_PROVIDER}" == "s3" && -z "${CLOUD_AWS_REGION}" ]]; then
+            echo "::error::AWS S3 Region secret missing"
+            exit 1
+          fi
+      - name: Upload ONE synthetic MP4 to private bucket and fully verify download
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUD_STORAGE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUD_STORAGE_SECRET_ACCESS_KEY }}
+          DRAMA_CLOUD_BUCKET: ${{ secrets.CLOUD_STORAGE_BUCKET }}
+          DRAMA_R2_ACCOUNT_ID: ${{ secrets.CLOUD_R2_ACCOUNT_ID }}
+          DRAMA_AWS_REGION: ${{ secrets.CLOUD_AWS_REGION }}
+          DRAMA_CLOUD_SMOKE_CONFIRM: TEST_ONE_PRIVATE_CLOUD_MP4
+          DRAMA_ENABLE_CLOUD_UPLOAD: 'YES'
+          DRAMA_ENABLE_CLOUD_READ: 'YES'
+          DRAMA_FACTORY_OFFLINE: '1'
+          SELECTED_PROVIDER: ${{ inputs.provider }}
+        shell: bash
+        run: |
+          python -m drama_factory.storage.cloud_canary --live --provider "${SELECTED_PROVIDER}" --out artifacts/private-cloud-canary
+      - name: Verify canary report and offline-only footage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("artifacts/private-cloud-canary/canary-verification.json").read_text())
+          assert a["verified"] is True
+          assert a["source_sha256"] == a["restored_sha256"]
+          assert a["new_ai_model_generation_calls"] == 0
+          assert a["signed_download_url_created"] is False
+          print("Private MP4 cloud round-trip: verified; no AI model calls")
+          PY
+      - name: Upload verification-only artifact (no keys or signed URLs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-cloud-canary-verification
+          path: artifacts/private-cloud-canary/canary-verification.json
+          retention-days: 3
+          if-no-files-found: error
