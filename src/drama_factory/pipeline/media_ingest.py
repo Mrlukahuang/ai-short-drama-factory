@@ -19,7 +19,10 @@ class MediaIngressError(ValueError):
 
 
 def inspect_source(path: Path, shot_seconds: int) -> dict:
-    source = Path(path).resolve(strict=True)
+    try:
+        source = Path(path).resolve(strict=True)
+    except OSError as exc:
+        raise MediaIngressError("Source video path does not exist") from exc
     if not source.is_file() or source.suffix.lower() not in EXTENSIONS:
         raise MediaIngressError("Only local MP4/MOV/WEBM/MKV video files are supported")
     if not (1000 <= source.stat().st_size <= MAX_SOURCE_BYTES):
@@ -34,8 +37,8 @@ def inspect_source(path: Path, shot_seconds: int) -> dict:
         duration = float(probe["format"]["duration"])
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, KeyError) as exc:
         raise MediaIngressError("Invalid or unreadable source video") from exc
-    videos = [v for v in probe["streams"] if v["codec_type"] == "video"]
-    audios = [v for v in probe["streams"] if v["codec_type"] == "audio"]
+    videos = [v for v in probe.get("streams", []) if v.get("codec_type") == "video"]
+    audios = [v for v in probe.get("streams", []) if v.get("codec_type") == "audio"]
     if len(videos) != 1 or duration + 0.05 < shot_seconds:
         raise MediaIngressError("Source requires one video stream and enough footage duration")
     digest = hashlib.sha256()
