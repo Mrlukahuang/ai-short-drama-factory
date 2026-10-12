@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 剧本验证和人工提交（PR-03）
+
+`POST /api/v1/series/{series_id}/screenplays/validate` 读取结构化剧本和对白，对角色与场景引用、镜头时长、说话人和跨剧隔离逐一检查；`/commit` 需要 `reviewed_by_operator=true`，仅保存 Episode 草稿，不自动生成视频。审阅了 [Drama Skills](https://github.com/zenstory-ai/drama-skills) 的 MIT 许可及分层工作流，但没有运行第三方安装脚本；参见 [审计与剧本契约](docs/SCREENPLAY_SKILLS.md)。
+
 ### 编剧模拟接口（PR-02）
 
 基于每部剧的 Story Bible 和本剧 Actor/Scene 资产，`POST /api/v1/series/{series_id}/script-drafts` 创建严格校验的**模拟编剧草稿**，并保留 Prompt 版本与输入指纹。草稿不能自动审核或转换成真正分集，也不调用付费 API。详见 [编剧契约](docs/TEXT_PROVIDER.md)。

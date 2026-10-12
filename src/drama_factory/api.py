@@ -317,6 +317,8 @@ def create_app(data_dir: str | Path = "./data") -> FastAPI:
 
     from .pipeline.text_api import router as text_router
     app.include_router(text_router)
+    from .pipeline.screenplay_routes import router as screenplay_router
+    app.include_router(screenplay_router)
     return app
 
 app = create_app()
