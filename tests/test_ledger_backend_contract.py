@@ -125,21 +125,19 @@ def test_candidate_parallel_budget_holds_cannot_double_spend(client):
     )["n"] == 0
 
 
-def test_candidate_transaction_context_rolls_back_if_audit_event_fails(client):
+def test_candidate_transaction_context_rolls_back_if_audit_event_fails(client, monkeypatch):
     import drama_factory.jobs.shots as shots
 
     _, run = make_two_shot_production(client)
     adapter = candidate(client)
     staged = prepare_shot_jobs(adapter, run)
-    original = shots._event
-    try:
-        def fail(*args, **kwargs):
-            raise RuntimeError("injected audit failure")
-        shots._event = fail
-        with pytest.raises(RuntimeError, match="injected audit"):
-            claim_next_job(adapter, "adapter-audit", production_id=run)
-    finally:
-        shots._event = original
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("injected audit failure")
+
+    monkeypatch.setattr(shots, "_event", fail)
+    with pytest.raises(RuntimeError, match="injected audit"):
+        claim_next_job(adapter, "adapter-audit", production_id=run)
     state = adapter.one(
         "SELECT status,attempts,lease_owner FROM shot_jobs WHERE id=?",
         (staged[0]["id"],),
