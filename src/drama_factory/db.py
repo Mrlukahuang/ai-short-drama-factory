@@ -44,6 +44,15 @@ CREATE TABLE IF NOT EXISTS story_bibles (
  body_json TEXT NOT NULL, created_at TEXT NOT NULL,
  FOREIGN KEY(series_id) REFERENCES projects(id), UNIQUE(series_id,version)
 );
+CREATE TABLE IF NOT EXISTS script_drafts (
+ id TEXT PRIMARY KEY, series_id TEXT NOT NULL, story_bible_id TEXT NOT NULL,
+ prompt_version TEXT NOT NULL, request_json TEXT NOT NULL, result_json TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('mock_only','review_pending','approved','rejected')),
+ created_at TEXT NOT NULL,
+ FOREIGN KEY(series_id) REFERENCES projects(id),
+ FOREIGN KEY(story_bible_id) REFERENCES story_bibles(id)
+);
+CREATE INDEX IF NOT EXISTS idx_script_drafts_series ON script_drafts(series_id,created_at);
 CREATE TABLE IF NOT EXISTS novel_sources (
  id TEXT PRIMARY KEY, title TEXT NOT NULL, original_filename TEXT NOT NULL,
  format TEXT NOT NULL, sha256 TEXT NOT NULL, rights_status TEXT NOT NULL,
