@@ -5,6 +5,7 @@ import base64
 import binascii
 import hashlib
 import os
+from io import BytesIO
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Literal
@@ -13,7 +14,8 @@ from pydantic import BaseModel, Field
 
 MODEL_ID = "gemini-nano-banana-2.1"
 MAX_OUTPUT_BYTES = 20 * 1024 * 1024
-PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+JPEG_SIGNATURE = b"\xff\xd8\xff"
+JPEG_EOI = b"\xff\xd9"
 
 
 class ImageCallDisabled(RuntimeError):
@@ -42,7 +44,7 @@ class GoogleImageSpec(BaseModel):
 class GeneratedImage:
     model_id: str
     sha256: str | None
-    png_bytes: bytes | None
+    jpeg_bytes: bytes | None
     is_mock: bool
     paid_model_calls: int
 
@@ -99,7 +101,7 @@ class GoogleImageProvider:
             input=spec.prompt,
             response_format={
                 "type": "image",
-                "mime_type": "image/png",
+                "mime_type": "image/jpeg",
                 "aspect_ratio": spec.aspect_ratio,
                 "image_size": spec.image_size,
             },
@@ -114,9 +116,21 @@ class GoogleImageProvider:
             raw = base64.b64decode(encoded, validate=True)
         except (binascii.Error, ValueError) as exc:
             raise InvalidImageResponse("Malformed base64 image") from exc
-        if len(raw) > MAX_OUTPUT_BYTES or not raw.startswith(PNG_SIGNATURE):
-            raise InvalidImageResponse("Image is too large or not PNG")
+        if (
+            len(raw) > MAX_OUTPUT_BYTES or not raw.startswith(JPEG_SIGNATURE)
+            or not raw.endswith(JPEG_EOI)
+        ):
+            raise InvalidImageResponse("Image is too large or not a complete JPEG")
+        # Only declare a paid result successful after actually decoding the image.
+        from PIL import Image, UnidentifiedImageError
+        try:
+            with Image.open(BytesIO(raw)) as picture:
+                if picture.format != "JPEG":
+                    raise InvalidImageResponse("Expected JPEG image from Gemini")
+                picture.verify()
+        except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
+            raise InvalidImageResponse("Gemini returned an undecodable JPEG") from exc
         return GeneratedImage(
             model_id=spec.model_id, sha256=hashlib.sha256(raw).hexdigest(),
-            png_bytes=raw, is_mock=False, paid_model_calls=1,
+            jpeg_bytes=raw, is_mock=False, paid_model_calls=1,
         )
