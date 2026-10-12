@@ -49,7 +49,7 @@ def _live_authorized():
 
 def run_drive_canary(
     output: Path, *, parent_folder_id: str = "fakeDriveRoot0001",
-    live: bool = False, client=None,
+    live: bool = False, client=None, on_verified=None,
 ) -> dict:
     if live:
         _live_authorized()
@@ -115,6 +115,11 @@ def run_drive_canary(
                 )
         if receipt["sha256"] != recovered["sha256"] or not recovered["verified"]:
             raise DriveArtifactError("Drive canary hash round-trip failed")
+        # PR-30c: allow one explicit caller-supplied metadata hook while the
+        # temporary SQLite ledger and the verified recovered media still exist.
+        # No hook is installed by the ordinary Drive-only canary.
+        if on_verified is not None:
+            on_verified(db, receipt["id"], root / "downloaded-stored")
         result = {
             "storage": "google-drive",
             "mode": "live" if live else "fake",
