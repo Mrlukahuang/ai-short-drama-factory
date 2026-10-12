@@ -14,7 +14,6 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from drama_factory.db import Database
-from drama_factory.storage.artifacts import verify_stored_artifact
 
 
 class TursoReceiptError(ValueError):
@@ -97,6 +96,10 @@ def _open_remote(target: TursoMetadataTarget, token: str):
 
 
 def _source_receipt(db: Database, copy_id: str, local_store_root: Path) -> tuple:
+    # Keep image/video dependencies out of the read-only Turso preflight.
+    # The media verifier is only needed when an operator authorizes a write.
+    from drama_factory.storage.artifacts import verify_stored_artifact
+
     record = db.one(
         """SELECT d.id AS drive_copy_id, d.artifact_id, a.series_id,
                   a.production_id, a.episode_id, a.shot_job_id, a.kind,
