@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### Gemini Omni 单镜头视频实测入口（PR-13a）
+
+已经根据 Google 官方 Interactions API 建立受控的 `gemini-omni-1.1-flash` 视频适配器，包括 FakeProvider、Google Files URI 轮询/下载、内联视频读取、本地 FFprobe 检查，以及将真实视频放进我们的 6 秒混合分集。**测试工作流默认关闭**，仅在仓库拥有者手动输入 `GENERATE_ONE_PAID_VIDEO` 并通过密钥及双重批准后可能产生费用。目前还没做真实视频模型试片，普通 CI 仅离线 stub 测试。见 [OMNI_VIDEO_SMOKE](docs/OMNI_VIDEO_SMOKE.md)。
+
 ### 可替换的视频模型素材接口（PR-12）
 
 离线成片可以按镜头导入本地 MP4/MOV/WEBM/MKV，检查文件哈希、时长及视频轨并转成统一的 H.264/AAC，重合成时复用其他不变的镜头。GitHub CI 样片的第 2 镜头现已换为本地 FFmpeg 生成的**动态测试图案**，后续 Gemini/Seedance/Kling 真实输出可以从这个入口接入；当前没有调用真实视频模型。见 [视频导入与成片文档](docs/OFFLINE_E2E.md)。
