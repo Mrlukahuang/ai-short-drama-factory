@@ -57,7 +57,11 @@
 - [x] PR-30a：引擎区分、严格独立数据库域名与只读 Turso 连通性手动 GitHub Actions 工作流（仅离线 Fake 测试）
 - [x] PR-30b：用户已新建 Sydney 区域的专用 libSQL 数据库、配置两项专用 GitHub Secrets，并通过手动真实只读验收（[Actions #38277564945](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38277564945)：`reachable=true`、`read_only=true`、`database_modified=false`、`metadata_table_exists=false`）。工作流仅执行 SELECT，**不能据此声称所用 Full Access Token 被限制为只读，或已验证远端写入**。
 - [x] PR-30c：一次私有测试 2 秒 MP4 → Drive 上传、下载 SHA256 验证 → 短剧专用 Turso `drama_drive_receipts_v1` 建表、单条 INSERT、完整 SELECT 回读。**已完成真实验收**：[Actions #38279948391](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38279948391)，`turso_metadata_inserted=true`、`turso_full_row_readback_verified=true`、`uploaded_mp4_count=1`、`new_ai_model_generation_calls=0`。这次一次性测试授权已用完，**不得重复触发**；生产 SQLite 仍未迁移。详见 [TURSO_PR30C_WRITE_CANARY](TURSO_PR30C_WRITE_CANARY.md)。
-- [ ] PR-31：旧 SQLite 生产任务/审批/预算完整迁移及远端交易、幂等与并发验收（未实现）
+- [ ] PR-31：旧 SQLite 生产任务/审批/预算完整迁移及远端交易、幂等与并发验收（**尚未实施，禁止真实切换**）。
+  - [x] PR-31a：完成离线只读源数据库体检、未完成租约/预算/供应商提交状态阻断、安全迁移分期计划；不读取真实 Turso 数据，不开放迁移入口。详见 [PR31_MIGRATION_READINESS](PR31_MIGRATION_READINESS.md)。
+  - [ ] PR-31b：离线远端事务兼容抽象与双 Worker 预算/幂等并发竞争演练。
+  - [ ] PR-31c：离线快照/完整性核验/恢复与回滚演练。
+  - [ ] PR-31d：另行授权后测试真实 Turso 事务/并发及正式切换。
 - [ ] PR-24：正式云端持续 Worker 与 Google 视频任务 ID 调度（仍需付费审批）
 - [ ] 后续 PR：受鉴权的工作人员任务列表与审片工作台、按生产线可视化调度
 - [ ] 后续 PR：正式付费 Worker 的请求前持久化、供应商任务句柄对接、自动轮询与受控预算实测
