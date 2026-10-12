@@ -144,10 +144,10 @@ def rehearse_local_snapshot(
     if operator_approved is not True or offline_rehearsal_only is not True:
         raise SnapshotRehearsalDenied("Explicit offline snapshot rehearsal approval required")
     original = _source_path(source)
+    if Path(backup).expanduser().absolute() == Path(restored).expanduser().absolute():
+        raise SnapshotRehearsalDenied("Backup and restored file must differ")
     backup_path = _new_destination(backup, (original,))
     restored_path = _new_destination(restored, (original, backup_path))
-    if backup_path == restored_path:
-        raise SnapshotRehearsalDenied("Backup and restored file must differ")
     before = inspect_local_sqlite(original)
     if not (
         before["integrity_ok"]
