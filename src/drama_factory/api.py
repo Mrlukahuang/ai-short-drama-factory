@@ -315,6 +315,8 @@ def create_app(data_dir: str | Path = "./data") -> FastAPI:
                 "episodes_generated": 0,
                 "notice": "Import and entitlement gate are active; script adaptation engine is a future module"}
 
+    from .pipeline.text_api import router as text_router
+    app.include_router(text_router)
     return app
 
 app = create_app()

@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 编剧模拟接口（PR-02）
+
+基于每部剧的 Story Bible 和本剧 Actor/Scene 资产，`POST /api/v1/series/{series_id}/script-drafts` 创建严格校验的**模拟编剧草稿**，并保留 Prompt 版本与输入指纹。草稿不能自动审核或转换成真正分集，也不调用付费 API。详见 [编剧契约](docs/TEXT_PROVIDER.md)。
+
 ## 2. 目前已经能运行的能力（v0.1）
 
 | 模块 | 已实现 | 尚未实现 |
@@ -172,7 +176,7 @@ scripts/                    # 将来发布到 GitHub 的辅助脚本
 
 ## 9. 发布为独立的 GitHub 私有仓库
 
-目标：`Mrlukahuang/ai-short-drama-factory`（Private）。远端仓库由仓库所有者在 GitHub 页面创建后，将其加入 ChatGPT GitHub App 的 Selected repositories 授权名单；**未被授权的私有仓库对连接器表现为 404，不意味着仓库不存在**。
+**已创建并连接：** [Mrlukahuang/ai-short-drama-factory](https://github.com/Mrlukahuang/ai-short-drama-factory)，私有仓库，已通过 GitHub Actions 离线 CI。
 
 创建后优先使用已连接的 GitHub 工具一次性提交框架并验证 GitHub Actions。若连接器尚未获得权限，仓库所有者也可以在本机使用 `gh` 备选发布方式（需先 `gh auth login`）。从源码 ZIP 解压进入项目根目录运行：
 
