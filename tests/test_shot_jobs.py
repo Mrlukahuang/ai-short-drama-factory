@@ -13,6 +13,22 @@ from drama_factory.jobs.shots import (
     record_submission_intent, restore_failed_job, investigate_stale_job,
 )
 
+from drama_factory.jobs.budgets import configure_policy, reserve_job_budget
+
+
+def fund_job(db, job_id, *, now=None):
+    job = db.one("SELECT series_id,provider FROM shot_jobs WHERE id=?", (job_id,))
+    series = db.one("SELECT column_id FROM projects WHERE id=?", (job["series_id"],))
+    for scope, value in (
+        ("column", series["column_id"]),
+        ("series", job["series_id"]),
+        ("provider", job["provider"]),
+    ):
+        configure_policy(db, scope, value,
+                         daily_limit_usd="100.00", max_active_jobs=10)
+    return reserve_job_budget(db, job_id, estimated_charge_usd="0.50", now=now)
+
+
 
 def make_production(client, label="A", *, approve=True):
     project = client.post("/api/v1/projects", json={
@@ -99,6 +115,7 @@ def test_provider_task_id_prevents_another_paid_submission(client):
     job = prepare_shot_jobs(db, run)[0]
     first = claim_next_job(db, "worker-A")
     assert first["id"] == job["id"]
+    fund_job(db, job["id"])
     intent = record_submission_intent(db, job["id"], "worker-A")
     assert intent["status"] == "submission_intent"
     assert intent["generation_intent_recorded"] == 1
@@ -212,6 +229,7 @@ def test_uncertain_paid_request_is_quarantined_if_no_task_id(client):
     db = client.app.state.db
     prepare_shot_jobs(db, run)
     leased = claim_next_job(db, "worker1")
+    fund_job(db, leased["id"])
     record_submission_intent(db, leased["id"], "worker1")
     record_failure(db, leased["id"], "Network died after submission; no task ID",
                    worker_id="worker1")
@@ -226,6 +244,7 @@ def test_expired_submission_intent_cannot_auto_retry(client):
     prepare_shot_jobs(db, run)
     t0 = datetime(2026, 10, 12, 0, 0, tzinfo=timezone.utc)
     leased = claim_next_job(db, "worker1", now=t0, lease_seconds=10)
+    fund_job(db, leased["id"], now=t0)
     record_submission_intent(db, leased["id"], "worker1", now=t0)
     stale = list_stalled_jobs(db, now=t0 + timedelta(seconds=11))
     assert leased["id"] in {x["id"] for x in stale}
