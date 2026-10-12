@@ -215,3 +215,32 @@ def test_recovery_requires_manual_approval(tmp_path):
         provider.recover_existing("../secret", tmp_path / "file.mp4", operator_approved=True)
     assert stub.calls == []
     assert stub.files.download_count == 0
+
+
+@pytest.mark.skipif(not shutil.which("ffmpeg"), reason="ffmpeg required")
+def test_download_only_recovery_flows_into_episode_without_generation(tmp_path, monkeypatch):
+    monkeypatch.delenv("DRAMA_ENABLE_PAID_GENERATION", raising=False)
+    source = make_local_video(tmp_path / "existing_provider_video.mp4")
+
+    class DownloadOnlyProvider:
+        def __init__(self):
+            self.calls = 0
+
+        def recover_existing(self, file_id, destination, *, operator_approved, min_duration_seconds):
+            self.calls += 1
+            assert file_id == "generated123"
+            assert operator_approved is True
+            assert min_duration_seconds == 2
+            destination.write_bytes(source.read_bytes())
+            return {"is_mock": False, "model_calls": 0,
+                    "media_path": str(destination), "recovered_existing": True}
+
+    stub = DownloadOnlyProvider()
+    result = run_manual_test(
+        tmp_path / "restore-run", recovery_file_id="generated123", provider=stub,
+    )
+    assert stub.calls == 1
+    assert result["mode"] == "recover-only"
+    assert result["provider_calls"] == 0
+    assert result["preview"]["supplied_local_clips"] == 1
+    assert Path(result["final_mp4"]).exists()
