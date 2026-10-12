@@ -287,3 +287,99 @@ def verify_stored_artifact(
         "object_key": key, "sha256": digest, "size_bytes": size,
         "path": str(dest), "media": media, "verified": True,
     }
+
+
+def restore_stored_artifact(
+    db: Database, artifact_id: str, store_root: Path, new_work_root: Path,
+) -> dict:
+    """Restore verified bytes into a fresh workspace; never regenerate footage.
+
+    The restored filename is catalog-derived, not the historical absolute path.
+    Multiple machines can therefore restore the same catalog objects without
+    relying on the original FFmpeg path still existing.
+    """
+    checked = verify_stored_artifact(db, artifact_id, store_root)
+    row = db.one("SELECT * FROM stored_artifacts WHERE id=?", (artifact_id,))
+    if row is None:
+        raise ArtifactStoreError("Artifact disappeared during restore")
+    scope = f"{_id(row['series_id'])}/{_id(row['production_id'])}"
+    key = (
+        f"{scope}/restored/{_id(artifact_id)}/{row['sha256']}.mp4"
+    )
+    dest = _publish_bytes(
+        Path(checked["path"]), new_work_root, key,
+        checked["sha256"], checked["size_bytes"],
+    )
+    # Read back the new object, not the source path, to detect copy corruption.
+    digest, size = _hash_file(dest)
+    if digest != checked["sha256"] or size != checked["size_bytes"]:
+        raise ArtifactStoreError("Restored MP4 differs from immutable source")
+    inspect_mp4(dest)
+    return {
+        "artifact_id": artifact_id,
+        "series_id": row["series_id"],
+        "production_id": row["production_id"],
+        "shot_job_id": row["shot_job_id"],
+        "kind": row["kind"],
+        "restored_path": str(dest),
+        "sha256": digest,
+        "bytes": size,
+        "new_model_generation_calls": 0,
+    }
+
+
+def recompose_from_stored_shots(
+    db: Database, production_id: str, store_root: Path, new_work_root: Path,
+) -> dict:
+    """Use immutable stored, already-completed shots in a fresh FFmpeg run.
+
+    Missing shots become explicitly labeled preview placeholders. Do not
+    automatically retry missing shots through a billable model provider.
+    """
+    records = db.many(
+        """SELECT a.id AS artifact_id,a.shot_job_id,a.sha256,j.shot_id,
+           j.status AS shot_status,j.result_sha256,j.series_id AS job_series_id
+           FROM stored_artifacts a JOIN shot_jobs j ON j.id=a.shot_job_id
+           WHERE a.production_id=? AND a.kind='shot_video'
+           ORDER BY j.shot_id,a.created_at,a.id""",
+        (production_id,),
+    )
+    if not records:
+        raise ArtifactStoreError("Production has no stored completed shot videos")
+    production = db.one(
+        """SELECT e.project_id FROM productions p
+           JOIN episodes e ON e.id=p.episode_id WHERE p.id=?""",
+        (production_id,),
+    )
+    if production is None:
+        raise ArtifactStoreError("Production no longer exists")
+    restored = {}
+    restored_ids = []
+    for row in records:
+        if (
+            row["shot_status"] != "succeeded"
+            or row["result_sha256"] != row["sha256"]
+            or row["job_series_id"] != production["project_id"]
+        ):
+            raise ArtifactStoreError("Stored shot no longer matches its approved job")
+        if row["shot_id"] in restored:
+            raise ArtifactStoreError("Ambiguous multiple archived videos for one shot")
+        copy = restore_stored_artifact(
+            db, row["artifact_id"], store_root, new_work_root,
+        )
+        restored[row["shot_id"]] = Path(copy["restored_path"])
+        restored_ids.append(copy["artifact_id"])
+    from drama_factory.pipeline.offline_render import render_approved_preview
+    output = render_approved_preview(
+        db, production_id, new_work_root, source_clips=restored,
+    )
+    output["restored_shot_artifact_ids"] = restored_ids
+    output["new_model_generation_calls"] = 0
+    output["source_is_stored_verified_video"] = True
+    # Store this provenance next to the delivered file, distinct from any
+    # earlier preview; never claim that previously paid models were free.
+    work_manifest = Path(output["mp4_path"]).parent / "manifest.json"
+    work_manifest.write_text(
+        json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8",
+    )
+    return output
