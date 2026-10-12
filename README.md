@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 多栏目生产状态与预算只读总览（PR-20）
+
+新增 `production_operations(db, column_id=..., series_id=...)`，可对各个栏目和剧集分别汇总镜头状态、已提交但未核实费用、异常租约、下载恢复锁，以及栏目/剧集/Provider 预算占用。**只读内部 Python 函数，未向公网开放未鉴权接口，也不调用模型。** 详见 [OPERATIONS_MONITOR](docs/OPERATIONS_MONITOR.md)。
+
 ### Google 已生成视频的镜头级恢复入库（PR-19）
 
 新增 **仅下载既有 Google 视频** 的镜头级恢复接口：先人工绑定 Google Files ID 到已经提交且拥有供应商 Task ID 的 Google 镜头工作项，再校验下载的 MP4、计算 SHA256 并写回对应镜头账本。支持下载后中断恢复、独立剧集素材隔离、针对指定已恢复镜头重新合成完整 MP4。默认不调用任何付费视频生成接口；账单仍以 Google 为准。详见 [GOOGLE_EXISTING_VIDEO_RECOVERY](docs/GOOGLE_EXISTING_VIDEO_RECOVERY.md)。
