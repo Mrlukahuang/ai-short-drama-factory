@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 演员、场景与声样参考媒体版本（PR-07a）
+
+新增系列专属 `asset_references`，记录角色定妆参考、服装、场景、音色样本等的 SHA256、来源许可、同意记录与批准版本。**目前仅元数据注册，不上传或生成图片/音频**。详见 [ASSET_REFERENCES](docs/ASSET_REFERENCES.md)。
+
 ### 小说版权审核与调用门禁（PR-06a）
 
 记录人工审核版本、影视改编范围、语言/地域/媒介、有效期、第三方 AI 处理许可，并提供 `rights-eligibility` 查询。当前没有管理员认证，**只能作为本地开发和待核实声明；即使资格通过也不会启用外部模型**。详见 [NOVEL_RIGHTS](docs/NOVEL_RIGHTS.md)。

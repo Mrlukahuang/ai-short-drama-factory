@@ -25,7 +25,8 @@
 
 ## M2：视觉、声音、Google API
 
-- [ ] PR-07：资产库（演员、妆发、服装、表情、声音、场景和道具）+ 不可变版本
+- [x] PR-07a：人物/场景/声样媒体参考版本、来源许可与审核记录（只登记元数据，无二进制存储）
+- [ ] PR-07b：安全媒体上传、对象存储、真正的妆发/服装/表情资产编辑界面与审片工作台
 - [ ] PR-08：Google ImageProvider，Nano Banana 角色资产及参考图检查
 - [ ] PR-09：Google VideoProvider，Omni 1.1 视频提交/查询/下载/可播放性校验
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
