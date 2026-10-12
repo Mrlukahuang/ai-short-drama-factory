@@ -51,7 +51,8 @@
 - [x] PR-24：人工单次 R2/S3 私有 Bucket 冒烟测试工作流、原创技术 MP4 上传/读取完整验证、失败禁用默认模式（仅 Fake 已测试）
 - [ ] PR-23b：真实 R2/S3 私有 Bucket 连通性、最小权限与加密策略外部验证（需操作者配置凭证）、签名下载及受鉴权工作人员权限检查
 - [x] PR-25：Google Drive 用户 OAuth、MP4 分剧集上传/下载、哈希回读、FakeDrive 测试和独立 Drive 文件账本（未连接真实用户 Drive）
-- [ ] PR-26：受控 GitHub Actions OAuth 配置与真实 Drive 单 MP4 冒烟测试（需用户协助授权）
+- [x] PR-26a：本机 OAuth 引导、应用创建专用 My Drive 根文件夹、手动 GitHub Actions 单 MP4 上传下载验收入口与 FakeDrive CI（尚未连接真实用户账户）
+- [ ] PR-26b：用户手动授权与真实 Drive MP4 冒烟测试（需用户参与，测试模式 refresh token 可能 7 天过期）
 - [ ] PR-24：正式云端持续 Worker 与 Google 视频任务 ID 调度（仍需付费审批）
 - [ ] 后续 PR：受鉴权的工作人员任务列表与审片工作台、按生产线可视化调度
 - [ ] 后续 PR：正式付费 Worker 的请求前持久化、供应商任务句柄对接、自动轮询与受控预算实测

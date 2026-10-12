@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### Google Drive OAuth 和手动测试（PR-26）
+
+新增运行在用户自己电脑上的一次性 OAuth 引导工具，以及必须由仓库拥有者手动启动的 GitHub Actions：**一个 2 秒原创技术 MP4 上传到个人 Google Drive，下载后完整检查 SHA256**。OAuth 默认只请求 `drive.file`，由应用在 My Drive 创建自己的视频文件夹；刷新令牌只保存在本地受限文件中，需操作者自行通过 GitHub Secrets 安全传入工作流。普通 PR/CI **没有真实 Drive 读写**，仅通过 FakeDrive 测试。详见 [DRIVE_OAUTH_SETUP](docs/DRIVE_OAUTH_SETUP.md)。
+
 ### Google Drive 私有视频资产库（PR-25）
 
 已经开始把 Google Drive 作为**优先云端视频存储**：已审核且经 SHA-256 校验的 MP4 可以进入独立的剧集 / 分集 / 镜头文件夹，远端读取并重新计算哈希后才登记 Drive File ID；也能把云端素材恢复到本地资产库再重新合成，且不触发任何 AI 视频模型。默认上传和读取门禁关闭；目前只通过 FakeDrive 客户端测试，**未向个人 Google Drive 上传真实文件**。适用于用户 OAuth 2.0，ChatGPT 已连接的 Drive 并不会自动把凭证授予 GitHub Actions。见 [GOOGLE_DRIVE_STORAGE](docs/GOOGLE_DRIVE_STORAGE.md)。
