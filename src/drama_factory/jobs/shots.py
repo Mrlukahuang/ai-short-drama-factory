@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 
@@ -142,7 +143,8 @@ def prepare_shot_jobs(
 
 def claim_next_job(
     db: Database, worker_id: str, *, series_id: str | None = None,
-    lease_seconds: int = 90, now: datetime | None = None,
+    production_id: str | None = None, lease_seconds: int = 90,
+    now: datetime | None = None,
 ) -> dict | None:
     """Atomically claim exactly one queued job; never calls a provider."""
     if not re.fullmatch(r"[A-Za-z0-9_-]{2,80}", worker_id):
@@ -161,6 +163,9 @@ def claim_next_job(
         if series_id is not None:
             sql += " AND series_id=?"
             params.append(series_id)
+        if production_id is not None:
+            sql += " AND production_id=?"
+            params.append(production_id)
         sql += " ORDER BY created_at,id LIMIT 1"
         job = conn.execute(sql, tuple(params)).fetchone()
         if job is None:
@@ -364,5 +369,53 @@ def investigate_stale_job(
         )
         _event(conn, job_id, "manual_stalled_lease_review", row["status"], "failed", {
             "generation_intent_recorded": bool(row["generation_intent_recorded"]),
+        })
+        return dict(conn.execute("SELECT * FROM shot_jobs WHERE id=?", (job_id,)).fetchone())
+
+
+def complete_fake_clip_job(
+    db: Database, job_id: str, *, worker_id: str, clip_path: Path,
+) -> dict:
+    """Only fake-provider jobs may finish without billable intent or task ID.
+
+    Validate the actual local MP4 and bind its hash to the claimed job.
+    """
+    from drama_factory.pipeline.offline_render import inspect_mp4
+    with db.connection() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        row = conn.execute("SELECT * FROM shot_jobs WHERE id=?", (job_id,)).fetchone()
+        if (
+            row is None or row["status"] != "leased"
+            or row["lease_owner"] != worker_id or row["provider"] != "fake"
+            or row["generation_intent_recorded"]
+        ):
+            raise ShotJobError("Only an owned, leased Fake-provider job may complete locally")
+        episode = conn.execute(
+            "SELECT body_json FROM episodes WHERE id=?", (row["episode_id"],),
+        ).fetchone()
+        if episode is None:
+            raise ShotJobError("Episode missing")
+        draft = EpisodeDraft.model_validate_json(episode["body_json"])
+        target = next((shot.duration_seconds for shot in draft.shots
+                       if shot.shot_id == row["shot_id"]), None)
+        if target is None:
+            raise ShotJobError("Shot no longer belongs to this episode")
+        media_file = Path(clip_path).resolve(strict=True)
+        if (
+            media_file.suffix.lower() != ".mp4"
+            or media_file.parent.name != "clips"
+            or media_file.parents[1].name != row["production_id"]
+            or media_file.parents[2].name != row["series_id"]
+        ):
+            raise ShotJobError("Local media does not match the job/series scope")
+        inspect_mp4(media_file, target)
+        digest = hashlib.sha256(media_file.read_bytes()).hexdigest()
+        conn.execute(
+            """UPDATE shot_jobs SET status='succeeded',
+            result_sha256=?,result_path=?,updated_at=? WHERE id=?""",
+            (digest, str(media_file), timestamp(), job_id),
+        )
+        _event(conn, job_id, "offline_clip_completed", "leased", "succeeded", {
+            "media_sha256": digest, "paid_model_calls": 0, "provider": "fake",
         })
         return dict(conn.execute("SELECT * FROM shot_jobs WHERE id=?", (job_id,)).fetchone())
