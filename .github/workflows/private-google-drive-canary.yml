@@ -53,7 +53,7 @@ jobs:
               print(folder, file=handle)
           PY
       - name: Install Drive OAuth SDK and local video pipeline
-        run: python -m pip install -e '.[test,cloud-s3]'
+        run: python -m pip install -e '.[test,drive-storage]'
       - name: Verify credentials and app-owned folder are configured
         env:
           DRAMA_DRIVE_USER_OAUTH_JSON: ${{ secrets.DRAMA_DRIVE_USER_OAUTH_JSON }}
