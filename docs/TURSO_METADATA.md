@@ -18,12 +18,12 @@
 
 Turso 现有 **libSQL（原 Turso Cloud）** 与新版 **Turso Database** 的 Python 远程 SDK 不一样，官方推荐如下：
 
-- 已存在 **libSQL 数据库**：`python -m pip install -e '.[turso-libsql]'`，`TursoMetadataTarget(url="libsql://ai-short-drama-factory-<org>.turso.io",engine="libsql")`，使用 `libsql.connect(database=...,auth_token=...)`。
+- 已存在 **libSQL 数据库**：`python -m pip install -e '.[turso-libsql]'`，`TursoMetadataTarget(url="libsql://ai-short-drama-factory-<org>.<region>.turso.io",engine="libsql")`，使用 `libsql.connect(database=...,auth_token=...)`。
 - 新建 **Turso Database**：`python -m pip install -e '.[turso-serverless]'`，`TursoMetadataTarget(url="https://ai-short-drama-factory-<org>.turso.io",engine="turso")`，使用 `turso_serverless.connect(...,auth_token=...)`。
 
 见 Turso 官方 Python Quickstart：https://github.com/tursodatabase/turso-docs/blob/main/sdk/python/quickstart.mdx 。
 
-用户其他项目已经存在的 Turso 数据库和表**不能复用**：为避免触及其他产品，适配器强制域名是 `ai-short-drama-factory-<org>.turso.io`。如果数据库名称不同，需要先人工确认该数据库确实独立属于本短剧项目，再决定是否修改这一限制，不应为了连通先去取消安全校验。
+用户其他项目已经存在的 Turso 数据库和表**不能复用**：为避免触及其他产品，适配器强制域名是 `ai-short-drama-factory-<org>.turso.io` 或 Turso 官方实际返回的 `ai-short-drama-factory-<org>.<region>.turso.io`。域名仍须使用短剧专用数据库前缀，禁止其他项目的域名；路径、端口、查询字符串和 URL 内凭据继续拒绝。如果数据库名称不同，需要先人工确认该数据库确实独立属于本短剧项目，再决定是否修改这一限制，不应为了连通先去取消安全校验。
 
 ## 默认关闭及环境变量
 
