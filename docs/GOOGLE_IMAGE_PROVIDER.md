@@ -17,3 +17,8 @@
 **成本重要说明**：`maximum_acknowledged_spend_usd` 是人为确认参考金额，**不是** Google API 的实际硬性账单封顶。当前没有外部账单回执或模型级预算服务，本阶段不可做无人值守批量生成。为此**生产 API 并未暴露真实生成端点**；只有开发者明确手动调用才可能计费。
 
 当前 CI 只用注入假 SDK 返回验证请求参数、门禁和响应解析，没有产生真实图片，也没有测试真人一致性。Google 真实 API 首次验证需要用户在自己的 Google AI Studio 账号创建密钥/开通计费；不应在聊天或 GitHub 提交密钥。
+
+
+## PR-09 手动单张试片入口
+
+Github Actions 只在人工 workflow_dispatch + 特定确认词 + 仓库私有 `GEMINI_API_KEY` 共同满足时运行。参见 [GOOGLE_IMAGE_SMOKE_TEST.md](GOOGLE_IMAGE_SMOKE_TEST.md)。上传单张生成图为 3 天 Artifact；不会在 PR/CI 自动生成，也不会把生成的文件永久纳入仓库。

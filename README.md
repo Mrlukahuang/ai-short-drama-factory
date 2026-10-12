@@ -45,6 +45,10 @@ flowchart TD
 - Streamlit 可创建栏目、选择栏目下剧集并登记独立资产；**真正多 Worker 并行视频生成仍待 M3 实施**。
 - [详细架构、API、迁移和验收说明](docs/MULTI_COLUMN.md)。
 
+### 单张 Google 演员定妆照：人工实测入口（PR-09）
+
+已提供 GitHub Actions 手动 Workflow：必须仓库所有者设置 `GEMINI_API_KEY` 私有 Secret，选择 `main` 并输入精确确认词后才可能调用 **一次** Google 图片模型，生成单张虚构成年演员的 PNG 并保存 3 天的私有 Artifact。**默认 CI、API、小说解析、PR 均不触发付费请求，当前尚未真正做过试片。** [详细操作及费用风险](docs/GOOGLE_IMAGE_SMOKE_TEST.md)。
+
 ### Google Nano Banana 图像适配器（PR-08a）
 
 已实现 Gemini Interactions API 的 Google 图片 Provider 和 FakeProvider。真实调用要求 `DRAMA_ENABLE_PAID_GENERATION=YES`、人工逐次批准和本机 `GEMINI_API_KEY`；目前 **HTTP API 不暴露真实调用接口，也没有做过付费真人图片测试**。见 [Google Image Provider](docs/GOOGLE_IMAGE_PROVIDER.md)。
