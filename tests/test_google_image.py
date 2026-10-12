@@ -1,5 +1,7 @@
 """Image adapter tests with injected SDK stub; all network activity is forbidden."""
 from base64 import b64encode
+from io import BytesIO
+from PIL import Image
 from decimal import Decimal
 from types import SimpleNamespace
 
@@ -48,7 +50,7 @@ def test_mock_zero_charges_without_network(client):
     series, actor = fixture_actor(client)
     result = FakeGoogleImageProvider().generate(client.app.state.db, spec(series, actor))
     assert result.is_mock is True
-    assert result.png_bytes is None and result.paid_model_calls == 0
+    assert result.jpeg_bytes is None and result.paid_model_calls == 0
 
 
 def test_real_provider_refuses_to_call_by_default(client, monkeypatch):
@@ -69,24 +71,24 @@ def test_operator_approval_gate(client, monkeypatch):
     assert stub.calls == []
 
 
-def test_injected_sdk_contract_and_png_receipt(client, monkeypatch):
+def test_injected_sdk_contract_and_jpeg_receipt(client, monkeypatch):
     series, actor = fixture_actor(client)
     monkeypatch.setenv("DRAMA_ENABLE_PAID_GENERATION", "YES")
-    png = (
-        b"\x89PNG\r\n\x1a\n" + b"test-only-synthetic-png-body"
-    )  # Test only: signature payload, NOT a claimed playable or visually valid image.
-    stub = DummyInteractionClient(b64encode(png).decode("ascii"))
+    buffer = BytesIO()
+    Image.new("RGB", (12, 16), (100, 120, 140)).save(buffer, "JPEG")
+    jpeg = buffer.getvalue()
+    stub = DummyInteractionClient(b64encode(jpeg).decode("ascii"))
     result = GoogleImageProvider(stub).generate(
         client.app.state.db, spec(series, actor, operator_approved=True),
     )
     assert result.paid_model_calls == 1 and result.is_mock is False
-    assert result.png_bytes == png
+    assert result.jpeg_bytes == jpeg
     assert len(result.sha256) == 64
     assert stub.calls == [{
         "model": "gemini-nano-banana-2.1",
         "input": "Studio photorealistic portrait of a fictional actress.",
         "response_format": {
-            "type": "image", "mime_type": "image/png",
+            "type": "image", "mime_type": "image/jpeg",
             "aspect_ratio": "9:16", "image_size": "1K",
         },
     }]
@@ -95,7 +97,11 @@ def test_injected_sdk_contract_and_png_receipt(client, monkeypatch):
 def test_bad_image_does_not_report_success(client, monkeypatch):
     series, actor = fixture_actor(client)
     monkeypatch.setenv("DRAMA_ENABLE_PAID_GENERATION", "YES")
-    for bad in ("not-base64", b64encode(b"not-png").decode("ascii")):
+    for bad in (
+        "not-base64",
+        b64encode(b"not-jpeg").decode("ascii"),
+        b64encode(b"\xff\xd8\xffinvalid-but-ended\xff\xd9").decode("ascii"),
+    ):
         with pytest.raises(InvalidImageResponse):
             GoogleImageProvider(DummyInteractionClient(bad)).generate(
                 client.app.state.db, spec(series, actor, operator_approved=True),
