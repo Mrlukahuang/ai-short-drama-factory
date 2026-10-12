@@ -58,3 +58,19 @@ python -m drama_factory.providers.omni_video_smoke --out artifacts/offline-demo
 ### 新的真实试片
 
 只有在用户检查了先前 Google 账单并认可再次收费测试后，才可以从最新 main 的手动 Workflow 输入 `GENERATE_ONE_PAID_VIDEO` 启动新的**单次**视频生成请求。失败后优先检查新创建的恢复 Artifact，不要直接点击 Re-run jobs。
+
+
+## PR-15：端到端调用计数与账单范围
+
+2026-10-12 [Google Omni 成功运行 #38237693350](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38237693350) 实际提交 **1 次付费模型生成请求**，Google 返回真实 3 秒视频，FFmpeg 以第 2 镜头合成为可播放的 6 秒样片。
+
+旧版最终 `manifest.json` 中的 `paid_api_calls: 0` 只表示本地**合成器本身**没有向付费模型发送请求，不能作为整条流水线账单。PR-15 为最终交付的 `manifest.json` 添加 `pipeline_audit`：
+
+- `new_model_generation_calls`：本次视频模型请求数（paid-manual 为 1，offline/recover-only 为 0）。
+- `compositor_paid_api_calls`：FFmpeg 合成器的模型调用数，仍保持 0。
+- `total_new_paid_api_calls`：此次完整执行链新增的模型调用数。
+- `vendor_charge_usd: null`、`vendor_charge_verified: false`：没有获得 Google 真实账单数据就绝不声称明确美元金额，也不把 2 美元确认字段伪装成硬计费上限。
+- `source_was_previously_generated`：区分恢复已有模型结果与本次新生成。
+- `source_video_sha256`：绑定视频来源文件的 SHA256（如供应商回执提供）。
+
+**历史 Artifact 不会被修改**。上述改动对其后新执行的演示和产物生效；失败或未返回视频的调用未来还需要增加独立于完整交付成败的持久化任务账本，以免漏记收费请求。当前测试仅使用离线注入和本地 FFmpeg，不触发额外视频生成或费用。
