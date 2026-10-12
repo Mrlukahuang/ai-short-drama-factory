@@ -29,7 +29,7 @@
 ## 离线回归
 
 ```bash
-python -m pip install -e '.[test,google-image]'
+python -m pip install -e '.[test,google-video]'
 pytest -q tests/test_google_omni_video.py
 python -m drama_factory.providers.omni_video_smoke --out artifacts/offline-demo
 ```
