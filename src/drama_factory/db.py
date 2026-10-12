@@ -118,6 +118,12 @@ CREATE INDEX IF NOT EXISTS idx_shot_jobs_series_status
   ON shot_jobs(series_id,status,created_at);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_shot_jobs_provider_task
   ON shot_jobs(provider,provider_task_id) WHERE provider_task_id IS NOT NULL;
+CREATE TABLE IF NOT EXISTS google_existing_files (
+ job_id TEXT PRIMARY KEY REFERENCES shot_jobs(id),
+ file_id TEXT NOT NULL,
+ recovery_active INTEGER NOT NULL DEFAULT 0 CHECK(recovery_active IN (0,1)),
+ bound_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS shot_job_events (
  id TEXT PRIMARY KEY,
  shot_job_id TEXT NOT NULL REFERENCES shot_jobs(id),
