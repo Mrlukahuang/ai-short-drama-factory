@@ -56,7 +56,7 @@
 - [x] PR-29：Drive 双向验证完成的 MP4 文件 ID、剧集/分集/镜头归属、SHA256 安全映射到专用 Turso 元数据表（仅离线兼容测试，未连接真实 Turso）
 - [x] PR-30a：引擎区分、严格独立数据库域名与只读 Turso 连通性手动 GitHub Actions 工作流（仅离线 Fake 测试）
 - [x] PR-30b：用户已新建 Sydney 区域的专用 libSQL 数据库、配置两项专用 GitHub Secrets，并通过手动真实只读验收（[Actions #38277564945](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38277564945)：`reachable=true`、`read_only=true`、`database_modified=false`、`metadata_table_exists=false`）。工作流仅执行 SELECT，**不能据此声称所用 Full Access Token 被限制为只读，或已验证远端写入**。
-- [ ] PR-30c：一次私有测试 MP4 → Drive 上传下载 SHA256 验收 → 专用 Turso 资产回执建表、单条 INSERT 和全字段回读。**人工授权已取得，受控手动 Workflow 与 Fake/FFmpeg CI 已准备；真实远端写入尚待单次 Actions 实测，不能提前勾选完成**。详见 [TURSO_PR30C_WRITE_CANARY](TURSO_PR30C_WRITE_CANARY.md)。
+- [x] PR-30c：一次私有测试 2 秒 MP4 → Drive 上传、下载 SHA256 验证 → 短剧专用 Turso `drama_drive_receipts_v1` 建表、单条 INSERT、完整 SELECT 回读。**已完成真实验收**：[Actions #38279948391](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38279948391)，`turso_metadata_inserted=true`、`turso_full_row_readback_verified=true`、`uploaded_mp4_count=1`、`new_ai_model_generation_calls=0`。这次一次性测试授权已用完，**不得重复触发**；生产 SQLite 仍未迁移。详见 [TURSO_PR30C_WRITE_CANARY](TURSO_PR30C_WRITE_CANARY.md)。
 - [ ] PR-31：旧 SQLite 生产任务/审批/预算完整迁移及远端交易、幂等与并发验收（未实现）
 - [ ] PR-24：正式云端持续 Worker 与 Google 视频任务 ID 调度（仍需付费审批）
 - [ ] 后续 PR：受鉴权的工作人员任务列表与审片工作台、按生产线可视化调度
