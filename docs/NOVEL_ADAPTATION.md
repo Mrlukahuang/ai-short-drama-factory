@@ -25,7 +25,7 @@ flowchart TD
     E --> B[通用 Story Bible]
 ```
 
-## 核心数据模型（计划）
+## 核心数据模型（PR-04 已新增 Schema；部分流程仍处于计划）
 
 - `NovelSource`: id、原书/版次、hash、语言、权利记录、文件 URI。
 - `SourceSpan`: chapter_id、start/end offsets、原文摘要和内容哈希。
@@ -37,6 +37,8 @@ flowchart TD
 ## 成本控制
 
 章节级分块分析、摘要缓存和增量合并；避免每制作一集就再次提交整部小说。只在明确授权、人工放行、预算可用时才调用外部文本模型。
+
+参见 [NOVEL_SCHEMAS.md](NOVEL_SCHEMAS.md)，可直接通过 `NovelAdaptationBlueprint` 验证章节出处、情节事件关系与分集计划的引用一致性。
 
 ## 当前交付边界
 
