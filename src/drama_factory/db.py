@@ -39,6 +39,16 @@ CREATE TABLE IF NOT EXISTS series_assets (
  UNIQUE(series_id, kind, asset_key, version)
 );
 CREATE INDEX IF NOT EXISTS idx_series_assets_scope ON series_assets(series_id,kind,asset_key);
+CREATE TABLE IF NOT EXISTS asset_references (
+ id TEXT PRIMARY KEY, series_id TEXT NOT NULL, asset_id TEXT NOT NULL,
+ version INTEGER NOT NULL CHECK(version>0), media_kind TEXT NOT NULL,
+ storage_key TEXT NOT NULL, sha256 TEXT NOT NULL, provenance_json TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('pending_review','approved','rejected')),
+ created_at TEXT NOT NULL, approved_at TEXT, approved_by TEXT,
+ FOREIGN KEY(series_id) REFERENCES projects(id),
+ FOREIGN KEY(asset_id) REFERENCES series_assets(id), UNIQUE(asset_id,version)
+);
+CREATE INDEX IF NOT EXISTS idx_asset_references_asset ON asset_references(asset_id,version);
 CREATE TABLE IF NOT EXISTS story_bibles (
  id TEXT PRIMARY KEY, series_id TEXT NOT NULL, version INTEGER NOT NULL CHECK(version > 0),
  body_json TEXT NOT NULL, created_at TEXT NOT NULL,
