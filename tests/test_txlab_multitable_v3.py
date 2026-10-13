@@ -127,10 +127,6 @@ def test_nonnull_provider_task_unique_index_but_multiple_nulls_allowed(tmp_path)
             "UPDATE pr31_v3_job SET provider_task_id='tasks/offline-01' "
             "WHERE id='synthetic_job_a'"
         )
-        db.execute(
-            "UPDATE pr31_v3_job SET provider_task_id='tasks/offline-01' "
-            "WHERE id='synthetic_job_b'"
-        ) if False else None
         with pytest.raises(sqlite3.IntegrityError, match="UNIQUE"):
             db.execute(
                 "UPDATE pr31_v3_job SET provider_task_id='tasks/offline-01' "
