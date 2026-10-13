@@ -77,6 +77,20 @@ python -m drama_factory.storage.migration_readiness \
 - **风险状态仍不能自动消除**：源库存有 `leased`、`held`、`submission_intent` 等时，只会记录未结数，绝不清除或当作可以切换；`live_cutover_permitted=false`、`remote_transaction_verified=false`、`production_backend_switched=false` 永远保持关闭。
 - 本次只能证明测试数据本地导出/恢复；真实生产源库采集、停写冻结、可验证的远端恢复、在线多 Runner 和工作流回退都未授权且未执行。正式使用仍需独立备份策略、权限、加密存储、审计与人工批准。
 
+## PR-31c1：只读切换证据包（离线，不执行停写）
+
+新增 `storage/cutover_evidence.py`：只接受操作者明确指定的三份**已有本地 SQLite 文件**（原始账本、独立快照、恢复副本），而且只接受 `operator_approved=True` 加 `offline_review_only=True`。检查表结构、`quick_check`、外键、未完成 Worker/预算/供应商风险，并重新计算三份库的**逻辑摘要**。另外再次扫描源库，尽量捕获检查期间发生的变化；一旦源库与快照不一致、备份与恢复不一致或有未结算的风险，给出脱敏 blocker。所有读数位于只读 SQLite 连接，逻辑摘要计算也在单个一致性只读事务内完成。
+
+**最重要的边界**：即使三份文件完全匹配、没有活跃镜头任务，`fleet_writers_fenced=false`、`provider_intents_reconciled_externally=false`、`remote_transactions_verified=false`、`remote_schema_and_import_verified=false`、`rollback_on_real_workers_rehearsed=false`、`live_cutover_authorized=false`、`live_cutover_permitted=false` 都恒为 false。此工具**没有实际冻结写入**，因此不能排除扫描结束后又有 Worker 写入，不能替代停写闸门、权限审查或正式生产恢复演练。输出仅有 SHA-256 摘要、各类风险总数、布尔值及固定错误代码；不会输出任何数据库行、文件路径、剧本、镜头 ID、账单详情。
+
+**正式 PR-31d 必须另行实现与验收的停写和回滚规则**：
+
+1. 在所有 API/队列/Worker 入口统一拒绝新领取、付费提交、预算变更和会修改账本的恢复；需要跨进程、跨实例、跨区域均生效的 durable fence/epoch，不能仅靠某一 Runner 的环境变量或本地进程锁。
+2. 记下可核验的 fencing epoch、仍在执行的租约/已提交供应商任务与预留金额；停止写入后完成全部供应商费用核销或保持明确阻断，不能把不确定任务当失败重试。
+3. 源库冻结期间建立一致性快照并核对全表数量/逻辑 SHA-256、审计事件、所有媒体原始位置和哈希；另有隔离备份以及演练过的回滚恢复路径。
+4. 在独立隔离 Turso 测试库验证真正的 `BEGIN IMMEDIATE` 及其他事务、外键、唯一约束、部分索引、触发器和并发争抢；在同一权限/数据分区实际跑双 Worker/断线恢复，而非使用本地 SQLite 伪装为远程证明。
+5. 在用户另外明确批准后才能执行真实迁移与正式切换；若远端提交结果不明确，禁止自动重发可能计费的供应商请求。原有 `drama_drive_receipts_v1` 独立元数据表不允许被意外覆盖。
+
 ## 安全测试
 
 `pytest -q tests/test_migration_readiness.py` 覆盖不存在文件拒绝且不创建目录、只读扫描前后字节一致、异步/不确定计费与预留锁阻断、外键损坏不修复、旧版缺表/缺列拒绝、异常输出脱敏，以及不导入 Turso/Drive/图像 SDK。常规 Python 3.11/3.13 CI 自动运行，默认无云凭据、无需 FFmpeg 或网络。
