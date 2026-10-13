@@ -173,7 +173,8 @@ def test_missing_or_wrong_schema_does_not_create_or_fix_anything(tmp_path):
 
     with sqlite3.connect(source) as conn:
         conn.execute("CREATE TABLE unexpected (name TEXT)")
-    with pytest.raises(OfflineCutoverDenied, match="integrity"):
+    # All three paths must first exist; nothing is repaired or created.
+    with pytest.raises(OfflineCutoverDenied, match="existing"):
         review((source, source.parent / "missing-other.db", restored))
     # Real wrong schema is checked before trying to access payload tables:
     shutil_backup = tmp_path / "one.db"
