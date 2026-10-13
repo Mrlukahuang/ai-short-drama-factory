@@ -1,0 +1,66 @@
+name: Manual isolated TxLab v3 multi-table contract (LOCKED; fresh permission required)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Future single-use approval only: RUN_ISOLATED_TXLAB_V3_ONCE"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: drama-isolated-libsql-txlab-single-run
+  cancel-in-progress: false
+
+jobs:
+  v3-test-once:
+    # Do NOT enable on prior v1/v2 authorizations. Operator has NOT yet
+    # approved any real TxLab v3 write, schema creation or canary execution.
+    # A NEW dedicated enabling PR + explicit approval is mandatory.
+    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V3_ONCE' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout reviewed code
+        uses: actions/checkout@v4
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned libSQL Python driver
+        run: python -m pip install -e '.[turso-libsql]' 'libsql==0.1.11'
+      - name: Single original dispatch preflight before any SQL
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_RUN_ATTEMPT" != "1" || "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::Single original v3 run only; no SQL executed"
+            exit 1
+          fi
+          history=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/manual-isolated-libsql-txlab-v3.yml/runs?event=workflow_dispatch&per_page=100" \
+            --jq '[.total_count, (.workflow_runs[0].id // 0)] | @tsv')
+          read -r dispatch_count first_run_id <<< "$history"
+          if [[ "$dispatch_count" != "1" || "$first_run_id" != "$GITHUB_RUN_ID" ]]; then
+            echo "::error::TxLab v3 one-use history gate refused; no SQL executed"
+            exit 1
+          fi
+      - name: Execute isolated V3 synthetic multi-table test ONLY after new approval
+        env:
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_V3_CONFIRM: RUN_ISOLATED_TXLAB_V3_ONCE
+          DRAMA_ENABLE_TXLAB_V3_WRITE: 'YES'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$DRAMA_TXLAB_DATABASE_URL" || -z "$DRAMA_TXLAB_AUTH_TOKEN" ]]; then
+            echo "::error::Isolated TxLab-only credentials unavailable, no SQL executed"
+            exit 1
+          fi
+          python -m drama_factory.storage.txlab_multitable_v3_live --live
