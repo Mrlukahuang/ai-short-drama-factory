@@ -99,28 +99,6 @@ class _NativeConnection:
         self._native.close()
 
 
-def tag_disposable_sdk_fixture(file: Path, *, offline_test_only: bool = False):
-    """Allow tests to mark a disposable DB. Not a production setup function."""
-    if offline_test_only is not True:
-        raise LocalSdkDenied("Explicit offline test gate required")
-    path = _path(file)
-    if not path.is_file():
-        raise LocalSdkDenied("Existing disposable local SQLite file required")
-    conn = sqlite3.connect(path)
-    try:
-        conn.execute(
-            f"CREATE TABLE {_MARKER_TABLE} ("
-            "value TEXT PRIMARY KEY "
-            "CHECK(value='pr31b2o0-isolated-test-schema-only'))"
-        )
-        conn.execute(
-            f"INSERT INTO {_MARKER_TABLE}(value) VALUES (?)", (_MARKER_VALUE,)
-        )
-        conn.commit()
-    finally:
-        conn.close()
-
-
 def _path(value: Path) -> Path:
     raw = str(value)
     if "://" in raw or raw == ":memory:":
