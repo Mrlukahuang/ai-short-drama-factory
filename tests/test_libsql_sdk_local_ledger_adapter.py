@@ -263,4 +263,4 @@ def test_native_sdk_adapter_never_loads_remote_connection_from_local_path(client
     assert receipt["network_commit_recovery_verified"] is False
     assert receipt["production_backend_switched"] is False
     assert receipt["live_cutover_permitted"] is False
-    assert "remote" not in json.dumps(backend.one("SELECT 1 AS synthetic")))
+    assert "remote" not in json.dumps(backend.one("SELECT 1 AS synthetic"))
