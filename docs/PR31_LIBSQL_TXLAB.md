@@ -105,6 +105,22 @@ RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY
 - 真实运行日志只会输出已验证提交次数、明确被拒绝的 `BEGIN` 次数和脱敏的失败阶段/类别。远程跨 Runner、真实计费供应商幂等、网络故障/回滚均继续标为未验收。
 - 工作流只读权限为仓库内容和 Actions 运行历史；不会使用写 GitHub Issue/PR/Secret 权限。
 
+## PR-31b2g：TxLab v2 单次真实运行的失败证据与只读对账
+
+用户授权、仅手动触发一次 v2 GitHub Actions：[真实运行 #38380555425](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38380555425)，2026-10-13，`workflow_dispatch`，`main` SHA `5e3ad7d7a68bb21e6c38bd1e09514cf7da62ecb5`，结果 `failure`：
+
+- GitHub 一次性历史门禁 **success**，Python 3.11 和 `libsql 0.1.11` 安装 **success**，TxLab 专用 Secrets 已注入；失败发生在真实 `txlab_v2 --live` 步骤。
+- 已脱敏日志精确输出：`stage=worker_read category=busy`。这表示并发阶段某个 Worker 的 `SELECT counter` 收到数据库 busy；**不是失败在门禁或首次连接**。
+- 根据代码顺序，此前的独立 v2 表建立/探针插入、事务回滚和两次串行确认提交均已经通过；**但并发另一条连接实际提交结果未知**，因为本次失败后没有最终汇总输出。
+- 与旧 v1 运行的 `worker_* ` 错误不可混同；该错误也**不能直接推断服务器丢失已提交更新、或把 `worker_read` busy 当成确定的前置 `BEGIN` 拒绝而自动重试**。
+- 第二次真实 TxLab v2 写入的授权已用尽。GitHub Actions 前置历史计数会拒绝重跑和新的 dispatch；**不要尝试 Re-run**。不能在真实库执行 `DROP`/`DELETE`，不能动旧 v1 探针。
+
+### 使用现有的 SELECT-only 工作流核实 v2
+
+把**原有** `txlab_readonly_diagnostics.py` 扩展为同时检查现有 v1 和新增 v2 的测试表。仍只有 `SELECT 1`、`sqlite_master` 表存在检查、以及指定测试表的固定汇总 `SELECT COUNT/SUM`；不读取 probe_id/marker、不修改数据库。v2 汇总分布包含 counter=0/1/2/3/4/other，能核实该次真实实验留下的最终计数，**但不能重建完整远端事务时间线，也不等于已证明远端分布式并发安全**。
+
+使用 [只读 TxLab 检查工作流](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/workflows/manual-txlab-readonly-diagnostics.yml)，在 `main` 手动输入 `CHECK_ISOLATED_TXLAB_READ_ONLY`。此步骤不消耗新的真实写入授权，也不需要更换现有两项 TxLab Secrets。如果只读诊断失败，CLI 只输出 `select_v2_schema` / `select_v2_counter_summary` 等脱敏阶段，绝不泄漏 SDK 异常、Token、真实 ID 或数据库 URL。**原 TxLab v1/v2 写入工作流都不应再次运行。**
+
 ## 结果边界
 
 如果这一次实验全绿，仅能证明**指定 libSQL Python SDK、两个独立连接在这个事务序列中**符合需求；仍不代表跨 GitHub Runner/跨地区分布式原子性、任意网络中断、完整 Schema/触发器兼容、真实预算/审批账本迁移或生产切换已经通过。
