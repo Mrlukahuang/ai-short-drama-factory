@@ -78,6 +78,22 @@ RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY
 
 正式使用前还需要新隔离库的实测确认：服务器异常码确认为锁竞争、提交结果的查询/幂等办法、退避次数、终止条件及计费副作用，不能将这套本地实验直接视为已经验证 Turso SDK 的重试安全。
 
+## PR-31b2e：准备第二版隔离远程测试（2026-10-13，**仅离线代码完成后待新授权**）
+
+此前真实实验 [Actions #38342320367](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38342320367) 失败、两次只读 [#38358995649](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38358995649) / [#38362170364](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38362170364) 确认唯一探针计数为 1。还不清楚真实错误究竟为锁冲突还是其他因素，不允许解释为已验证远程双 Worker 原子性。
+
+新的独立候选 `storage/txlab_v2.py` 避免强求两个同时争抢的 Writer 都必须成功：
+
+- 在**新的** `pr31_txlab_v2_probe_v1` 表插入一条随机技术记录（不读取、覆盖或删除旧 v1 测试行），验证显式 `BEGIN IMMEDIATE` 和 `ROLLBACK`。
+- 先让两条独立连接**串行**各提交一次，把已确认的计数校验为 2，建立无写锁冲突的基本事务基准。
+- 再让两条独立连接同时尝试 `BEGIN IMMEDIATE`；逐次区分 **committed** 和服务器已明确返回的 **SQLITE_BUSY at BEGIN**。如果存在正常锁冲突，不把拒绝的请求误当成一个已经成功提交的事务；若获得锁的连接成功提交，最终 counter 应等于已确认总提交数。
+- 遇到 `UPDATE`、`COMMIT` 超时或未知错误**立即失败且不自动重试**；只输出固定脱敏 `stage/category`，不能把模糊提交看作“没有写入”。
+- 额外验证主键重复被拒绝、只输出测试总数和布尔报告，不输出行 ID、marker、URL、Token、SQL SDK 异常详情。
+
+**本实现并不证明远端已经成功**：以上均先用新临时 SQLite Fake/真实本地并发测试，`remote_distributed_concurrency_certified=false` 永远关闭。原短剧生产数据库、正式 Worker、审批和费用预算完全不参与。
+
+新工作流 `.github/workflows/manual-isolated-libsql-txlab-v2.yml` **已硬编码 `if: false` 锁止**。以前的 `RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY` 授权已经用完；新的 v2 运行需要用户**重新明确授权**，再开一个专门 PR 解除新工作流的锁止、经过 CI 才可手动触发一次。已经配置好的 `DRAMA_TXLAB_DATABASE_URL` 和 `DRAMA_TXLAB_AUTH_TOKEN` 仍可用于**同一隔离实验库**，不需重新生成 Token；不启用任何主库 Secret。成功也只说明这一次 SDK/数据库本地测试场景，不构成真实生产切换、跨 Runner 并发、断线重试安全的最终证明。
+
 ## 结果边界
 
 如果这一次实验全绿，仅能证明**指定 libSQL Python SDK、两个独立连接在这个事务序列中**符合需求；仍不代表跨 GitHub Runner/跨地区分布式原子性、任意网络中断、完整 Schema/触发器兼容、真实预算/审批账本迁移或生产切换已经通过。
