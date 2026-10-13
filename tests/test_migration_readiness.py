@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -55,7 +56,11 @@ def test_missing_source_is_not_created(tmp_path):
 
 def _seed_risky_state(source):
     now = "2026-10-13T00:00:00+00:00"
-    with sqlite3.connect(source) as db:
+    # sqlite3.Connection's context manager commits/rolls back but DOES NOT
+    # close the handle. On Python 3.13 delayed finalization can change the
+    # underlying SQLite file bytes during the following read-only scan.
+    # Close the seed connection *before* capturing the bytewise baseline.
+    with closing(sqlite3.connect(source)) as db:
         db.execute(
             "INSERT INTO projects (id,title,premise,visual_style,ratio,created_at,column_id) "
             "VALUES (?,?,?,?,?,?,?)",
