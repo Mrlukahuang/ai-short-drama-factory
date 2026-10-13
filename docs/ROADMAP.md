@@ -74,6 +74,7 @@
   - [x] PR-31b2k（仅离线 v3 兼容性准备）：学习官方 libSQL/Turso 引擎与事务差异；新增以 `pr31_v3_*` 为隔离前缀的五表、外键/部分唯一索引、审计触发器和多表核销回滚测试；验证 COMMIT 回执丢失不自动重发。严格只新建临时本地文件，**没有真实 TxLab v3 运行或新写入授权**。详见 [PR31_TXLAB_V3_MULTITABLE_PLAN](PR31_TXLAB_V3_MULTITABLE_PLAN.md)。
   - [x] PR-31b2l0（真实 SDK 本地合同）：审阅 libsql-python `0.1.11` 源码、特别防范 `executescript` 未抛错误/连接未显式关闭/foreign_keys 按连接生效；新增**真实 libSQL Python 二进制，仅本地 SQLite 文件**的第四项 CI，覆盖 5 表 DDL、三次跨表回滚、COMMIT 后独立连接读回、外键/唯一索引/审计触发器和 ACK 丢失不重放。只安装 SDK、不用任何 TxLab Secrets、不接触远端。详见 [PR31_LIBSQL_SDK_SOURCE_REVIEW](PR31_LIBSQL_SDK_SOURCE_REVIEW.md)。
   - [x] PR-31b2l1（仅离线准备）：增加隔离 v3 五表事务候选执行器、逐条 DDL + Schema 回读、FK/唯一索引/审计约束、提交后独立连接核对和失败不自动重试；独立手动 Workflow **if:false 锁止**，当前没有 v3 云端写入授权。详见 [PR31_TXLAB_V3_EXECUTION_GATE](PR31_TXLAB_V3_EXECUTION_GATE.md)。
+  - [x] PR-31b2l2（仅离线、只读代码）：现有 TxLab SELECT-only 检查提前扩展 v3，核实零/部分/全部十个预期对象，以及临时预算/任务费用/审计**汇总**；即使写入半途失败也不补建、不重试、不泄露行 ID 或密钥。所有真实 v3 写入仍未获新授权。
   - [ ] PR-31b2l（真实远端验收）：需用户新的单次明确授权及独立审查 PR 后才可解除 v3 工作流锁止、执行一次 TxLab 多表 Schema/事务测试；真实完整 Schema/多 Runner/网络中断/回滚需再验，生产切换保持关闭。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
