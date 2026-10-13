@@ -92,7 +92,18 @@ RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY
 
 **本实现并不证明远端已经成功**：以上均先用新临时 SQLite Fake/真实本地并发测试，`remote_distributed_concurrency_certified=false` 永远关闭。原短剧生产数据库、正式 Worker、审批和费用预算完全不参与。
 
-新工作流 `.github/workflows/manual-isolated-libsql-txlab-v2.yml` **已硬编码 `if: false` 锁止**。以前的 `RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY` 授权已经用完；新的 v2 运行需要用户**重新明确授权**，再开一个专门 PR 解除新工作流的锁止、经过 CI 才可手动触发一次。已经配置好的 `DRAMA_TXLAB_DATABASE_URL` 和 `DRAMA_TXLAB_AUTH_TOKEN` 仍可用于**同一隔离实验库**，不需重新生成 Token；不启用任何主库 Secret。成功也只说明这一次 SDK/数据库本地测试场景，不构成真实生产切换、跨 Runner 并发、断线重试安全的最终证明。
+新工作流 `.github/workflows/manual-isolated-libsql-txlab-v2.yml` **最初使用 `if: false` 锁止**。旧的 `RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY` 授权已经用完。随后用户于 **2026-10-13 明确授权一次 TxLab v2 真实写入验收**；PR-31b2f 在单独经过 CI 的修改中将本次 v2 工作流解锁，增加 `github.run_attempt == 1` 以及 GitHub Actions API 对该工作流历史 `workflow_dispatch` 次数/本次 run ID 的检查：**仅第一次手动运行满足门禁，重跑或新发起第二次均拒绝写入**。GitHub API 不可用或不一致时也拒绝写入；不能靠这项机制证明远程事务安全。原来两项 TxLab 专用 Secrets 继续使用，无需更换，不注入原短剧主库 Secrets。成功也只说明这一次 SDK/数据库测试场景，不构成真实生产切换、跨 Runner 并发、断线重试安全的最终证明。
+
+## PR-31b2f：一次性真实 v2 验收授权的操作说明
+
+**操作者已授权单次真实 TxLab v2 事务测试，但尚需 GitHub Actions 手动触发；PR 合并与常规 CI 全绿不等于已经执行真实写入。**
+
+- 手动入口：[Manual isolated TxLab v2 one-time transaction verification](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/workflows/manual-isolated-libsql-txlab-v2.yml)，分支必须为 `main`。
+- 确认词仅为 `RUN_ISOLATED_TXLAB_V2_ONE_TIME`。这是**新** v2 工作流，不是旧的 `manual-isolated-libsql-txlab.yml`，也不是仅 SELECT 的诊断工作流。
+- 预检先查询该工作流的 GitHub 历史记录，确认这是首次手动调度，且 `run_attempt=1`，才会把新 TxLab 凭据注入真实试验步骤。初次执行完**不要点击 Re-run jobs 或重新 Run workflow**；如出现红灯须先查已有 v2 记录，不能盲目第二次写入。
+- 本次授权仅限旧用户独立 TxLab 的新 `pr31_txlab_v2_probe_v1` 表、单条技术记录、有限次回滚/串行和竞争更新/主键检验；**不读取或修改原短剧库、旧 v1 测试表或生产账本，不调用任何付费 AI**。
+- 真实运行日志只会输出已验证提交次数、明确被拒绝的 `BEGIN` 次数和脱敏的失败阶段/类别。远程跨 Runner、真实计费供应商幂等、网络故障/回滚均继续标为未验收。
+- 工作流只读权限为仓库内容和 Actions 运行历史；不会使用写 GitHub Issue/PR/Secret 权限。
 
 ## 结果边界
 
