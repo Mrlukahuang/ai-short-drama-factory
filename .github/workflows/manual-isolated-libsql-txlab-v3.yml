@@ -1,4 +1,4 @@
-name: Manual isolated TxLab v3 one-time multi-table verification
+name: Manual isolated TxLab v3 multi-table (CONSUMED — no further writes)
 
 on:
   workflow_dispatch:
@@ -18,10 +18,11 @@ concurrency:
 
 jobs:
   v3-test-once:
-    # Operator explicitly authorized ONE new v3 write test on 2026-10-14.
-    # Old v1/v2 approvals do not apply. Re-runs and new dispatches are
-    # blocked before SQL by run_attempt and the history preflight below.
-    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V3_ONCE' }}
+    # The sole authorized v3 write ran successfully as Actions #38417337745.
+    # Permission is CONSUMED. This hard lock prevents further cloud writes
+    # even when the old confirmation is entered; do not remove without a
+    # separately reviewed PR and entirely new explicit user authorization.
+    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V3_ONCE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:

@@ -75,13 +75,15 @@
   - [x] PR-31b2l0（真实 SDK 本地合同）：审阅 libsql-python `0.1.11` 源码、特别防范 `executescript` 未抛错误/连接未显式关闭/foreign_keys 按连接生效；新增**真实 libSQL Python 二进制，仅本地 SQLite 文件**的第四项 CI，覆盖 5 表 DDL、三次跨表回滚、COMMIT 后独立连接读回、外键/唯一索引/审计触发器和 ACK 丢失不重放。只安装 SDK、不用任何 TxLab Secrets、不接触远端。详见 [PR31_LIBSQL_SDK_SOURCE_REVIEW](PR31_LIBSQL_SDK_SOURCE_REVIEW.md)。
   - [x] PR-31b2l1（仅离线准备）：增加隔离 v3 五表事务候选执行器、逐条 DDL + Schema 回读、FK/唯一索引/审计约束、提交后独立连接核对和失败不自动重试；独立手动 Workflow **if:false 锁止**，当前没有 v3 云端写入授权。详见 [PR31_TXLAB_V3_EXECUTION_GATE](PR31_TXLAB_V3_EXECUTION_GATE.md)。
   - [x] PR-31b2l2（仅离线、只读代码）：现有 TxLab SELECT-only 检查提前扩展 v3，核实零/部分/全部十个预期对象，以及临时预算/任务费用/审计**汇总**；即使写入半途失败也不补建、不重试、不泄露行 ID 或密钥。所有真实 v3 写入仍未获新授权。
-  - [x] PR-31b2l3（仅工作流授权解锁及离线 CI）：用户已明确授权**一次独立 TxLab v3** 多表真实写入；只准 main 首次人工运行+一致确认词，Actions 历史门禁防第二次触发；原有 v1/v2 授权已用尽。**实际 v3 运行尚未执行，远端结果未知**。详见 [PR31_TXLAB_V3_EXECUTION_GATE](PR31_TXLAB_V3_EXECUTION_GATE.md)。
-  - [ ] PR-31b2l（真实远端验收）：等待人工首次 `workflow_dispatch` 的真实 v3 报告；无论红绿都先验真实日志，失败只读对账、不重跑。完整生产 Schema、多 Runner 并发/断线恢复等继续未验，生产切换关闭。
+  - [x] PR-31b2l3（授权/解锁阶段历史记录）：仅启用独立 TxLab v3 首次人工调用与 Actions 运行历史门禁；当时尚未执行的描述已经被以下 PR-31b2l 真实验收结果更新。详见 [PR31_TXLAB_V3_EXECUTION_GATE](PR31_TXLAB_V3_EXECUTION_GATE.md)。
+  - [x] PR-31b2l（**真实远端隔离多表验收已通过**）：单次授权 [Actions #38417337745](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38417337745) 返回 `isolated_v3_lab_verified=true`、10 个新实验 Schema 对象、跨表回滚/提交后独立连接读回、FK/部分唯一/append-only 审计约束均通过；`remote_multiworker_concurrency_verified=false`、`full_production_schema_verified=false`、`live_cutover_permitted=false`。此次授权已消耗。
+  - [x] PR-31b2l4（安全收尾）：单次真实 TxLab v3 成功后，**硬锁止**旧手动写入工作流，固定真实报告和未验收边界，防止重复运行/误报迁移完成。
+  - [ ] PR-31b2m：离线整理完整业务 Schema / 账本操作与远端 v3 结果的差距，以及下一次跨 Runner 并发、网络 COMMIT 回执丢失等独立验收计划；**任何真实写入需新的单次授权**。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
   - [ ] PR-31c3：真正跨 Runner 的持久写入闸门、恢复/权限与外部供应商计费中断验收（需另外授权）。
-  - [ ] PR-31d：另行授权后测试真实 Turso 事务/并发及正式切换。
+  - [ ] PR-31d：独立 TxLab v3 串行多表/约束已经真实通过；**完整生产 Schema 兼容、跨 Runner 并发、网络故障恢复和正式迁移/回滚仍未验证**，需要后续分阶段明确授权，生产切换继续关闭。
 - [ ] PR-24：正式云端持续 Worker 与 Google 视频任务 ID 调度（仍需付费审批）
 - [ ] 后续 PR：受鉴权的工作人员任务列表与审片工作台、按生产线可视化调度
 - [ ] 后续 PR：正式付费 Worker 的请求前持久化、供应商任务句柄对接、自动轮询与受控预算实测
