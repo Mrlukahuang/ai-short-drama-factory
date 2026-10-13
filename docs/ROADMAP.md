@@ -69,7 +69,8 @@
   - [x] PR-31b2f（真实 TxLab v2 单次运行已结束，**未通过并发事务验收**）：经明确授权启动 [Actions #38380555425](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38380555425)，第一次执行历史门禁通过、真实事务步骤在 `worker_read / busy` 失败；部分测试数据可能已提交，禁止重跑。
   - [x] PR-31b2g（仅离线安全诊断代码）：现有 TxLab SELECT-only Workflow 扩展至 v2 技术表，仅回传 0/1/2/3/4/other 汇总计数、无身份/Token/SQL 写入；真实 v2 状态仍待一次新的只读报告核实。
   - [x] PR-31b2h（真实只读对账 + 离线候选）：[Actions #38383515455](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38383515455) 已核实 v1=1、v2=3；v2 两次串行加一次并发提交持久化、另一并发在 worker_read/busy 阶段失败，**未通过完整远端并发验收**。本地 16 线程原子条件 UPDATE/RETURNING 对比候选完成，不自动远程重试、不替换生产账本。
-  - [ ] PR-31b2i：评估全生产 Schema 的多表预算/审计原子性及不同 libSQL 事务语义的隔离验收方案；后续真实远端测试须新的明确授权，不能直接启用生产切换。
+  - [x] PR-31b2i（纯离线生产业务原子性基线）：直接复用现有镜头/三级预算/提交意图/人工对账函数，注入审计失败及第二表更新失败、双审核员争抢同一费用；要求任务、费用与审计同提交或同回滚。**只证明本地 SQLite，不代表远程 Turso 验收**。详见 [PR31_LEDGER_MULTITABLE_CONTRACT](PR31_LEDGER_MULTITABLE_CONTRACT.md)。
+  - [ ] PR-31b2j：设计/隔离测试实际多表 SQL 与 libSQL 适配器的事务语义；真正云端多表运行需要全新授权，生产切换继续关闭。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
