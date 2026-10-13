@@ -37,6 +37,21 @@ RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY
 
 **失败请勿盲目重跑**：DDL/INSERT 可能已经在远程提交，测试失败并不代表库未修改。应先读取脱敏 Actions Job Logs 和数据库状态，决定是否需要重新授权。实验**不执行 DROP/DELETE、库迁移、正式 Worker 切换、部署或任何真实供应商调用**。历史测试行会留在专用 txlab 库中，后续人工清理需要另外的审查与授权。
 
+## 首次真实运行失败与安全诊断（2026-10-13）
+
+用户授权并**仅执行一次**原手动工作流：[Actions #38342320367](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38342320367)，`main` commit `ff19daad419b94b57ac8b0c69309003ab7f826fe`，结果 `failure`。Python 3.11 和 `libsql 0.1.11` SDK 安装成功，两项 TxLab Secrets 存在并被 GitHub 遮盖，唯一失败步骤为 `Run exactly one isolated libSQL transaction canary`。步骤运行约 20 秒，CLI 的 SDK 异常被脱敏，**未能得知失败发生于连接、DDL、INSERT、BEGIN IMMEDIATE、并发或唯一约束**。尤其**不能把 failure 当作没有真实写入**；此测试可能已经创建表或提交测试行。
+
+**重要：本次一次性远程写入授权已经使用，不得点击 Re-run jobs 或再次触发原事务工作流。**
+
+### 新增仅 SELECT 的诊断入口
+
+`.github/workflows/manual-txlab-readonly-diagnostics.yml`，名称 `Manual isolated TxLab SELECT-only postfailure diagnostics`。
+
+- `workflow_dispatch` + `main` branch + 精确确认词 `CHECK_ISOLATED_TXLAB_READ_ONLY`；使用仅有的两项独立 TxLab Secrets，**不会**注入或使用原数据库/Drive 凭据。
+- 入口代码 `src/drama_factory/storage/txlab_readonly_diagnostics.py` 严格验证 `ai-short-drama-factory-txlab` 主机名，仅做三条预定义 SELECT：`SELECT 1`、`sqlite_master` 指定测试表是否存在、若存在则用 `COUNT`/`SUM` 按 `counter=0/1/2/other` 统计测试记录。**零 DDL/DML，不调用原事务 Canary，不自动重试，不打印任何随机 Probe ID、行标记、Secret、URL 或原始 SDK 错误**。
+- 如果 SELECT 失败，CLI 只记录已固定的脱敏阶段：`target_validation`、`connect`、`select_ping`、`select_schema`、`select_counter_summary`。即使成功，也只知道当前表和汇总行状态，无法完全重建之前每一个事务是否提交。
+- 正式诊断结果出来后才选下一步；若是 SDK/事务行为问题，先离线修好再决定是否需要**新的**真实写入授权。不得删除现有表或擅自清理测试行。
+
 ## 结果边界
 
 如果这一次实验全绿，仅能证明**指定 libSQL Python SDK、两个独立连接在这个事务序列中**符合需求；仍不代表跨 GitHub Runner/跨地区分布式原子性、任意网络中断、完整 Schema/触发器兼容、真实预算/审批账本迁移或生产切换已经通过。
