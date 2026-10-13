@@ -1,4 +1,6 @@
-# PR-31b2l1 — 真实 TxLab v3 多表实验候选（**默认禁用**）
+# PR-31b2l — TxLab v3 多表真实验收记录与一次性授权锁止
+
+> 历史说明：下文 PR-31b2l1/l2/l3 为**准备/授权阶段的原始设计记录**，其中“未授权、未执行”仅描述当时状态；截至 2026-10-14，真实 v3 已在 Actions #38417337745 成功执行**一次**，原授权已消耗且写入工作流再次锁止。请以本页最新验收记录和 GitHub Actions 日志为准。
 
 **本 PR 只有代码和本地 Fake 合同测试；没有新的 v3 写入授权，没有实际远程 SQL，也不会改变生产流程。**
 
@@ -54,3 +56,17 @@
 - 无论成功还是红灯都**不能手动重跑**。如果可能已留下部分表或提交，优先使用现有的 [TxLab SELECT-only 诊断工作流](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/workflows/manual-txlab-readonly-diagnostics.yml)，确认词 `CHECK_ISOLATED_TXLAB_READ_ONLY`，再判断后续方向；不擅自 DROP/DELETE 或修改真实库。
 
 **单次真实运行尚未执行**：本 PR 的合并和常规四项 CI 不构成 v3 远端成功。合并且四项 CI 全绿后，由操作者手动打开 [v3 一次性测试入口](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/workflows/manual-isolated-libsql-txlab-v3.yml)，在 `main` 输入确认词，**只点击一次**。如果红灯，必须先读真实日志再对账；不能将部分提交当成全失败。
+
+
+## PR-31b2l4：真实云端成功证据及授权消耗（2026-10-14）
+
+真实 GitHub Actions [#38417337745](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38417337745) 完成：`event=workflow_dispatch`、`main` 提交 `c476dcc238f52a225bc7410975700092e28165e6`、`completed/success`。
+
+- **一次性门禁真正通过**：`Single original dispatch preflight before any SQL` 为 `success`，固定版本 libSQL SDK 安装为 `success`，`Execute isolated V3 synthetic multi-table test ONLY after new approval` 为 `success`。
+- 实际实验步骤输出为：`mode=isolated_live`、`isolated_v3_lab_verified=true`、`schema_object_count=10`、`fk_enabled_on_both_connections=true`。
+- **远程多表事务有正面证据**：`rollback_multitable_verified=true`、`committed_multitable_readback_verified=true`（第二条独立连接读回已提交的预算/任务/审计一致状态），而非仅 Fake 通过。
+- 约束实际通过：`foreign_key_constraints_verified=true`、`partial_unique_provider_task_verified=true`、`append_only_triggers_verified=true`。新表仅为 `pr31_v3_*` 五张虚构测试表及一个索引、四个触发器，不是生产 Schema 或真实任务。
+- 安全结果：`no_auto_retry=true`、`production_database_touched=false`、`production_backend_switched=false`、`paid_provider_calls=0`、`live_cutover_permitted=false`。
+- 同一输出明确：`remote_multiworker_concurrency_verified=false`、`full_production_schema_verified=false`。**这次证明的是隔离实例中单次串行多表事务/约束兼容，不证明跨 Runner 同时写、真实生产账本全表迁移、长事务吞吐或网络 COMMIT 回执丢失后的恢复。**
+
+**安全锁止**：本次获批的一次性写入授权已使用，PR-31b2l4 将原新工作流的 Job 条件重新设为硬编码 `if: false`；此前的首次调度历史门禁仍保留。不得 Re-run、再次 Dispatch、借用相同确认词或自动执行 `DROP/DELETE` 清理。必要时只允许独立 TxLab 的已有 SELECT-only 诊断流程，不操作真实生产 Turso/Drive 数据。将来的任何新远程事务或 DDL/DML 需要**新的明确授权和独立审核 PR**。
