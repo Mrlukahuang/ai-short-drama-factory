@@ -39,6 +39,42 @@ class TxLabDenied(ValueError):
     pass
 
 
+_STAGES = frozenset({
+    "open_master", "create_schema", "insert_probe", "rollback_begin",
+    "rollback_update", "rollback_check", "worker_connect", "worker_begin",
+    "worker_read", "worker_update", "worker_commit", "worker_result",
+    "final_read", "unique_begin", "unique_insert", "unique_commit",
+    "unique_verify",
+})
+_CATEGORIES = frozenset({"busy", "timeout", "connection", "constraint", "unknown"})
+
+
+def _safe_error_category(exc: BaseException) -> str:
+    """Classify only into fixed labels: never expose a raw SDK message."""
+    message = str(exc).lower()
+    if any(word in message for word in ("sqlite_busy", "database is locked", "database busy", "busy snapshot")):
+        return "busy"
+    if any(word in message for word in ("timed out", "timeout", "deadline exceeded")):
+        return "timeout"
+    if any(word in message for word in ("connection refused", "connection closed", "connection reset", "network error", "transport error", "broken pipe")):
+        return "connection"
+    if isinstance(exc, sqlite3.IntegrityError) or "unique constraint failed" in message:
+        return "constraint"
+    return "unknown"
+
+
+class TxLabStageError(TxLabDenied):
+    """Safe fixed-label error after a possibly committed TxLab mutation."""
+
+    def __init__(self, stage: str, category: str):
+        self.stage = stage if stage in _STAGES else "worker_result"
+        self.category = category if category in _CATEGORIES else "unknown"
+        super().__init__(
+            f"stage={self.stage} category={self.category}; "
+            "commit state may be partial (details redacted)"
+        )
+
+
 def validate_lab_url(url: str) -> str:
     """Reject existing short-drama DB URL, credentials, paths and HTTP schemes."""
     try:
@@ -85,9 +121,13 @@ def run_transaction_contract(conn_factory, *, mode: str) -> dict:
         raise TxLabDenied("Invalid transaction test mode")
     probe = "txlab_" + uuid4().hex
     tag = "isolated_" + uuid4().hex
-    master = conn_factory()
+    stage = "open_master"
+    master = None
     try:
+        master = conn_factory()
+        stage = "create_schema"
         master.execute(_SCHEMA)
+        stage = "insert_probe"
         master.execute(
             f"INSERT INTO {_TABLE}(probe_id,counter,marker) VALUES (?,?,?)",
             (probe, 0, tag),
@@ -95,14 +135,17 @@ def run_transaction_contract(conn_factory, *, mode: str) -> dict:
         master.commit()
 
         # An explicit write followed by rollback must not persist.
+        stage = "rollback_begin"
         master.execute("BEGIN IMMEDIATE")
         try:
+            stage = "rollback_update"
             master.execute(
                 f"UPDATE {_TABLE} SET counter=counter+5 WHERE probe_id=?",
                 (probe,),
             )
         finally:
             master.rollback()
+        stage = "rollback_check"
         after_rollback = master.execute(
             f"SELECT counter FROM {_TABLE} WHERE probe_id=?", (probe,)
         ).fetchone()
@@ -112,22 +155,29 @@ def run_transaction_contract(conn_factory, *, mode: str) -> dict:
         def increment():
             # Each simulated/remote Worker owns a separate connection. This
             # tests server-side serialization, not Python's threading lock.
-            conn = conn_factory()
+            # Never retry a remote write with an ambiguous commit result.
+            worker_stage = "worker_connect"
+            conn = None
             try:
+                conn = conn_factory()
+                worker_stage = "worker_begin"
                 conn.execute("BEGIN IMMEDIATE")
+                worker_stage = "worker_read"
                 before = conn.execute(
                     f"SELECT counter FROM {_TABLE} WHERE probe_id=?", (probe,)
                 ).fetchone()
                 if before is None:
                     raise TxLabDenied("Lab row disappeared")
+                worker_stage = "worker_update"
                 conn.execute(
                     f"UPDATE {_TABLE} SET counter=? WHERE probe_id=?",
                     (int(before[0]) + 1, probe),
                 )
+                worker_stage = "worker_commit"
                 conn.commit()
-            except BaseException:
+            except BaseException as exc:
                 _rollback_quietly(conn)
-                raise
+                raise TxLabStageError(worker_stage, _safe_error_category(exc)) from None
             finally:
                 _close_quietly(conn)
 
@@ -140,11 +190,17 @@ def run_transaction_contract(conn_factory, *, mode: str) -> dict:
             for fut in (fut_a, fut_b):
                 try:
                     fut.result(timeout=30)
-                except BaseException:
-                    failures.append(True)
+                except BaseException as exc:
+                    failures.append(exc)
             if failures:
-                raise TxLabDenied("Independent connection transaction failed")
+                # Prefer an actual worker's sanitized stage over generic
+                # timeout. Both futures have been joined by the context.
+                for exc in failures:
+                    if isinstance(exc, TxLabStageError):
+                        raise exc
+                raise TxLabStageError("worker_result", _safe_error_category(failures[0]))
 
+        stage = "final_read"
         final = master.execute(
             f"SELECT counter,marker FROM {_TABLE} WHERE probe_id=?", (probe,)
         ).fetchone()
@@ -154,11 +210,14 @@ def run_transaction_contract(conn_factory, *, mode: str) -> dict:
         # SQLite primary key enforcement must reject a duplicate attempt.
         constraint_rejected = False
         try:
+            stage = "unique_begin"
             master.execute("BEGIN IMMEDIATE")
+            stage = "unique_insert"
             master.execute(
                 f"INSERT INTO {_TABLE}(probe_id,counter,marker) VALUES (?,?,?)",
                 (probe, 99, "duplicate_" + uuid4().hex),
             )
+            stage = "unique_commit"
             master.commit()
         except Exception as exc:
             # A dropped connection, timeout or SDK failure is NOT evidence
@@ -171,9 +230,10 @@ def run_transaction_contract(conn_factory, *, mode: str) -> dict:
             )
             _rollback_quietly(master)
             if not constraint_rejected:
-                raise TxLabDenied("Duplicate INSERT failed for a non-constraint reason") from None
+                raise TxLabStageError(stage, _safe_error_category(exc)) from None
         if not constraint_rejected:
             raise TxLabDenied("Primary key uniqueness was not enforced")
+        stage = "unique_verify"
         stable = master.execute(
             f"SELECT counter FROM {_TABLE} WHERE probe_id=?", (probe,)
         ).fetchone()
@@ -196,6 +256,11 @@ def run_transaction_contract(conn_factory, *, mode: str) -> dict:
             "live_cutover_permitted": False,
             "new_ai_model_generation_calls": 0,
         }
+    except TxLabStageError:
+        raise
+    except BaseException as exc:
+        # From the first connection onward, DB writes may have committed.
+        raise TxLabStageError(stage, _safe_error_category(exc)) from None
     finally:
         _close_quietly(master)
 
@@ -229,6 +294,14 @@ def run_cli(argv=None) -> int:
             token=os.environ.get("DRAMA_TXLAB_AUTH_TOKEN", ""),
             operator_approved=True,
         )
+    except TxLabStageError as exc:
+        print(
+            f"Isolated lab transaction failed stage={exc.stage} "
+            f"category={exc.category} (details redacted). "
+            "Do not rerun without reviewing whether a test row committed.",
+            file=sys.stderr,
+        )
+        return 1
     except Exception:
         print(
             "Isolated lab transaction check failed (details redacted). "
