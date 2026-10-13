@@ -68,7 +68,8 @@
   - [x] PR-31b2e（仅离线开发）：隔离 TxLab v2 事务探针，分开验证无竞争串行提交与并发写锁争抢，只计入已确认提交；新手动 Workflow 默认锁止，尚未再次真实写入。
   - [x] PR-31b2f（真实 TxLab v2 单次运行已结束，**未通过并发事务验收**）：经明确授权启动 [Actions #38380555425](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38380555425)，第一次执行历史门禁通过、真实事务步骤在 `worker_read / busy` 失败；部分测试数据可能已提交，禁止重跑。
   - [x] PR-31b2g（仅离线安全诊断代码）：现有 TxLab SELECT-only Workflow 扩展至 v2 技术表，仅回传 0/1/2/3/4/other 汇总计数、无身份/Token/SQL 写入；真实 v2 状态仍待一次新的只读报告核实。
-  - [ ] PR-31b2h：在只读对账后研究真正 libSQL `BEGIN IMMEDIATE` / `worker_read` 忙碌语义，再设计新的跨 Runner/网络故障事务合同；任何后续云写入仍需新的明确授权。
+  - [x] PR-31b2h（真实只读对账 + 离线候选）：[Actions #38383515455](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38383515455) 已核实 v1=1、v2=3；v2 两次串行加一次并发提交持久化、另一并发在 worker_read/busy 阶段失败，**未通过完整远端并发验收**。本地 16 线程原子条件 UPDATE/RETURNING 对比候选完成，不自动远程重试、不替换生产账本。
+  - [ ] PR-31b2i：评估全生产 Schema 的多表预算/审计原子性及不同 libSQL 事务语义的隔离验收方案；后续真实远端测试须新的明确授权，不能直接启用生产切换。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
