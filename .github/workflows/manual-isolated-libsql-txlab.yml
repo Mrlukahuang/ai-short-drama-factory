@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   isolated-transaction-canary:
-    if: ${{ inputs.confirmation == 'RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY' }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.confirmation == 'RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
