@@ -1,10 +1,10 @@
-name: Manual isolated TxLab v3 multi-table contract (LOCKED; fresh permission required)
+name: Manual isolated TxLab v3 one-time multi-table verification
 
 on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: "Future single-use approval only: RUN_ISOLATED_TXLAB_V3_ONCE"
+        description: "Authorized one-time TxLab v3 only: RUN_ISOLATED_TXLAB_V3_ONCE"
         required: true
         type: string
 
@@ -18,10 +18,10 @@ concurrency:
 
 jobs:
   v3-test-once:
-    # Do NOT enable on prior v1/v2 authorizations. Operator has NOT yet
-    # approved any real TxLab v3 write, schema creation or canary execution.
-    # A NEW dedicated enabling PR + explicit approval is mandatory.
-    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V3_ONCE' }}
+    # Operator explicitly authorized ONE new v3 write test on 2026-10-14.
+    # Old v1/v2 approvals do not apply. Re-runs and new dispatches are
+    # blocked before SQL by run_attempt and the history preflight below.
+    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V3_ONCE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
