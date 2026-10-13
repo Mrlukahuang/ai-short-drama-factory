@@ -29,11 +29,14 @@ def _race(count, action):
         gate.wait(timeout=20)
         try:
             return ("success", action(i))
+        except (BudgetDenied, ShotJobError):
+            return ("denied", None)
         except Exception as exc:
-            # Both SQLITE_BUSY and business denial are distinct non-commits.
-            # Never include SDK exception text in reports.
-            category = "busy" if "lock" in str(exc).lower() or "busy" in str(exc).lower() else "denied"
-            return (category, None)
+            # Only expected lock contention can be classified as a non-commit.
+            # Unknown failures must FAIL CI instead of hiding regression.
+            if "locked" in str(exc).lower() or "busy" in str(exc).lower():
+                return ("busy", None)
+            raise
     with ThreadPoolExecutor(max_workers=count) as pool:
         return list(pool.map(run, range(count)))
 
