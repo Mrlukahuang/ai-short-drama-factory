@@ -27,6 +27,30 @@ jobs:
       - name: Compile source
         run: python -m compileall -q src
 
+  libsql-sdk-local:
+    name: Real libSQL Python SDK — local-only contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # This job has NO cloud Secrets and does not use a network DB URL.
+    # Pin exactly the SDK used by the authorized real TxLab 0.1.11 runs.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install real pinned libSQL SDK and offline test dependencies
+        run: |
+          python -m pip install -e '.[test]'
+          python -m pip install 'libsql==0.1.11'
+      - name: Verify installed SDK and enforce dedicated local contract tests
+        env:
+          DRAMA_FACTORY_OFFLINE: '1'
+          DRAMA_TXLAB_DATABASE_URL: ''
+          DRAMA_TXLAB_AUTH_TOKEN: ''
+        run: |
+          python -c "import libsql; import importlib.metadata as m; assert m.version('libsql') == '0.1.11'"
+          pytest -q tests/test_libsql_sdk_local_only.py -rs
+
   offline-video:
     runs-on: ubuntu-latest
     timeout-minutes: 12
