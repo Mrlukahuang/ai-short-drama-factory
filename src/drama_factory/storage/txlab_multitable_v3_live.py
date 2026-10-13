@@ -312,7 +312,12 @@ def run_live_v3(
         or os.environ.get("DRAMA_ENABLE_TXLAB_V3_WRITE") != "YES"
     ):
         raise V3LabDenied("New one-use v3 operator permission required")
-    validate_lab_url(url)
+    try:
+        validate_lab_url(url)
+    except (ValueError, TypeError):
+        # Stable v3 denial type, while preserving the strict existing
+        # isolated-host validator and never exposing URL/credentials.
+        raise V3LabDenied("Only independently scoped TxLab v3 host allowed") from None
     if not token:
         raise V3LabDenied("Dedicated isolated TxLab credentials required")
     factory = connection_factory or (lambda: _open_lab_connection(url, token))
