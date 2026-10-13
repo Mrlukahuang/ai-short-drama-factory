@@ -1,0 +1,44 @@
+name: Manual isolated TxLab SELECT-only postfailure diagnostics
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type CHECK_ISOLATED_TXLAB_READ_ONLY (never retry transaction writes)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: drama-isolated-libsql-txlab-single-run
+  cancel-in-progress: false
+
+jobs:
+  txlab-readonly-inspection:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.confirmation == 'CHECK_ISOLATED_TXLAB_READ_ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reviewed code
+        uses: actions/checkout@v4
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install libSQL SDK
+        run: python -m pip install -e '.[turso-libsql]'
+      - name: Execute only SELECT queries against isolated TxLab
+        env:
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_READONLY_CONFIRM: CHECK_ISOLATED_TXLAB_READ_ONLY
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$DRAMA_TXLAB_DATABASE_URL" || -z "$DRAMA_TXLAB_AUTH_TOKEN" ]]; then
+            echo "::error::Isolated TxLab URL/token Secrets missing (no SQL run)"
+            exit 1
+          fi
+          python -m drama_factory.storage.txlab_readonly_diagnostics --live
