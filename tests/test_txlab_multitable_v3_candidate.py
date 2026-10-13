@@ -228,17 +228,25 @@ def test_cli_output_does_not_disclose_error_or_token(monkeypatch, capsys):
     assert out.out == ""
 
 
-def test_locked_manual_workflow_never_uses_production_secrets():
+def test_authorized_manual_workflow_rejects_rerun_and_production_secrets():
     workflow = (
         Path(__file__).resolve().parents[1] /
         ".github/workflows/manual-isolated-libsql-txlab-v3.yml"
     ).read_text()
     assert "workflow_dispatch:" in workflow
-    assert "false && github.ref" in workflow
+    assert "false && github.ref" not in workflow
+    assert "github.ref == 'refs/heads/main'" in workflow
+    assert "github.run_attempt == 1" in workflow
+    assert 'GITHUB_RUN_ATTEMPT" != "1"' in workflow
+    assert 'GITHUB_REF" != "refs/heads/main"' in workflow
     assert "github.run_attempt == 1" in workflow
     assert "inputs.confirmation == 'RUN_ISOLATED_TXLAB_V3_ONCE'" in workflow
     assert "GITHUB_RUN_ATTEMPT" in workflow
     assert "manual-isolated-libsql-txlab-v3.yml/runs?event=workflow_dispatch" in workflow
+    assert "GH_TOKEN: ${{ github.token }}" in workflow
+    assert "first_run_id" in workflow
+    assert "per_page=100" in workflow
+    assert "cancel-in-progress: false" in workflow
     assert 'dispatch_count" != "1"' in workflow
     assert 'first_run_id" != "$GITHUB_RUN_ID"' in workflow
     assert "secrets.DRAMA_TXLAB_DATABASE_URL" in workflow
