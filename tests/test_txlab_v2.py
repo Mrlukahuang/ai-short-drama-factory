@@ -48,6 +48,8 @@ def test_v2_sequential_plus_race_matches_only_confirmed_commits(tmp_path):
 def test_known_busy_begin_is_recorded_not_retried(tmp_path):
     original, path = fake_connections(tmp_path)
     opened = 0
+    from threading import Lock
+    connection_counter_lock = Lock()
 
     class OneBusyConnection:
         def __init__(self, real):
@@ -65,11 +67,15 @@ def test_known_busy_begin_is_recorded_not_retried(tmp_path):
 
     def factory():
         nonlocal opened
-        opened += 1
+        # Assign the ordinal atomically *before* opening sqlite3. If the
+        # counter is checked after connect(), a second thread can change it
+        # and silently disable the intended failure injection.
+        with connection_counter_lock:
+            opened += 1
+            ordinal = opened
         conn = original()
-        # Master, first and second serial Worker, then two parallel workers.
-        # Simulate BUSY at BEGIN for the first parallel contender.
-        return OneBusyConnection(conn) if opened == 4 else conn
+        # Master, two serial Workers, then two competing connections.
+        return OneBusyConnection(conn) if ordinal == 4 else conn
 
     result = run_txlab_v2_contract(factory, mode="offline_fake")
     assert opened == 5
