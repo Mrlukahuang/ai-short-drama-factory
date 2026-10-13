@@ -172,6 +172,7 @@ def test_manual_workflow_scope_and_no_automatic_execution():
     assert "pull_request:" not in yml
     assert "\n  push:" not in yml
     assert "inputs.confirmation == 'RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY'" in yml
+    assert "github.ref == 'refs/heads/main'" in yml
     assert "secrets.DRAMA_TXLAB_DATABASE_URL" in yml
     assert "secrets.DRAMA_TXLAB_AUTH_TOKEN" in yml
     assert "secrets.DRAMA_TURSO_DATABASE_URL" not in yml
