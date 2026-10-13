@@ -80,7 +80,8 @@
   - [x] PR-31b2l4（安全收尾）：单次真实 TxLab v3 成功后，**硬锁止**旧手动写入工作流，固定真实报告和未验收边界，防止重复运行/误报迁移完成。
   - [x] PR-31b2m（离线生产差距门禁）：以真实 [TxLab v3 Actions #38417337745](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38417337745) 通过的五表串行合同为基准，新增**本地只读**完整生产 Schema/额外云资产/Drive 审计、租约/预算政策等结构与运行状态差距评估；生产 Schema 远端导入、多 Runner 并发、网络 ACK 丢失、资产恢复及迁移回滚继续标记未验收。详见 [PR31_PRODUCTION_V3_GAP_MATRIX](PR31_PRODUCTION_V3_GAP_MATRIX.md)。
   - [x] PR-31b2n（仅离线真实 SDK 子集）：从**现有 db.SCHEMA** 中提取九张实际业务表、六个索引、四个审计触发器，在真正 `libsql==0.1.11` 本地 SDK 中逐条 CREATE 并执行真实业务字段的三步核销回滚和外键/唯一/不可变事件测试。明确证实 SDK `fetchone()` 的 tuple 与现有 `row["status"]` 不兼容，必须先有独立 Row 适配器；**无远端真实验证、生产迁移仍关闭**。详见 [PR31_REAL_LEDGER_LIBSQL_SDK_CONTRACT](PR31_REAL_LEDGER_LIBSQL_SDK_CONTRACT.md)。
-  - [ ] PR-31b2o0：离线构建安全 libSQL SDK Row/Cursor/Transaction 适配器，并用现有真实镜头/三级预算业务函数做故障注入；绝不直接切换生产 Worker。
+  - [x] PR-31b2o0（离线 native libSQL Row/Transaction 适配器）：对真实 SDK tuple 结果按 Cursor description 转换为支持列名/整数的只读 Mapping，重复同名列或非测试标记的数据库直接拒绝；在真实 SDK 本地测试库里复用现有镜头领取、三级预算预留、提交意图及费用核销业务函数并注入审计故障，验证回滚；**不改生产 Worker、不连接远端**。详见 [PR31_LIBSQL_LOCAL_ROW_ADAPTER](PR31_LIBSQL_LOCAL_ROW_ADAPTER.md)。
+  - [ ] PR-31b2o1：独立隔离 SDK 本地测试真实镜头/预算并发争抢及 COMMIT 结果不明确时的只读对账候选；远端仍需重新逐次授权。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
