@@ -52,6 +52,24 @@ RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY
 - 如果 SELECT 失败，CLI 只记录已固定的脱敏阶段：`target_validation`、`connect`、`select_ping`、`select_schema`、`select_counter_summary`。即使成功，也只知道当前表和汇总行状态，无法完全重建之前每一个事务是否提交。
 - 正式诊断结果出来后才选下一步；若是 SDK/事务行为问题，先离线修好再决定是否需要**新的**真实写入授权。不得删除现有表或擅自清理测试行。
 
+## 首次只读检查的实测结果与后续保护（2026-10-13）
+
+下面是两次实际 GitHub Actions 只读运行的**观测记录**，不是推测：
+
+- [Actions #38358995649](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38358995649)，`completed/success`。
+- [Actions #38362170364](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38362170364)，`completed/success`。
+- 两次都在隔离 TxLab 库完成 `SELECT 1`，`test_table_exists=true`；`total_probe_rows=1`，其中 `counter_one_rows=1`、`counter_zero_rows=0`、`counter_two_rows=0`、`counter_other_rows=0`；`database_modified_by_this_check=false`。
+- 由此证实先前失败的写入 Canary **确实留下一条实验记录，计数为 1**。不过聚合查询无法确定事务失败的精确 SQL 阶段；不能把“计数为 1”直接解释为已证实的 lost update。
+- Turso/libSQL `BEGIN IMMEDIATE` 采用写锁竞争，第二个并行写事务可能收到 `SQLITE_BUSY`。这与观测一致，但是**待验证假说**，并非第一次 Run 的 SDK 实际错误码。参阅 [Turso 事务手册](https://github.com/tursodatabase/turso/blob/main/docs/manual.md) 和 [Turso 关于交互式事务锁竞争的说明](https://turso.tech/blog/batches-in-sqlite-838e0961)。
+
+### PR-31b2c：避免模糊错误与误触发二次写入
+
+- 原工作流 `.github/workflows/manual-isolated-libsql-txlab.yml` **永久安全锁止为 `if: false`**，即使用户再次输入旧确认词，也不会执行真实 SQL 写入。未来新的真实运行必须另开独立 PR、更新工作流及确认新授权。
+- 事务测试代码的阶段在代码内限定为固定枚举，归类仅为 `busy` / `timeout` / `connection` / `constraint` / `unknown`；在下一次**获得全新授权**的隔离测试发生失败时，只打印脱敏 `stage` 和 `category`。SDK 异常原文、SQL 用户输入、测试行 ID、Token、库 URL 一律不输出。
+- 离线回归用 Fake SQLite 注入 `SQLITE_BUSY`，验证只留下已提交的部分测试行、不悄悄重试、不将锁错误误判为事务原子性成功；原既有案例继续在 Python 3.11/3.13 CI 运行。
+- **不在本 PR 执行任何新的真实 TxLab DDL/DML**，也不申请清理上一次留下的实验行。原短剧主库 `ai-short-drama-factory` 的元数据、Secrets 和任何数据均不受影响。
+- 仍需后续另外设计可证实的锁竞争与重试策略：必须区别“未开始事务前安全重试”和“提交可能成功但回执丢失时不安全重试”，并在新的独立实例环境验收；不能把自动无限重试塞入付费 Worker。
+
 ## 结果边界
 
 如果这一次实验全绿，仅能证明**指定 libSQL Python SDK、两个独立连接在这个事务序列中**符合需求；仍不代表跨 GitHub Runner/跨地区分布式原子性、任意网络中断、完整 Schema/触发器兼容、真实预算/审批账本迁移或生产切换已经通过。

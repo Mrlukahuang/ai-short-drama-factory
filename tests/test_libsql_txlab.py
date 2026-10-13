@@ -8,7 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from drama_factory.storage.libsql_txlab import (
-    TxLabDenied, run_cli, run_live_txlab, run_transaction_contract, validate_lab_url,
+    TxLabDenied, TxLabStageError, _safe_error_category,
+    run_cli, run_live_txlab, run_transaction_contract, validate_lab_url,
 )
 
 GOOD = "libsql://ai-short-drama-factory-txlab-mrlukahuang.aws-ap-southeast-2.turso.io"
@@ -138,8 +139,11 @@ def test_failure_does_not_recover_with_an_automatic_remote_retry(tmp_path):
         db = normal()
         return db if count == 1 else FailOnSecondConnection(db)
 
-    with pytest.raises(TxLabDenied, match="Independent connection"):
+    with pytest.raises(TxLabStageError) as failure:
         run_transaction_contract(factory, mode="offline_fake")
+    assert failure.value.stage == "worker_begin"
+    assert failure.value.category == "unknown"
+    assert "SECRET_BEARER" not in str(failure.value)
     assert count == 3  # main and each worker; no automatic retries
     with normal() as db:
         result = db.execute(
@@ -175,8 +179,11 @@ def test_unrelated_sdk_error_is_not_mistaken_for_uniqueness(tmp_path):
             return InterceptMaster(db)
         return db
 
-    with pytest.raises(TxLabDenied, match="non-constraint"):
+    with pytest.raises(TxLabStageError) as failure:
         run_transaction_contract(guarded, mode="offline_fake")
+    assert failure.value.stage == "unique_insert"
+    assert failure.value.category == "unknown"
+    assert "NOT a constraint" not in str(failure.value)
 
 
 def test_cli_never_logs_sdk_error_or_token(tmp_path, monkeypatch, capsys):
@@ -207,6 +214,7 @@ def test_manual_workflow_scope_and_no_automatic_execution():
     assert "pull_request:" not in yml
     assert "\n  push:" not in yml
     assert "inputs.confirmation == 'RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY'" in yml
+    assert "false && github.ref" in yml  # consumed one-time write must stay disabled
     assert "github.ref == 'refs/heads/main'" in yml
     assert "secrets.DRAMA_TXLAB_DATABASE_URL" in yml
     assert "secrets.DRAMA_TXLAB_AUTH_TOKEN" in yml
@@ -216,3 +224,91 @@ def test_manual_workflow_scope_and_no_automatic_execution():
     assert "DRAMA_ENABLE_TXLAB_WRITE: 'YES'" in yml
     assert "contents: read" in yml
     assert "python -m drama_factory.storage.libsql_txlab --live" in yml
+
+
+@pytest.mark.parametrize("exc,expected", [
+    (sqlite3.OperationalError("SQLITE_BUSY: database is locked bearer PRIV_TOKEN"), "busy"),
+    (TimeoutError("deadline exceeded SECRET"), "timeout"),
+    (ConnectionError("connection reset; password SECRET"), "connection"),
+    (sqlite3.IntegrityError("UNIQUE constraint failed: bearer SECRET"), "constraint"),
+    (RuntimeError("unrecognized authentication error SECRET"), "unknown"),
+])
+def test_sdk_error_categories_are_fixed_and_never_repeat_error_messages(exc, expected):
+    assert _safe_error_category(exc) == expected
+    safe = TxLabStageError("worker_begin", _safe_error_category(exc))
+    assert safe.stage == "worker_begin"
+    assert safe.category == expected
+    assert "SECRET" not in str(safe)
+    assert "PRIV_TOKEN" not in str(safe)
+    assert "stage=worker_begin" in str(safe)
+
+
+def test_invalid_stage_or_category_is_never_printed_verbatim():
+    error = TxLabStageError(
+        "stage_contains_AUTH_TOKEN_OR_USER_ID",
+        "category_contains_SECRET",
+    )
+    assert error.stage == "worker_result"
+    assert error.category == "unknown"
+    assert "SECRET" not in str(error)
+    assert "AUTH_TOKEN" not in str(error)
+
+
+def test_failure_after_schema_and_insert_cannot_automatically_retry(tmp_path):
+    base = sqlite_factory(tmp_path)
+    opened = 0
+
+    class SimulatedBusy:
+        def __init__(self, db):
+            self.db = db
+        def execute(self, sql, params=()):
+            if sql == "BEGIN IMMEDIATE":
+                raise sqlite3.OperationalError(
+                    "SQLITE_BUSY: database is locked SECRET_TOKEN_MUST_NOT_LEAK"
+                )
+            return self.db.execute(sql, params)
+        def commit(self):
+            return self.db.commit()
+        def rollback(self):
+            return self.db.rollback()
+        def close(self):
+            return self.db.close()
+
+    def factory():
+        nonlocal opened
+        opened += 1
+        db = base()
+        return db if opened == 1 else SimulatedBusy(db)
+
+    with pytest.raises(TxLabStageError) as failure:
+        run_transaction_contract(factory, mode="offline_fake")
+    assert failure.value.stage == "worker_begin"
+    assert failure.value.category == "busy"
+    assert "SECRET_TOKEN_MUST_NOT_LEAK" not in str(failure.value)
+    assert opened == 3
+    with base() as conn:
+        count, counter = conn.execute(
+            "SELECT COUNT(*), MAX(counter) FROM pr31_txlab_transaction_probe_v1"
+        ).fetchone()
+    assert (count, counter) == (1, 0)  # one partially committed fixture row
+
+
+def test_cli_logs_safe_stage_and_category_without_vendor_error(tmp_path, monkeypatch, capsys):
+    import drama_factory.storage.libsql_txlab as lab
+
+    monkeypatch.setenv("DRAMA_TXLAB_DATABASE_URL", GOOD)
+    monkeypatch.setenv("DRAMA_TXLAB_AUTH_TOKEN", "UNIQUE_PRIVATE_BEARER")
+    monkeypatch.setenv("DRAMA_TXLAB_CONFIRM", "RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY")
+    monkeypatch.setenv("DRAMA_ENABLE_TXLAB_WRITE", "YES")
+
+    def inject_known_failure(**kwargs):
+        raise TxLabStageError("worker_commit", "timeout")
+
+    monkeypatch.setattr(lab, "run_live_txlab", inject_known_failure)
+    assert run_cli(["--live"]) == 1
+    output = capsys.readouterr()
+    assert "stage=worker_commit" in output.err
+    assert "category=timeout" in output.err
+    assert "UNIQUE_PRIVATE_BEARER" not in output.err
+    assert "Traceback" not in output.err
+    assert output.out == ""

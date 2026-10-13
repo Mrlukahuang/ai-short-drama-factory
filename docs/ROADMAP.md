@@ -62,7 +62,9 @@
   - [x] PR-31b0：为**现有本地 SQLite** 新增真实并行 Worker 抢单、并行预算预留和故障回滚基准测试（与真实 Turso 并发测试不同）。
   - [x] PR-31b1：离线交易后端接口 `LedgerBackend` 与仅限本地 sqlite3 的候选适配器，使用现有镜头/预算业务函数重新执行并发安全回归；**不是远端 Turso 验证**。
   - [x] PR-31b2a（仅离线代码）：为单独新建的 `ai-short-drama-factory-txlab` 提供严格隔离的手动 libSQL 事务回滚、双独立连接竞争和唯一约束工作流，Fake CI 已准备；**新实验库、独立两项 Secret 和真实一次写入均尚待用户配置/授权**，原短剧 Turso 禁止使用。详见 [PR31_LIBSQL_TXLAB](PR31_LIBSQL_TXLAB.md)。
-  - [ ] PR-31b2b：用户授权后真实独立 TxLab libSQL 事务验收，后续跨 Runner/网络故障与全部迁移 Schema 兼容性；生产切换保持关闭。
+  - [x] PR-31b2b（真实诊断阶段）：独立 TxLab 一次真实双连接事务测试 [Actions #38342320367](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38342320367) **失败**；后续两次只读 [#38358995649](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38358995649) / [#38362170364](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38362170364) 成功确认实验表中一条记录计数=1，**未通过真正并发事务验收**，不可据此迁移。
+  - [x] PR-31b2c（离线安全修复）：已用尽的一次性 TxLab 写入工作流锁止；未来写入失败提供安全的事务阶段/类别枚举并有 Fake SQLITE_BUSY 回归，无新的云端写入。
+  - [ ] PR-31b2d：另行明确授权的新 TxLab 远端并发/事务补测、跨 Runner/网络故障与全部迁移 Schema 兼容性；生产切换保持关闭。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
