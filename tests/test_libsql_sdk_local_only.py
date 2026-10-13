@@ -263,3 +263,35 @@ def test_sdk_local_version_capabilities_and_no_remote_urls(tmp_path):
         assert row[0] == 1
     finally:
         conn.close()
+
+
+def test_actual_pinned_libsql_sdk_executes_v3_candidate_end_to_end_locally(tmp_path):
+    """Run the very same v3 candidate on the real SDK, not just sqlite3 Fake."""
+    from drama_factory.storage.txlab_multitable_v3_live import run_v3_lab_contract
+
+    path = tmp_path / "sdk-v3-candidate-local-only.sqlite"
+    receipt = run_v3_lab_contract(lambda: _local_conn(path), mode="offline_fake")
+    assert receipt["schema_object_count"] == 10
+    assert receipt["rollback_multitable_verified"] is True
+    assert receipt["committed_multitable_readback_verified"] is True
+    assert receipt["foreign_key_constraints_verified"] is True
+    assert receipt["partial_unique_provider_task_verified"] is True
+    assert receipt["append_only_triggers_verified"] is True
+    assert receipt["no_auto_retry"] is True
+    assert receipt["isolated_v3_lab_verified"] is False
+    assert receipt["production_database_touched"] is False
+    assert receipt["live_cutover_permitted"] is False
+
+
+def test_actual_pinned_libsql_sdk_fails_closed_on_second_v3_candidate_run(tmp_path):
+    from drama_factory.storage.txlab_multitable_v3_live import (
+        V3LabStageFailure, run_v3_lab_contract,
+    )
+
+    path = tmp_path / "sdk-v3-candidate-replay-denied.sqlite"
+    factory = lambda: _local_conn(path)
+    assert run_v3_lab_contract(factory)["schema_object_count"] == 10
+    with pytest.raises(V3LabStageFailure) as exc:
+        run_v3_lab_contract(factory)
+    assert exc.value.stage == "preflight"
+    assert "production" not in str(exc.value)
