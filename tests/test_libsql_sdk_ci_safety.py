@@ -12,7 +12,17 @@ def test_pinned_libsql_ci_job_is_local_only_and_never_injects_secrets():
     before, rest = workflow.split("  libsql-sdk-local:", 1)
     local_job, after = rest.split("  offline-video:", 1)
     assert "python -m pip install 'libsql==0.1.11'" in local_job
-    assert "pytest -q tests/test_libsql_sdk_local_only.py tests/test_real_ledger_libsql_sdk_local.py tests/test_libsql_sdk_local_ledger_adapter.py -rs" in local_job
+    # Required tests may grow, but each one must remain explicitly named
+    # in the real pinned-SDK job rather than being silently skipped.
+    assert "pytest -q " in local_job
+    for required in (
+        "tests/test_libsql_sdk_local_only.py",
+        "tests/test_real_ledger_libsql_sdk_local.py",
+        "tests/test_libsql_sdk_local_ledger_adapter.py",
+        "tests/test_libsql_sdk_local_concurrency.py",
+    ):
+        assert required in local_job
+    assert " -rs" in local_job
     assert "import libsql" in local_job
     assert "DRAMA_FACTORY_OFFLINE: '1'" in local_job
     assert "DRAMA_TXLAB_DATABASE_URL: ''" in local_job
