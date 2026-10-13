@@ -61,7 +61,8 @@
   - [x] PR-31a：完成离线只读源数据库体检、未完成租约/预算/供应商提交状态阻断、安全迁移分期计划；不读取真实 Turso 数据，不开放迁移入口。详见 [PR31_MIGRATION_READINESS](PR31_MIGRATION_READINESS.md)。
   - [x] PR-31b0：为**现有本地 SQLite** 新增真实并行 Worker 抢单、并行预算预留和故障回滚基准测试（与真实 Turso 并发测试不同）。
   - [x] PR-31b1：离线交易后端接口 `LedgerBackend` 与仅限本地 sqlite3 的候选适配器，使用现有镜头/预算业务函数重新执行并发安全回归；**不是远端 Turso 验证**。
-  - [ ] PR-31b2：真实候选 libSQL 后端事务适配、事务语义/并发合同及跨 Runner 压测（需单独审查/授权）。
+  - [x] PR-31b2a（仅离线代码）：为单独新建的 `ai-short-drama-factory-txlab` 提供严格隔离的手动 libSQL 事务回滚、双独立连接竞争和唯一约束工作流，Fake CI 已准备；**新实验库、独立两项 Secret 和真实一次写入均尚待用户配置/授权**，原短剧 Turso 禁止使用。详见 [PR31_LIBSQL_TXLAB](PR31_LIBSQL_TXLAB.md)。
+  - [ ] PR-31b2b：用户授权后真实独立 TxLab libSQL 事务验收，后续跨 Runner/网络故障与全部迁移 Schema 兼容性；生产切换保持关闭。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
