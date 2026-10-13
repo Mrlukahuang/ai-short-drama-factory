@@ -144,6 +144,37 @@ def test_failure_does_not_recover_with_an_automatic_remote_retry(tmp_path):
     assert result == 1
 
 
+def test_unrelated_sdk_error_is_not_mistaken_for_uniqueness(tmp_path):
+    factory = sqlite_factory(tmp_path)
+    first = True
+    class InterceptMaster:
+        def __init__(self, connection):
+            self.connection = connection
+            self.inserts = 0
+        def execute(self, sql, params=()):
+            if sql.startswith("INSERT INTO pr31_txlab_transaction_probe_v1"):
+                self.inserts += 1
+                if self.inserts == 2:
+                    raise ConnectionError("SDK failure: this is NOT a constraint error")
+            return self.connection.execute(sql, params)
+        def commit(self):
+            return self.connection.commit()
+        def rollback(self):
+            return self.connection.rollback()
+        def close(self):
+            return self.connection.close()
+    def guarded():
+        nonlocal first
+        db = factory()
+        if first:
+            first = False
+            return InterceptMaster(db)
+        return db
+
+    with pytest.raises(TxLabDenied, match="non-constraint"):
+        run_transaction_contract(guarded, mode="offline_fake")
+
+
 def test_cli_never_logs_sdk_error_or_token(tmp_path, monkeypatch, capsys):
     import drama_factory.storage.libsql_txlab as lab
 
