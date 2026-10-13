@@ -91,6 +91,14 @@ python -m drama_factory.storage.migration_readiness \
 4. 在独立隔离 Turso 测试库验证真正的 `BEGIN IMMEDIATE` 及其他事务、外键、唯一约束、部分索引、触发器和并发争抢；在同一权限/数据分区实际跑双 Worker/断线恢复，而非使用本地 SQLite 伪装为远程证明。
 5. 在用户另外明确批准后才能执行真实迁移与正式切换；若远端提交结果不明确，禁止自动重发可能计费的供应商请求。原有 `drama_drive_receipts_v1` 独立元数据表不允许被意外覆盖。
 
+## PR-31c2：本地隔离持久 epoch 停写模拟（不是生产闸门）
+
+`storage/offline_fencing.py` 实现**新的、本地测试专用 SQLite fixture** 中的 `running/paused` 状态、递增 `epoch`、模拟 Worker 写入计数及不可绕过的同一事务检查。只有 `isolated_test_only=True` 才允许创建全新 fixture，拒绝现有文件、URL、符号链接；打开时必须存在固定的测试标记。不会导入 Turso、Drive、模型 SDK，也不会连接 `shot_jobs`、`job_budget_reservations` 或任何真实 API/Worker。
+
+离线并发测试使用 12 个线程同时模拟领取到旧 epoch 的写入，并让第 13 个线程暂停：`pause_for_test` 通过 SQLite `BEGIN IMMEDIATE` 排队，在返回后旧 epoch 的所有模拟写入均被拒绝。测试也证明人工模拟恢复会再次递增 epoch（旧 token 仍不可用），以及日志事件插入失败时**状态/计数必须一起回滚**。
+
+**请勿将这个实验当作线上已经停写**：它没有对任何真正 Worker/定时任务/外部供应商做暂停，也不能跨不同 Runner 的私有文件协调。只有在未来把真正的持久多实例闸门（含授权、租约、审计、供应商请求前二次校验）嵌入每个实际会变更账本的入口，并在隔离真实 Turso 环境测试之后，才可能开放生产迁移方案。独立的 `live_cutover_permitted=false` 与 `fleet_writers_fenced=false` 在实验报告中一直保留。
+
 ## 安全测试
 
 `pytest -q tests/test_migration_readiness.py` 覆盖不存在文件拒绝且不创建目录、只读扫描前后字节一致、异步/不确定计费与预留锁阻断、外键损坏不修复、旧版缺表/缺列拒绝、异常输出脱敏，以及不导入 Turso/Drive/图像 SDK。常规 Python 3.11/3.13 CI 自动运行，默认无云凭据、无需 FFmpeg 或网络。
