@@ -173,14 +173,22 @@ def test_cli_redacts_sdk_exception_and_fails_without_live_opt_in(monkeypatch, ca
     assert output.out == ""
 
 
-def test_new_manual_workflow_is_locked_until_new_authorization():
+def test_new_manual_workflow_can_run_only_once_with_fresh_authorization():
     workflow = (
         Path(__file__).resolve().parents[1] /
         ".github/workflows/manual-isolated-libsql-txlab-v2.yml"
     ).read_text()
     assert "workflow_dispatch:" in workflow
     assert "github.ref == 'refs/heads/main'" in workflow
-    assert "false && github.ref" in workflow
+    assert "false && github.ref" not in workflow
+    assert "github.run_attempt == 1" in workflow
+    assert "GITHUB_RUN_ATTEMPT" in workflow
+    assert "GITHUB_RUN_ID" in workflow
+    assert "manual-isolated-libsql-txlab-v2.yml/runs?event=workflow_dispatch" in workflow
+    assert 'dispatch_count" != "1"' in workflow
+    assert 'first_run_id" != "$GITHUB_RUN_ID"' in workflow
+    assert "GH_TOKEN: ${{ github.token }}" in workflow
+    assert "actions: read" in workflow
     assert "inputs.confirmation == 'RUN_ISOLATED_TXLAB_V2_ONE_TIME'" in workflow
     assert "secrets.DRAMA_TXLAB_DATABASE_URL" in workflow
     assert "secrets.DRAMA_TXLAB_AUTH_TOKEN" in workflow
