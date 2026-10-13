@@ -39,3 +39,18 @@
 - 即使报告 v3 结构齐全、费用行和审计计数一致，也仅是**事后的状态观察**，不能证明网络异常的精确时间线或远程隔离、并发提交已通过。始终 `v3_remote_transaction_semantics_verified=false`。
 
 这项工具提前完成，避免重演 v1/v2 写入后才临时补对账脚本的被动处理。本 PR 没有执行任何远端 v3 写入，也不需要重新配置 Secrets 或手动触发只读工作流。新 v3 写入仍需后续独立明确授权。
+
+
+## PR-31b2l3：获得单次 v3 写入授权后的操作边界（2026-10-14）
+
+用户已在本轮明确回复 **「授权 TxLab v3 单次真实测试」**，限于独立 `ai-short-drama-factory-txlab` 中的新 `pr31_v3_*` 五张虚构测试表、相应五个索引/触发器对象以及单次串行多表回滚/核销/约束验收。**此前 v1/v2 授权已使用完毕，不允许重用、清理或重跑。**
+
+由单独的启用 PR-31b2l3 更改 `.github/workflows/manual-isolated-libsql-txlab-v3.yml` 的 `if:false`，仍同时强制：
+
+- 只允许 `main` 分支、`github.run_attempt == 1`、人工输入精确确认词 `RUN_ISOLATED_TXLAB_V3_ONCE`。
+- **在任何连接或 SQL 之前**，使用仓库 Actions 只读 API 验证此工作流全部 `workflow_dispatch` 历史恰好为 **1 次**、唯一 ID 等于当前 Run ID；第二次手动触发、Re-run 或 API 无法确认时一律拒绝 SQL。
+- 使用之前独立配置的 `DRAMA_TXLAB_DATABASE_URL` 和 `DRAMA_TXLAB_AUTH_TOKEN`，不使用业务 Turso/Drive Secrets；SDK 固定 `libsql==0.1.11`。
+- 在数据库内先只读确认 `pr31_v3_*` 对象数为零；随后逐条执行限定 DDL 和固定虚构数据，检查 FK、唯一约束、不可变审计、事务回滚以及独立连接读回。**不调用模型、没有生产迁移或并发 Worker 实测。**
+- 无论成功还是红灯都**不能手动重跑**。如果可能已留下部分表或提交，优先使用现有的 [TxLab SELECT-only 诊断工作流](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/workflows/manual-txlab-readonly-diagnostics.yml)，确认词 `CHECK_ISOLATED_TXLAB_READ_ONLY`，再判断后续方向；不擅自 DROP/DELETE 或修改真实库。
+
+**单次真实运行尚未执行**：本 PR 的合并和常规四项 CI 不构成 v3 远端成功。合并且四项 CI 全绿后，由操作者手动打开 [v3 一次性测试入口](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/workflows/manual-isolated-libsql-txlab-v3.yml)，在 `main` 输入确认词，**只点击一次**。如果红灯，必须先读真实日志再对账；不能将部分提交当成全失败。
