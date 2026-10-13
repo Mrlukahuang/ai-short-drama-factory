@@ -69,6 +69,10 @@ def _logical_digest(path: Path) -> dict:
     """Deterministic whole-database logical digest, never returning source data."""
     conn = _open_readonly(path)
     try:
+        # Hold a single read transaction throughout schema and row hashing.
+        # Without BEGIN, commits by a concurrent writer between table reads
+        # could produce a checksum that never existed in a real snapshot.
+        conn.execute("BEGIN")
         if conn.execute("PRAGMA quick_check(10)").fetchone()[0] != "ok":
             raise SnapshotRehearsalDenied("SQLite integrity verification failed")
         if conn.execute("PRAGMA foreign_key_check").fetchone() is not None:
@@ -106,6 +110,7 @@ def _logical_digest(path: Path) -> dict:
             "logical_sha256": full.hexdigest(),
         }
     finally:
+        conn.rollback()  # End the read snapshot; never mutate source rows.
         conn.close()
 
 
