@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 _MARKER = "isolated-pr31c2-local-fixture-only-v1"
@@ -62,12 +63,13 @@ def create_offline_fence(path: Path, *, isolated_test_only: bool = False):
         raise OfflineFenceDenied("Existing file cannot be used as offline fixture") from exc
     os.close(fd)
     try:
-        with sqlite3.connect(target) as conn:
+        with closing(sqlite3.connect(target)) as conn:
             conn.executescript(_SCHEMA)
             conn.execute(
                 "INSERT INTO offline_fence VALUES (1,?,1,'running')", (_MARKER,)
             )
             conn.execute("INSERT INTO offline_worker_counter VALUES (1,0)")
+            conn.commit()
         return OfflineFence(target, isolated_test_only=True)
     except BaseException:
         target.unlink(missing_ok=True)
@@ -90,7 +92,7 @@ class OfflineFence:
             raise OfflineFenceDenied("Existing initialized fixture required")
         # Verify marker BEFORE any DDL/DML. An existing real production
         # sqlite3 file without our dedicated marker is always rejected.
-        with self._raw() as conn:
+        with closing(self._raw()) as conn:
             try:
                 row = conn.execute(
                     "SELECT marker FROM offline_fence WHERE id=1"
@@ -124,7 +126,8 @@ class OfflineFence:
             conn.close()
 
     def snapshot(self) -> dict:
-        with self._raw() as conn:
+        with closing(self._raw()) as conn:
+            conn.execute("BEGIN")  # One consistent local read snapshot.
             marker, epoch, state = conn.execute(
                 "SELECT marker,epoch,state FROM offline_fence WHERE id=1"
             ).fetchone()
