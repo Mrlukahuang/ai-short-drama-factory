@@ -71,7 +71,8 @@
   - [x] PR-31b2h（真实只读对账 + 离线候选）：[Actions #38383515455](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38383515455) 已核实 v1=1、v2=3；v2 两次串行加一次并发提交持久化、另一并发在 worker_read/busy 阶段失败，**未通过完整远端并发验收**。本地 16 线程原子条件 UPDATE/RETURNING 对比候选完成，不自动远程重试、不替换生产账本。
   - [x] PR-31b2i（纯离线生产业务原子性基线）：直接复用现有镜头/三级预算/提交意图/人工对账函数，注入审计失败及第二表更新失败、双审核员争抢同一费用；要求任务、费用与审计同提交或同回滚。**只证明本地 SQLite，不代表远程 Turso 验收**。详见 [PR31_LEDGER_MULTITABLE_CONTRACT](PR31_LEDGER_MULTITABLE_CONTRACT.md)。
   - [x] PR-31b2j（仅本地只读）：检查真实镜头/预算账本关键表、提供商 Task ID 的非空唯一索引、同镜头唯一预留、5 条外键和四个 append-only 审计触发器；损坏或遗漏一律阻断，输出脱敏 Schema 指纹。**尚未执行远端 Turso Schema 导入/验证**。详见 [PR31_CRITICAL_SCHEMA_GUARD](PR31_CRITICAL_SCHEMA_GUARD.md)。
-  - [ ] PR-31b2k：独立审查的 TxLab 远端实际 Schema/多表事务兼容性验收设计与故障回退（任何真实写入仍需新的明确授权）。
+  - [x] PR-31b2k（仅离线 v3 兼容性准备）：学习官方 libSQL/Turso 引擎与事务差异；新增以 `pr31_v3_*` 为隔离前缀的五表、外键/部分唯一索引、审计触发器和多表核销回滚测试；验证 COMMIT 回执丢失不自动重发。严格只新建临时本地文件，**没有真实 TxLab v3 运行或新写入授权**。详见 [PR31_TXLAB_V3_MULTITABLE_PLAN](PR31_TXLAB_V3_MULTITABLE_PLAN.md)。
+  - [ ] PR-31b2l：需要用户新的单次授权和独立审查的 v3 远端多表 Schema/事务真实验收；再继续完整生产 Schema/多 Runner/网络中断/回滚验证，生产切换保持关闭。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
