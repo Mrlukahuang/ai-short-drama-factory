@@ -20,7 +20,17 @@ libsql = pytest.importorskip("libsql")
 def _local_conn(path: Path):
     database = str(path)
     assert "://" not in database and database != ":memory:"
-    return libsql.connect(database=database, timeout=5.0)
+    conn = libsql.connect(database=database, timeout=5.0)
+    # Every new connection must enable FK enforcement independently.
+    # Failing to set this on the billing connection is a migration blocker.
+    try:
+        conn.execute("PRAGMA foreign_keys=ON")
+        if conn.execute("PRAGMA foreign_keys").fetchone()[0] != 1:
+            raise AssertionError("libsql local FK enforcement could not be enabled")
+        return conn
+    except BaseException:
+        conn.close()
+        raise
 
 
 def _create_local_sdk_schema(path: Path):
