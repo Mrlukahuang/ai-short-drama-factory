@@ -56,7 +56,11 @@ def test_two_independent_sqlite_connections_really_serialize(tmp_path):
         rows = db.execute("SELECT counter FROM pr31_txlab_transaction_probe_v1").fetchall()
     assert rows == [(2,)]
     dumped = json.dumps(result)
-    assert "txlab_" not in dumped
+    # Public schema/table labels contain "txlab_", but random probe IDs
+    # and per-run marker UUIDs must never appear in the sanitized receipt.
+    import re
+    assert re.search(r"txlab_[0-9a-f]{32}", dumped) is None
+    assert re.search(r"isolated_[0-9a-f]{32}", dumped) is None
     assert GOOD not in dumped
 
 
