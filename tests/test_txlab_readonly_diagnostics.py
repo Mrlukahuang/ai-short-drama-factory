@@ -12,6 +12,9 @@ from drama_factory.storage.txlab_readonly_diagnostics import (
 )
 from drama_factory.storage.libsql_txlab import _TABLE
 from drama_factory.storage.txlab_v2 import _TABLE as _TABLE_V2
+from drama_factory.storage.txlab_multitable_v3 import (
+    create_v3_fixture, reconcile_v3_local,
+)
 
 URL = "libsql://ai-short-drama-factory-txlab-mrlukahuang.aws-ap-southeast-2.turso.io"
 PROD_URL = "libsql://ai-short-drama-factory-mrlukahuang.aws-ap-southeast-2.turso.io"
@@ -88,7 +91,10 @@ def test_no_ddl_or_dml_when_lab_table_missing(tmp_path, monkeypatch):
     assert receipt["production_database_touched"] is False
     assert receipt["previous_canary_commit_state_fully_known"] is False
     assert all(c.closed for c in opened)
-    assert len(opened[0].sql) == 3
+    assert len(opened[0].sql) == 4
+    assert receipt["v3_schema_objects_present"] == 0
+    assert receipt["v3_schema_names_complete"] is False
+    assert receipt["v3_reservation_aggregate"] is None
     assert all(sql.startswith("SELECT ") for sql in opened[0].sql)
 
 
@@ -117,7 +123,7 @@ def test_aggregate_only_exposes_no_probe_ids(tmp_path, monkeypatch, counters, co
         "mrlukahuang", str(dbpath),
     ):
         assert secret not in payload
-    assert len(opened[0].sql) == 4
+    assert len(opened[0].sql) == 5
     assert all(x.closed for x in opened)
 
 
@@ -238,7 +244,7 @@ def test_v2_aggregate_reports_only_counter_distribution(
     assert tuple(receipt["v2_aggregate_test_row_counts"].values()) == expected
     assert receipt["database_modified_by_this_check"] is False
     assert receipt["previous_canary_commit_state_fully_known"] is False
-    assert len(opened[0].sql) == 5
+    assert len(opened[0].sql) == 6
     assert all(query.lstrip().upper().startswith("SELECT ") for query in opened[0].sql)
     assert opened[0].closed is True
     payload = json.dumps(receipt, sort_keys=True)
@@ -315,3 +321,152 @@ def test_both_v1_and_v2_are_checked_without_cloud_imports(tmp_path, monkeypatch)
     assert receipt["v2_aggregate_test_row_counts"]["counter_two_rows"] == 1
     assert receipt["aggregate_test_row_counts"]["counter_one_rows"] == 1
     assert opened[0].closed is True
+
+
+@pytest.mark.parametrize("reconciled", [False, True])
+def test_v3_complete_schema_stable_only_read_aggregates(
+    tmp_path, monkeypatch, reconciled,
+):
+    approve(monkeypatch)
+    path = create_v3_fixture(
+        tmp_path / "v3-synthetic-only.sqlite", isolated_test_only=True,
+    )
+    if reconciled:
+        reconcile_v3_local(path, isolated_test_only=True)
+    opened = []
+    def factory(url, token):
+        assert url == URL
+        assert token == "fake-token-not-to-print"
+        conn = StrictReadConn(sqlite3.connect(path))
+        opened.append(conn)
+        return conn
+
+    before = path.read_bytes()
+    receipt = inspect_txlab_readonly(
+        URL, "fake-token-not-to-print",
+        operator_approved=True, connection_factory=factory,
+    )
+    assert path.read_bytes() == before
+    assert receipt["v3_schema_objects_present"] == 10
+    assert receipt["v3_schema_names_complete"] is True
+    assert receipt["v3_remote_transaction_semantics_verified"] is False
+    assert receipt["v3_reservation_aggregate"] == {
+        "total": 1,
+        "held": 0 if reconciled else 1,
+        "reconciled": 1 if reconciled else 0,
+        "charge_45_cents": 1 if reconciled else 0,
+        "charge_null": 0 if reconciled else 1,
+    }
+    assert receipt["v3_job_aggregate"] == {
+        "total": 1, "charge_45_cents": 1 if reconciled else 0,
+        "charge_null": 0 if reconciled else 1,
+        "intent_recorded": 1,
+    }
+    assert receipt["v3_budget_event_aggregate"] == {
+        "total": 2 if reconciled else 1,
+        "held": 1,
+        "reconciled": 1 if reconciled else 0,
+    }
+    assert receipt["database_modified_by_this_check"] is False
+    assert receipt["production_database_touched"] is False
+    assert all(x.closed for x in opened)
+    assert len(opened[0].sql) == 7
+    assert all(s.lstrip().upper().startswith("SELECT ") for s in opened[0].sql)
+    payload = json.dumps(receipt)
+    for private in (
+        str(path), "fake-token-not-to-print", "synthetic_job_a",
+        "synthetic_reservation", "mrlukahuang",
+    ):
+        assert private not in payload
+
+
+def test_v3_partial_schema_report_refuses_to_call_missing_tables(
+    tmp_path, monkeypatch,
+):
+    approve(monkeypatch)
+    path = tmp_path / "partial-v3-ddl.sqlite"
+    with sqlite3.connect(path) as db:
+        db.execute("CREATE TABLE pr31_v3_policy (marker TEXT PRIMARY KEY)")
+    opened = []
+    def factory(url, token):
+        conn = StrictReadConn(sqlite3.connect(path))
+        opened.append(conn)
+        return conn
+
+    before = path.read_bytes()
+    report = inspect_txlab_readonly(
+        URL, "fake-token-not-to-print",
+        operator_approved=True, connection_factory=factory,
+    )
+    assert before == path.read_bytes()
+    assert report["v3_schema_objects_present"] == 1
+    assert report["v3_schema_names_complete"] is False
+    assert report["v3_reservation_aggregate"] is None
+    assert report["v3_job_aggregate"] is None
+    assert report["v3_budget_event_aggregate"] is None
+    assert len(opened[0].sql) == 4
+    assert all(x.closed for x in opened)
+
+
+@pytest.mark.parametrize("blocked_sql,expected_stage", [
+    ("FROM pr31_v3_reservation", "select_v3_reservation"),
+    ("FROM pr31_v3_job", "select_v3_job"),
+    ("FROM pr31_v3_budget_event", "select_v3_budget_event"),
+])
+def test_v3_read_errors_are_redacted_and_do_not_commit(
+    tmp_path, monkeypatch, blocked_sql, expected_stage,
+):
+    approve(monkeypatch)
+    path = create_v3_fixture(
+        tmp_path / "fault-read-v3.sqlite", isolated_test_only=True,
+    )
+    class FaultyRead:
+        def __init__(self):
+            self.db = sqlite3.connect(path)
+            self.closed = False
+        def execute(self, sql, params=()):
+            if blocked_sql in sql:
+                raise RuntimeError("SECRET_CREDENTIAL_MUST_NOT_LEAK")
+            assert sql.lstrip().upper().startswith("SELECT ")
+            return self.db.execute(sql, params)
+        def close(self):
+            self.closed = True
+            self.db.close()
+    opened = []
+    def factory(*_):
+        conn = FaultyRead()
+        opened.append(conn)
+        return conn
+
+    with pytest.raises(ReadOnlyTxLabFailure) as exc:
+        inspect_txlab_readonly(
+            URL, "fake-token-not-to-print",
+            operator_approved=True, connection_factory=factory,
+        )
+    assert exc.value.stage == expected_stage
+    assert "SECRET" not in str(exc.value)
+    assert all(x.closed for x in opened)
+
+
+def test_v3_catalogue_query_fail_closed_before_any_table_access(tmp_path, monkeypatch):
+    approve(monkeypatch)
+    path = create_v3_fixture(
+        tmp_path / "failed-catalogue-v3.sqlite", isolated_test_only=True,
+    )
+    class CatalogueDown:
+        def __init__(self):
+            self.db = sqlite3.connect(path)
+        def execute(self, sql, params=()):
+            if "name LIKE 'pr31_v3_%'" in sql:
+                raise ConnectionError("connection reset PRIVATE_BEARER")
+            assert sql.lstrip().upper().startswith("SELECT ")
+            return self.db.execute(sql, params)
+        def close(self):
+            self.db.close()
+    with pytest.raises(ReadOnlyTxLabFailure) as exc:
+        inspect_txlab_readonly(
+            URL, "fake-token-not-to-print", operator_approved=True,
+            connection_factory=lambda *_: CatalogueDown(),
+        )
+    assert exc.value.stage == "select_v3_schema"
+    assert "PRIVATE_BEARER" not in str(exc.value)

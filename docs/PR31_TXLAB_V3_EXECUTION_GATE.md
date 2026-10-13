@@ -26,3 +26,16 @@
 - 新 Workflow 的 `if: false` 在 GitHub Actions 的 Job 开始之前阻断全部步骤。未来获授权的启用 PR 还必须保留 `main`、`run_attempt == 1`、完全一致的确认词，并用 GitHub Actions 只读 API 验证当前是该 v3 Workflow **第一次 `workflow_dispatch`**；任何重复调度、API 不可用或非当前 run ID 都拒绝写入。
 - 新代码的 `run_live_v3()` 只有在 `operator_approved=True`、独立确认词和写入开关全部同时提供时才允许打开连接。当前 PR、普通 CI 和对外业务 API 都不提供这些条件。
 - 绝不复用 v1/v2 已被消耗的授权，绝不触碰主库 `drama_drive_receipts_v1`、Drive 资产或付费模型。
+
+
+## PR-31b2l2：提前准备的 v3 只读事故对账
+
+原已验收的 [Manual isolated TxLab SELECT-only postfailure diagnostics](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/workflows/manual-txlab-readonly-diagnostics.yml) 增加 v3 **只读**汇总，不改变手动工作流、确认词或 v1/v2 结果：
+
+- 用固定 `SELECT name FROM sqlite_master WHERE name LIKE 'pr31_v3_%'` 统计 v3 Schema 对象数，只有**恰好 10 个期望对象名称**才报告 `v3_schema_names_complete=true`。如果建表/触发器中途失败、只有部分对象，则报告数量和 `false`，**不能尝试自动补建或清理**。
+- 只有对应表存在时，才读 `pr31_v3_reservation` 的 `held/reconciled` 与 NULL/45 分费用**总数**、`pr31_v3_job` 的意图/费用**总数**，以及 `pr31_v3_budget_event` 的 `held/reconciled` 事件**总数**。即使只有一个表存在，也不会 `SELECT` 不存在的其他表。
+- 没有 `INSERT/UPDATE/CREATE/DROP/DELETE`，没有读取任何镜头、项目、Task ID、审计记录 ID、用户素材路径、Token 或整行 JSON。所有连接仍仅可使用现有独立 TxLab URL 和两项 TxLab 专用 Secrets。
+- 某个只读阶段失败，只报告固定标签 `select_v3_schema` / `select_v3_reservation` / `select_v3_job` / `select_v3_budget_event`，**不会原样输出**可能包含密钥的 SDK 错误。
+- 即使报告 v3 结构齐全、费用行和审计计数一致，也仅是**事后的状态观察**，不能证明网络异常的精确时间线或远程隔离、并发提交已通过。始终 `v3_remote_transaction_semantics_verified=false`。
+
+这项工具提前完成，避免重演 v1/v2 写入后才临时补对账脚本的被动处理。本 PR 没有执行任何远端 v3 写入，也不需要重新配置 Secrets 或手动触发只读工作流。新 v3 写入仍需后续独立明确授权。

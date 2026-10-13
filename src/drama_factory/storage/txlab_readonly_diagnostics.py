@@ -15,11 +15,14 @@ from drama_factory.storage.libsql_txlab import (
     _TABLE, _close_quietly, _open_lab_connection, validate_lab_url,
 )
 from drama_factory.storage.txlab_v2 import _TABLE as _TABLE_V2
+from drama_factory.storage.txlab_multitable_v3_live import _NAMES as _V3_NAMES
 
 _CONFIRM = "CHECK_ISOLATED_TXLAB_READ_ONLY"
 _STAGES = frozenset((
     "target_validation", "connect", "select_ping", "select_schema",
     "select_counter_summary", "select_v2_schema", "select_v2_counter_summary",
+    "select_v3_schema", "select_v3_reservation", "select_v3_job",
+    "select_v3_budget_event",
 ))
 
 
@@ -143,6 +146,93 @@ def inspect_txlab_readonly(
                 }
             except Exception:
                 raise ReadOnlyTxLabFailure("select_v2_counter_summary") from None
+        # PR-31b2l2: proactively inspect v3 after a future DDL/COMMIT
+        # ambiguity, WITHOUT trying to repair or replay any write. Counting
+        # ALL prefixed catalog objects detects a partially installed schema.
+        try:
+            objects = conn.execute(
+                "SELECT name FROM sqlite_master WHERE name LIKE 'pr31_v3_%'"
+            ).fetchall()
+            names = {row[0] for row in objects}
+            if len(names) != len(objects):
+                raise ValueError("duplicate v3 catalogue names")
+            v3_complete = names == _V3_NAMES
+            v3_count = len(names)
+        except Exception:
+            raise ReadOnlyTxLabFailure("select_v3_schema") from None
+
+        v3_reservation = None
+        if "pr31_v3_reservation" in names:
+            try:
+                row = conn.execute(
+                    "SELECT COUNT(*), "
+                    "COALESCE(SUM(CASE WHEN status='held' THEN 1 ELSE 0 END),0), "
+                    "COALESCE(SUM(CASE WHEN status='reconciled' THEN 1 ELSE 0 END),0), "
+                    "COALESCE(SUM(CASE WHEN actual_cents=45 THEN 1 ELSE 0 END),0), "
+                    "COALESCE(SUM(CASE WHEN actual_cents IS NULL THEN 1 ELSE 0 END),0) "
+                    "FROM pr31_v3_reservation"
+                ).fetchone()
+                if row is None or len(row) != 5:
+                    raise ValueError("bad synthetic reservation aggregates")
+                values = [int(value) for value in row]
+                if any(value < 0 for value in values):
+                    raise ValueError("negative aggregate")
+                v3_reservation = {
+                    "total": values[0],
+                    "held": values[1],
+                    "reconciled": values[2],
+                    "charge_45_cents": values[3],
+                    "charge_null": values[4],
+                }
+            except Exception:
+                raise ReadOnlyTxLabFailure("select_v3_reservation") from None
+
+        v3_job = None
+        if "pr31_v3_job" in names:
+            try:
+                row = conn.execute(
+                    "SELECT COUNT(*), "
+                    "COALESCE(SUM(CASE WHEN actual_charge_cents=45 THEN 1 ELSE 0 END),0), "
+                    "COALESCE(SUM(CASE WHEN actual_charge_cents IS NULL THEN 1 ELSE 0 END),0), "
+                    "COALESCE(SUM(CASE WHEN generation_intent_recorded=1 THEN 1 ELSE 0 END),0) "
+                    "FROM pr31_v3_job"
+                ).fetchone()
+                if row is None or len(row) != 4:
+                    raise ValueError("bad synthetic job aggregates")
+                values = [int(value) for value in row]
+                if any(value < 0 for value in values):
+                    raise ValueError("negative aggregate")
+                v3_job = {
+                    "total": values[0],
+                    "charge_45_cents": values[1],
+                    "charge_null": values[2],
+                    "intent_recorded": values[3],
+                }
+            except Exception:
+                raise ReadOnlyTxLabFailure("select_v3_job") from None
+
+        v3_audit = None
+        if "pr31_v3_budget_event" in names:
+            try:
+                row = conn.execute(
+                    "SELECT COUNT(*), "
+                    "COALESCE(SUM(CASE WHEN action='held' THEN 1 ELSE 0 END),0), "
+                    "COALESCE(SUM(CASE WHEN action='reconciled' THEN 1 ELSE 0 END),0) "
+                    "FROM pr31_v3_budget_event"
+                ).fetchone()
+                if row is None or len(row) != 3:
+                    raise ValueError("bad synthetic audit aggregates")
+                values = [int(value) for value in row]
+                if any(value < 0 for value in values):
+                    raise ValueError("negative aggregate")
+                v3_audit = {
+                    "total": values[0],
+                    "held": values[1],
+                    "reconciled": values[2],
+                }
+            except Exception:
+                raise ReadOnlyTxLabFailure("select_v3_budget_event") from None
+
         return {
             "mode": "isolated_txlab_select_only_diagnostics",
             "engine": "libsql",
@@ -152,6 +242,12 @@ def inspect_txlab_readonly(
             "aggregate_test_row_counts": counts,
             "v2_test_table_exists": v2_exists,
             "v2_aggregate_test_row_counts": v2_counts,
+            "v3_schema_objects_present": v3_count,
+            "v3_schema_names_complete": v3_complete,
+            "v3_reservation_aggregate": v3_reservation,
+            "v3_job_aggregate": v3_job,
+            "v3_budget_event_aggregate": v3_audit,
+            "v3_remote_transaction_semantics_verified": False,
             "read_only_operations": True,
             "database_modified_by_this_check": False,
             "previous_canary_commit_state_fully_known": False,
