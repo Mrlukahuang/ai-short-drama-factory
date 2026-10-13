@@ -228,13 +228,15 @@ def test_cli_output_does_not_disclose_error_or_token(monkeypatch, capsys):
     assert out.out == ""
 
 
-def test_authorized_manual_workflow_rejects_rerun_and_production_secrets():
+def test_consumed_manual_workflow_hard_locked_after_one_real_success():
     workflow = (
         Path(__file__).resolve().parents[1] /
         ".github/workflows/manual-isolated-libsql-txlab-v3.yml"
     ).read_text()
     assert "workflow_dispatch:" in workflow
-    assert "false && github.ref" not in workflow
+    assert "false && github.ref" in workflow
+    assert "Actions #38417337745" in workflow
+    assert "Permission is CONSUMED" in workflow
     assert "github.ref == 'refs/heads/main'" in workflow
     assert "github.run_attempt == 1" in workflow
     assert 'GITHUB_RUN_ATTEMPT" != "1"' in workflow
