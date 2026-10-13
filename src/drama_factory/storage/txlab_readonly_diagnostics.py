@@ -14,9 +14,13 @@ import sys
 from drama_factory.storage.libsql_txlab import (
     _TABLE, _close_quietly, _open_lab_connection, validate_lab_url,
 )
+from drama_factory.storage.txlab_v2 import _TABLE as _TABLE_V2
 
 _CONFIRM = "CHECK_ISOLATED_TXLAB_READ_ONLY"
-_STAGES = frozenset(("target_validation", "connect", "select_ping", "select_schema", "select_counter_summary"))
+_STAGES = frozenset((
+    "target_validation", "connect", "select_ping", "select_schema",
+    "select_counter_summary", "select_v2_schema", "select_v2_counter_summary",
+))
 
 
 class ReadOnlyTxLabFailure(ValueError):
@@ -97,6 +101,48 @@ def inspect_txlab_readonly(
                 }
             except Exception:
                 raise ReadOnlyTxLabFailure("select_counter_summary") from None
+        # The first real v2 run failed at worker_read/busy after earlier
+        # commits may have succeeded. Inspect its DIFFERENT table without
+        # reading probe IDs/markers or changing any existing v1 records.
+        try:
+            row = conn.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?",
+                (_TABLE_V2,),
+            ).fetchone()
+            if row is None or int(row[0]) not in (0, 1):
+                raise ValueError("unexpected v2 catalogue response")
+            v2_exists = bool(int(row[0]))
+        except Exception:
+            raise ReadOnlyTxLabFailure("select_v2_schema") from None
+        v2_counts = None
+        if v2_exists:
+            try:
+                row = conn.execute(
+                    f"SELECT COUNT(*), "
+                    f"COALESCE(SUM(CASE WHEN counter=0 THEN 1 ELSE 0 END),0), "
+                    f"COALESCE(SUM(CASE WHEN counter=1 THEN 1 ELSE 0 END),0), "
+                    f"COALESCE(SUM(CASE WHEN counter=2 THEN 1 ELSE 0 END),0), "
+                    f"COALESCE(SUM(CASE WHEN counter=3 THEN 1 ELSE 0 END),0), "
+                    f"COALESCE(SUM(CASE WHEN counter=4 THEN 1 ELSE 0 END),0), "
+                    f"COALESCE(SUM(CASE WHEN counter NOT IN (0,1,2,3,4) THEN 1 ELSE 0 END),0) "
+                    f"FROM {_TABLE_V2}"
+                ).fetchone()
+                if row is None or len(row) != 7:
+                    raise ValueError("invalid v2 aggregate result")
+                values = [int(value) for value in row]
+                if any(x < 0 for x in values) or values[0] != sum(values[1:]):
+                    raise ValueError("inconsistent v2 aggregate result")
+                v2_counts = {
+                    "total_probe_rows": values[0],
+                    "counter_zero_rows": values[1],
+                    "counter_one_rows": values[2],
+                    "counter_two_rows": values[3],
+                    "counter_three_rows": values[4],
+                    "counter_four_rows": values[5],
+                    "counter_other_rows": values[6],
+                }
+            except Exception:
+                raise ReadOnlyTxLabFailure("select_v2_counter_summary") from None
         return {
             "mode": "isolated_txlab_select_only_diagnostics",
             "engine": "libsql",
@@ -104,6 +150,8 @@ def inspect_txlab_readonly(
             "connection_ping_succeeded": True,
             "test_table_exists": exists,
             "aggregate_test_row_counts": counts,
+            "v2_test_table_exists": v2_exists,
+            "v2_aggregate_test_row_counts": v2_counts,
             "read_only_operations": True,
             "database_modified_by_this_check": False,
             "previous_canary_commit_state_fully_known": False,
