@@ -1,15 +1,16 @@
-name: Manual isolated TxLab v2 transaction verification (LOCKED until new approval)
+name: Manual isolated TxLab v2 one-time transaction verification
 
 on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: "Future authorization only: RUN_ISOLATED_TXLAB_V2_ONE_TIME"
+        description: "One-time authorized test: RUN_ISOLATED_TXLAB_V2_ONE_TIME"
         required: true
         type: string
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: drama-isolated-libsql-txlab-single-run
@@ -17,9 +18,10 @@ concurrency:
 
 jobs:
   txlab-v2-one-use:
-    # NEVER enable this on the basis of the old TxLab authorization.
-    # Separate operator approval and a reviewed enabling PR are both required.
-    if: ${{ false && github.ref == 'refs/heads/main' && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V2_ONE_TIME' }}
+    # New user approval granted for ONE v2 run only. Rerun attempts are
+    # blocked here and a preflight GitHub run-history check blocks new
+    # dispatches after this workflow has been used once.
+    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V2_ONE_TIME' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -31,6 +33,28 @@ jobs:
           python-version: '3.11'
       - name: Install libSQL SDK
         run: python -m pip install -e '.[turso-libsql]'
+      - name: Fail closed unless this is the first and only v2 dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_RUN_ATTEMPT" != "1" || "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::This test permits only one original run on main"
+            exit 1
+          fi
+          # Query the SAME v2 workflow, not older v1 or SELECT-only runs.
+          # The current dispatch must be its only historic manual run.
+          # API unavailable, delayed, or ambiguous -> refuse all writes.
+          history=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/manual-isolated-libsql-txlab-v2.yml/runs?event=workflow_dispatch&per_page=100" \
+            --jq '[.total_count, (.workflow_runs[0].id // 0)] | @tsv')
+          read -r dispatch_count first_run_id <<< "$history"
+          if [[ "$dispatch_count" != "1" || "$first_run_id" != "$GITHUB_RUN_ID" ]]; then
+            echo "::error::TxLab v2 single-use dispatch guard denied; no SQL run"
+            exit 1
+          fi
+          echo "One-time v2 dispatch guard passed (no SQL executed by this step)"
+
       - name: Run isolated V2 canary only after new authorization
         env:
           DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
