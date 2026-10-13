@@ -121,6 +121,37 @@ RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY
 
 使用 [只读 TxLab 检查工作流](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/workflows/manual-txlab-readonly-diagnostics.yml)，在 `main` 手动输入 `CHECK_ISOLATED_TXLAB_READ_ONLY`。此步骤不消耗新的真实写入授权，也不需要更换现有两项 TxLab Secrets。如果只读诊断失败，CLI 只输出 `select_v2_schema` / `select_v2_counter_summary` 等脱敏阶段，绝不泄漏 SDK 异常、Token、真实 ID 或数据库 URL。**原 TxLab v1/v2 写入工作流都不应再次运行。**
 
+## PR-31b2h：v2 真实只读对账与单 SQL 竞争方案（2026-10-13）
+
+最新一次真实 TxLab **仅 SELECT** 的 [Actions #38383515455](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38383515455) 完成，日志直接证明：
+
+| 实际只读观测 | v1 | v2 |
+| --- | ---: | ---: |
+| 表已存在 | 是 | 是 |
+| 探针记录总数 | 1 | 1 |
+| counter=1 | 1 | 0 |
+| counter=3 | 不适用 | 1 |
+| 其余枚举计数 | 0 | 0 |
+
+- `database_modified_by_this_check=false`，只读验收没有追加、覆盖或删除任何记录。
+- **v2 逻辑推断**：真实测试运行在 `worker_read/busy` 失败以前已经验证两次串行提交，最终 Counter=3 与**另外一次并发更新成功落库**一致；第二次并发请求没有成功完成，不能把这次验收称为远程双 Worker 全通过，也不能宣称真正发生了已提交写入丢失。
+- 出错在 `worker_read`，**不等于 `BEGIN` 已被数据库明确拒绝**。现有重试判定 `assess_txlab_retry` 必须返回 `may_retry_pre_begin=false`。禁止自动补发 SQL，更不允许借此给未来付费 Provider 请求增加重试。
+
+### 离线候选：单语句原子条件更新
+
+实验性 `storage/txlab_atomic_candidate.py` **只允许新建和打开专门标记的本地 SQLite 测试文件**；用单条
+
+```sql
+UPDATE offline_atomic_counter
+SET counter = counter + 1
+WHERE id = 1 AND marker = ? AND counter < max_counter
+RETURNING counter
+```
+
+来减少「BEGIN → SELECT → UPDATE」在客户端的分步 SQL 和时间窗口。16 个真实独立线程争夺 5 个位置时，只有五次成功、其余返回无可分配位置，且无读-改-写遗失。测试另模拟 UPDATE 自身 busy 并要求**直接上抛、绝不自动重试**。这只是一个待评估的**单行单 SQL 语义候选**，**并不证明 libSQL SDK 实际支持相同事务特性，不能证明远程 busy 消失**。
+
+更重要的是：一个计数器 **不能替代** 正式短剧生产需要的栏目/剧集/Provider 三级预算、不可变 audit event、Worker 领取/租约、供应商提交意图与防重复计费。正式适配器不能直接替换为此实验算法，未来仍须把这些写入组织为**同一个服务器可证实的事务**或等价的可靠、持久的序列化协议，并在独立实验库用新授权验证。生产切换、真实远程测试、自动付费 Worker 继续关闭。
+
 ## 结果边界
 
 如果这一次实验全绿，仅能证明**指定 libSQL Python SDK、两个独立连接在这个事务序列中**符合需求；仍不代表跨 GitHub Runner/跨地区分布式原子性、任意网络中断、完整 Schema/触发器兼容、真实预算/审批账本迁移或生产切换已经通过。
