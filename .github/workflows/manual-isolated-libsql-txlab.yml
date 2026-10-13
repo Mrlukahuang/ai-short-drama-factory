@@ -1,0 +1,45 @@
+name: Manual isolated libSQL transaction laboratory (no production DB)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY (one scratch DB transaction run)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: drama-isolated-libsql-txlab-single-run
+  cancel-in-progress: false
+
+jobs:
+  isolated-transaction-canary:
+    if: ${{ inputs.confirmation == 'RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout reviewed version
+        uses: actions/checkout@v4
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only local application and libSQL SDK
+        run: python -m pip install -e '.[turso-libsql]'
+      - name: Run exactly one isolated libSQL transaction canary
+        env:
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_CONFIRM: RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY
+          DRAMA_ENABLE_TXLAB_WRITE: 'YES'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$DRAMA_TXLAB_DATABASE_URL" || -z "$DRAMA_TXLAB_AUTH_TOKEN" ]]; then
+            echo "::error::Dedicated isolated libSQL lab URL/token Secrets not configured; no SQL run"
+            exit 1
+          fi
+          python -m drama_factory.storage.libsql_txlab --live
