@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import re
+import sqlite3
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlsplit
@@ -159,9 +160,18 @@ def run_transaction_contract(conn_factory, *, mode: str) -> dict:
                 (probe, 99, "duplicate_" + uuid4().hex),
             )
             master.commit()
-        except Exception:
-            constraint_rejected = True
+        except Exception as exc:
+            # A dropped connection, timeout or SDK failure is NOT evidence
+            # of a real primary-key constraint. Reject unrelated errors.
+            message = str(exc).lower()
+            constraint_rejected = (
+                isinstance(exc, sqlite3.IntegrityError)
+                or "unique constraint failed" in message
+                or "primary key" in message
+            )
             _rollback_quietly(master)
+            if not constraint_rejected:
+                raise TxLabDenied("Duplicate INSERT failed for a non-constraint reason") from None
         if not constraint_rejected:
             raise TxLabDenied("Primary key uniqueness was not enforced")
         stable = master.execute(
