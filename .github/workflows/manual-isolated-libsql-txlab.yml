@@ -17,7 +17,11 @@ concurrency:
 
 jobs:
   isolated-transaction-canary:
-    if: ${{ github.ref == 'refs/heads/main' && inputs.confirmation == 'RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY' }}
+    # First authorized write was consumed by Actions #38342320367. This
+    # Workflow is intentionally disabled until a separately approved new
+    # canary revision is reviewed; even a correct old confirmation must not
+    # trigger another live INSERT.
+    if: ${{ false && github.ref == 'refs/heads/main' && inputs.confirmation == 'RUN_ISOLATED_LIBSQL_TRANSACTION_CANARY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
