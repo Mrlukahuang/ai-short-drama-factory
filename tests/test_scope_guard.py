@@ -39,3 +39,13 @@ def test_empty_body_skips_body_check_for_pushes():
 
 def test_unfrozen_storage_files_still_editable():
     assert sg.frozen_hits(["src/drama_factory/storage/artifacts.py"]) == []
+
+
+def test_governance_file_requires_owner_label():
+    errors = sg.check(["AMEND.md"], GOOD_BODY, set())
+    assert errors and "治理文件" in errors[0]
+    assert sg.check(["docs/GUARDRAILS.md"], GOOD_BODY, {"amend-approved"}) == []
+
+
+def test_handoff_files_are_not_governance():
+    assert sg.check(["docs/handoff/CURRENT.md", "docs/handoff/LOG.md"], GOOD_BODY, set()) == []
