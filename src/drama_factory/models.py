@@ -26,6 +26,12 @@ class OriginalProjectCreate(BaseModel):
     default_ratio: Literal["9:16", "16:9"] = "9:16"
     column_id: str | None = None  # Legacy callers are placed in the default column.
 
+class ApprovedDialogueCue(BaseModel):
+    """Speaker provenance retained after human screenplay approval."""
+    speaker_actor_id: str = Field(min_length=1, max_length=120)
+    text: str = Field(min_length=1, max_length=500)
+
+
 class ShotDraft(BaseModel):
     shot_id: str = Field(min_length=1, max_length=80)
     duration_seconds: int = Field(ge=1, le=30)
@@ -33,9 +39,26 @@ class ShotDraft(BaseModel):
     character_ids: list[str] = Field(default_factory=list)
     scene_id: str | None = None
     dialogue: list[str] = Field(default_factory=list)
+    # Optional to preserve existing v0.1 manual shots and old stored JSON;
+    # new human-reviewed screenplays always fill this structured, ordered form.
+    dialogue_cues: list[ApprovedDialogueCue] = Field(default_factory=list)
     reference_asset_ids: list[str] = Field(default_factory=list)
     video_model: str = "gemini-omni-1.1-flash"
     audio_mode: Literal["native", "locked_voice", "silent"] = "native"
+
+    @model_validator(mode="after")
+    def preserve_approved_speaker_order(self):
+        if self.dialogue_cues:
+            expected = [
+                f"{cue.speaker_actor_id}: {cue.text}"
+                for cue in self.dialogue_cues
+            ]
+            if expected != self.dialogue:
+                raise ValueError("Approved structured dialogue differs from legacy shot lines")
+            if any(cue.speaker_actor_id not in self.character_ids for cue in self.dialogue_cues):
+                raise ValueError("Approved dialogue speaker must belong to this shot")
+        return self
+
 
 class EpisodeDraft(BaseModel):
     title: str = Field(min_length=1)
