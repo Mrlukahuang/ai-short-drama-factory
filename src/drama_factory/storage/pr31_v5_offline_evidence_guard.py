@@ -55,8 +55,10 @@ def inspect_proposed_v5_evidence(bundle: dict) -> dict:
     first, second = [_exact(x, _ACTOR_FIELDS) for x in actors]
     observer = _exact(item["observer"], _OBSERVER_FIELDS)
 
-    if {first["role"], second["role"]} != {"a", "b"}:
+    if any(type(x["role"]) is not str for x in (first, second)) or {first["role"], second["role"]} != {"a", "b"}:
         raise V5EvidenceDenied("Missing distinct runner roles")
+    if any(type(x["outcome"]) is not str for x in (first, second)):
+        raise V5EvidenceDenied("Invalid synthetic outcome")
 
     receipts = (first, second, observer)
     if any(
