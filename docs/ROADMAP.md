@@ -42,6 +42,7 @@
 - [x] PR-10g（**离线逐句 TTS 持久化付费意图与三层预算联控**）：新增本地 SQLite 的 `tts_tasks`/`tts_budget_reservations`/不可改写事件审计；已审核 Series/镜头/演员/声音资产/精确 cue 指纹唯一。与现有视频生成预算共同占用 Column/Series/Provider 日额和并发数；先原子预留再提交一次性 paid intent，回执不明隔离且保留额度，不允许再发第二次；已有供应商 ID/WAV 只读登记与人工发票凭证核对均不授权商用。**离线 Fake 合同，无 Google SDK 调用、无真实账单或生产 DB 切换**。参见 [PR10_TTS_PERSISTENT_INTENT](PR10_TTS_PERSISTENT_INTENT.md)。
 - [x] PR-10h（**TTS 最终回执二次验证**）：在本地 SQLite `tts_tasks` 的已确认 SDK interaction 写入 WAV hash/时长前，重新独立解析准确的 Base64/24k mono 16bit PCM WAV 原始字节，拒绝伪造 `InspectedGeminiSpeech` 对象、错误采样率、超时长或假元数据；供应商 interaction ID 跨 Cue 唯一，重复绑定明确拒绝并回滚。强制 CI 与真实 Fake 响应格式测试验证，**不产生额外付费模型调用**。参见 [PR10_TTS_RECEIPT_TAMPER_AUDIT](PR10_TTS_RECEIPT_TAMPER_AUDIT.md)。
 - [x] PR-10i（**严格离线 TTS 一次性 Fake 编排**）：复用 PR-10g/h 的已审核逐句请求与共享三级预算，原子提交不可重用付费意图后仅允许一次本地 Fake SDK 调用；成功登记唯一 Interaction ID、经再次核验的 24k PCM WAV hash；ACK 丢失/非法或重复 ID 保留 held 额度并隔离，已 ACK 但音频损坏保留 acknowledged 等待人工恢复。双线程争抢只允许一个进入 Fake 调用；任意真实 Google SDK/HTTP 客户端均禁止。**不接触真实 Google 或云数据库、不表示真正跨 Worker 计费恢复完成**。参见 [PR10_FAKE_DISPATCH_RECOVERY](PR10_FAKE_DISPATCH_RECOVERY.md)。
+- [x] PR-10j（**TTS 崩溃后只读对账和恢复分类**）：使用同一本地 SQLite 读取事务独立交叉校验 `tts_tasks`、三级预算 reservation、不可变审计事件序列和唯一 Provider ID/WAV SHA256，明确分开“尚未提交”“持久付费意图但结果未知”“ACK 丢失隔离”“已有 Interaction 只需取回原结果”“WAV 已验但账单/权益待核”。伪造 ID/哈希/发票/遗漏预算/乱序审计一律 fail closed；不返回任何私人台词或账单凭证，**永远无自动重试和远端调用**。详见 [PR10_TTS_READONLY_RECOVERY](PR10_TTS_READONLY_RECOVERY.md)。
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
 - [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
 
