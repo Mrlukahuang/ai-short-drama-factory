@@ -8,6 +8,10 @@ from pathlib import Path
 from drama_factory.db import Database
 from drama_factory.pipeline.offline_render import PreviewError, render_approved_preview
 from drama_factory.pipeline.offline_review import LocalReviewDenied, load_local_offline_review
+from drama_factory.models import EpisodeDraft
+from drama_factory.pipeline.local_shot_media import (
+    LocalShotMediaError, stage_local_shot_video, get_staged_shot_clips,
+)
 from drama_factory.pipeline.local_story_workflow import (
     LocalStoryWizardError, make_storyboard_template,
     canonical_screenplay_digest, validated_draft_still_matches,
@@ -456,6 +460,86 @@ with review_tab:
                 status = runs[run_id]["status"]
                 st.caption(f"当前状态：{status}。只有完成审核的 Production 才可渲染；预览不会批准发行。")
                 local_db = Database(local_db_file)
+                source_root = local_data / "local-shot-media"
+                st.markdown("#### 导入本机原创视频镜头（可选）")
+                st.caption(
+                    "只允许上传本机 MP4/MOV/WEBM/MKV，单段最多 32 MB。"
+                    "不传到任何云端/AI 服务；选择当前 Production 已审核的镜头。"
+                    "本地授权声明仅为操作员自述，不代表版权已独立核验。"
+                )
+                if status in ("ready_for_video_generation", "offline_preview_finished"):
+                    episode_row = local_db.one(
+                        """SELECT e.project_id, e.body_json FROM productions p
+                           JOIN episodes e ON e.id=p.episode_id WHERE p.id=?""",
+                        (run_id,),
+                    )
+                    if episode_row and episode_row["project_id"] == review_series_id:
+                        approved_episode = EpisodeDraft.model_validate_json(
+                            episode_row["body_json"],
+                        )
+                        duration_by_shot = {
+                            shot.shot_id: shot.duration_seconds
+                            for shot in approved_episode.shots
+                        }
+                        shot_choice = st.selectbox(
+                            "选择将被本地视频替换的镜头",
+                            list(duration_by_shot),
+                            format_func=lambda sid: f"{sid} · {duration_by_shot[sid]} 秒",
+                            key=f"local_shot_choice_{run_id}",
+                        )
+                        video_upload = st.file_uploader(
+                            "选择本机视频文件",
+                            type=["mp4", "mov", "webm", "mkv"],
+                            key=f"local_shot_upload_{run_id}_{shot_choice}",
+                        )
+                        rights_checked = st.checkbox(
+                            "我确认对这段视频拥有原创权利或明确授权，仅将其用于本机技术审片。",
+                            key=f"local_shot_rights_{run_id}_{shot_choice}",
+                        )
+                        if st.button(
+                            "登记这段视频到选中镜头（不生成、不发布）",
+                            disabled=not rights_checked or video_upload is None,
+                        ):
+                            try:
+                                if video_upload is None or video_upload.size > 32 * 1024 * 1024:
+                                    raise LocalShotMediaError("Video size over local limit")
+                                receipt = stage_local_shot_video(
+                                    local_db, run_id, review_series_id,
+                                    source_root, shot_id=shot_choice,
+                                    filename=video_upload.name,
+                                    content=video_upload.getvalue(),
+                                    operator_attests_rights=rights_checked,
+                                )
+                                st.success(
+                                    f'本机视频已登记到 {receipt["shot_id"]}，'
+                                    f'SHA256: {receipt["sha256"][:14]}…。'
+                                    "这是自述素材，不表示商用权利已独立核验。"
+                                )
+                            except (LocalShotMediaError, OSError, ValueError):
+                                st.error("素材登记失败：视频/时长/格式/镜头归属或权利声明不符合要求。")
+                        try:
+                            staged = get_staged_shot_clips(
+                                local_db, run_id, review_series_id, source_root,
+                            )
+                        except (LocalShotMediaError, OSError):
+                            st.error("已登记素材的完整性检查失败。请修复本机素材后再尝试渲染。")
+                            staged = None
+                        if staged is not None:
+                            st.caption(
+                                f"本机有效视频镜头 {len(staged)}/{len(duration_by_shot)}；"
+                                "其余仍使用占位卡片，渲染和 QA 会重新读取并校验视频。"
+                            )
+                            st.dataframe([
+                                {"镜头": sid, "时长（秒）": dur,
+                                 "本地视频": "已登记" if sid in staged else "未登记／占位"}
+                                for sid, dur in duration_by_shot.items()
+                            ], hide_index=True, use_container_width=True)
+                    else:
+                        staged = None
+                        st.error("Production 与当前剧集不匹配。")
+                else:
+                    staged = None
+                    st.info("必须先通过剧本及人物审批，才能登记本机视频镜头。")
                 if st.button(
                     "生成 / 更新已审核的离线 MP4",
                     disabled=status not in ("ready_for_video_generation", "offline_preview_finished"),
@@ -468,9 +552,14 @@ with review_tab:
                         )
                         if scoped is None or scoped["project_id"] != review_series_id:
                             raise LocalReviewDenied("当前 Production 不属于所选剧集")
-                        render_approved_preview(local_db, run_id, review_root)
+                        if staged is None:
+                            raise LocalShotMediaError("Local staged media verification failed")
+                        render_approved_preview(
+                            local_db, run_id, review_root,
+                            source_clips=staged,
+                        )
                         st.success("离线 MP4 渲染及独立技术 QA 已通过。可以复核并播放。")
-                    except (PreviewError, LocalReviewDenied, OSError, ValueError):
+                    except (PreviewError, LocalReviewDenied, LocalShotMediaError, OSError, ValueError):
                         st.error("预览渲染失败或审核条件不满足；没有启用付费生成。")
                 # Never trust a DB manifest filename as a path for Streamlit:
                 # playback is opened only by the local read-only verifier.
