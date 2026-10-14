@@ -222,7 +222,23 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
         "mp4_path": str(final), "mp4_sha256": digest, "media": media,
         "shots": shot_results,
     }
-    # Metadata is saved only after a real, probed MP4 exists.
+    # Fail closed: independent READ-ONLY technical QA must pass BEFORE any
+    # production state or delivery manifest is marked preview-finished. This
+    # verifies full audio/video decode, SHA256 and shot-aligned SRT timing.
+    # Import locally to avoid a module import cycle: QA reuses inspect_mp4.
+    from drama_factory.pipeline.offline_qa import (
+        OfflineQAError, inspect_offline_delivery,
+    )
+    try:
+        manifest["technical_qa"] = inspect_offline_delivery(manifest, final)
+    except OfflineQAError:
+        raise PreviewError(
+            "Generated MP4 failed technical QA; production status unchanged"
+        ) from None
+    # A passing technical preview is NEVER a production or publication approval.
+    assert manifest["technical_qa"]["publish_approved"] is False
+    assert manifest["technical_qa"]["production_ready"] is False
+    # Metadata is saved only after a real decoded MP4 and subtitle QA pass.
     db.exec(
         """UPDATE productions SET status=?,result_json=?,updated_at=? WHERE id=?""",
         ("offline_preview_finished", json.dumps(manifest, ensure_ascii=False),
