@@ -1,6 +1,18 @@
 # Instructions for coding agents / Codex / Claude Code
 
-Read `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and `docs/ROADMAP.md` before editing.
+## Step 0 — read in this order before ANY work (Claude Code, GPT/Codex, everyone)
+
+1. **`AMEND.md`** — owner's direction corrections. Highest priority. Overrides README/ROADMAP/old PR docs.
+2. **`docs/handoff/CURRENT.md`** — current stage and the single next task.
+3. **`docs/STAGES.md`** — stages G0–G7, requirement IDs (`Rx.y`), deliverables, exit criteria. Replaces `docs/ROADMAP.md`.
+4. **`docs/GUARDRAILS.md`** — anti-drift rules, when to stop and ask, Claude ⇄ GPT handoff protocol.
+5. `docs/CHARTER.md` (goal / non-goals), `docs/REFERENCE_PROJECTS.md` (check before building anything), `docs/MODEL_LANDSCAPE.md`.
+6. Then `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` as needed.
+
+Before writing code, state in one line: `Stage: Gx / Req: Rx.y / deliverable: ...`. If you cannot, stop and ask the owner.
+At the end of every session, update `docs/handoff/CURRENT.md` and append one line to `docs/handoff/LOG.md`.
+
+**Frozen paths (AMEND-001)** are enforced by `scripts/scope_guard.py` in CI. Do not work around it.
 
 ## Non-negotiable
 

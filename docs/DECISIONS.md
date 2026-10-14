@@ -33,3 +33,10 @@
 ## ADR-008 栏目 / 剧集 / 资产隔离（2026-10-12）
 
 **状态：Accepted**。`Column → Series → Episode → Production` 为正式生产层级。现有 projects 表在迁移期表示 Series，旧 API 保持兼容。角色、场景、声音和道具归属 Series；默认不可跨剧引用，即使同名亦不共享。Story Bible 和资产版本只追加不覆盖。视频真实多队列并发留在 M3，用户权限隔离留在 M5。详见 [MULTI_COLUMN](MULTI_COLUMN.md)。
+## ADR-009 冻结基础设施实验，先验证真实视频（2026-10-15）
+
+**状态：Accepted**。见 `AMEND.md` AMEND-001/002。生产继续使用 SQLite 至 G5；Turso/libSQL txlab、TTS 恢复链冻结（只修 bug）。新增原则「先验证、后加固」：环节未用真实模型跑通前，不写恢复/对账/迁移代码。阶段计划改由 `docs/STAGES.md` 管理，`docs/ROADMAP.md` 转为历史记录。冻结由 `scripts/scope_guard.py` 在 CI 强制。
+
+## ADR-010 主视频模型与音频路线（待定）
+
+**状态：Pending — 由 G1 盲测报告 `docs/G1_BENCHMARK_REPORT.md` 决定。** 候选：Gemini Omni 1.1 Flash、Seedance 2.5、Kling 3.0 Omni（Kling 4.0 上线后加入）。音频路线 A（原生音频 + 音色参考）vs B（Gemini TTS + 口型同步）。

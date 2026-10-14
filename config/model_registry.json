@@ -1,5 +1,5 @@
 {
-  "checked_on": "2026-10-12",
+  "checked_on": "2026-10-15",
   "default_video": "gemini-omni-1.1-flash",
   "video_models": [
     {
@@ -60,16 +60,88 @@
       "native_audio": true,
       "approx_720p_usd_per_second": 0.05,
       "pricing_type": "duration"
+    },
+    {
+      "id": "seedance-2.5",
+      "vendor": "bytedance",
+      "status": "available",
+      "production_eligible": false,
+      "released": "2026-07-31",
+      "seconds_max": 30,
+      "native_audio": true,
+      "features": [
+        "image_reference",
+        "audio_input",
+        "reference_edit"
+      ],
+      "approx_720p_usd_per_second": 0.23,
+      "pricing_type": "marketplace_observation",
+      "g1_candidate": true
+    },
+    {
+      "id": "kling-3.0-omni",
+      "vendor": "kuaishou",
+      "status": "available",
+      "production_eligible": false,
+      "seconds_max": 15,
+      "native_audio": true,
+      "features": [
+        "omni_reference"
+      ],
+      "approx_720p_usd_per_second": 0.112,
+      "pricing_type": "marketplace_observation",
+      "g1_candidate": true
+    },
+    {
+      "id": "kling-4.0",
+      "vendor": "kuaishou",
+      "status": "pending_launch_2026-10",
+      "production_eligible": false,
+      "seconds_max": 30,
+      "native_audio": true,
+      "features": [
+        "omni_reference_15",
+        "subjects_7",
+        "subject_voice_binding",
+        "keyframes_10",
+        "chinese_dialogue"
+      ],
+      "g1_candidate": "add_on_launch"
+    },
+    {
+      "id": "minimax-h3",
+      "vendor": "minimax",
+      "status": "available_open_weights",
+      "production_eligible": false,
+      "released": "2026-07-31",
+      "seconds_max": 15,
+      "native_audio": true
+    },
+    {
+      "id": "ltx-2.5",
+      "vendor": "lightricks",
+      "status": "available_open_weights",
+      "production_eligible": false,
+      "released": "2026-08-11",
+      "local": true
+    },
+    {
+      "id": "sora-2",
+      "vendor": "openai",
+      "status": "shutdown",
+      "production_eligible": false,
+      "shutdown_date": "2026-09-24"
     }
   ],
   "image_default": "gemini-nano-banana-2.1",
   "tts_default": "gemini-3.8-flash-tts",
   "tts_budget": "gemini-3.8-flash-lite-tts",
   "narrative_primary_candidate": "claude-sonnet-5.5",
-  "notice": "Version registry is research configuration only; real provider APIs have not been connected or benchmarked.",
+  "notice": "Research configuration. See docs/MODEL_LANDSCAPE.md. Only gemini-3.8-flash-lite-tts and one Nano Banana image have been called for real; no real video benchmark yet (G1).",
   "research_video_competitors": [
-    "Seedance 2.5",
-    "Kling 3.0 Omni"
+    "seedance-2.5",
+    "kling-3.0-omni",
+    "kling-4.0"
   ],
   "music_candidate": "lyria-3.5",
   "novel_long_context_candidate": "gemini-3.8-flash",
@@ -77,6 +149,12 @@
     "Audio reference upload unsupported for Omni generation",
     "No video voice editing; locked TTS requires independent lip-sync workflow",
     "Veo 3.1 preview planned shutdown 2026-10-22",
-    "API subscription charged separately from consumer ChatGPT/Claude subscriptions"
+    "API subscription charged separately from consumer ChatGPT/Claude subscriptions",
+    "Sora 2 API shut down 2026-09-24; never use"
+  ],
+  "transcribe_qa": "gemini-3.5-transcribe",
+  "deprecated_text_models": [
+    "gemini-3.7-flash",
+    "gemini-3.5-flash"
   ]
 }
