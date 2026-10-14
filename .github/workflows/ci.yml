@@ -98,7 +98,7 @@ jobs:
         env:
           DRAMA_FACTORY_OFFLINE: '1'
         run: |
-          pytest -q tests/test_offline_render.py tests/test_offline_qa.py tests/test_offline_audio_mix.py tests/test_dialogue_audio_provider.py tests/test_offline_dialogue_timeline.py tests/test_media_ingest.py tests/test_google_omni_video.py tests/test_offline_workers.py tests/test_google_recovery.py tests/test_artifact_storage.py tests/test_cloud_objects.py tests/test_cloud_canary.py tests/test_drive_objects.py tests/test_drive_canary.py tests/test_turso_receipts.py tests/test_turso_canary.py -rs
+          pytest -q tests/test_offline_render.py tests/test_offline_qa.py tests/test_offline_audio_mix.py tests/test_dialogue_audio_provider.py tests/test_offline_dialogue_timeline.py tests/test_offline_cast_timeline.py tests/test_media_ingest.py tests/test_google_omni_video.py tests/test_offline_workers.py tests/test_google_recovery.py tests/test_artifact_storage.py tests/test_cloud_objects.py tests/test_cloud_canary.py tests/test_drive_objects.py tests/test_drive_canary.py tests/test_turso_receipts.py tests/test_turso_canary.py -rs
           python -c "import shutil; assert shutil.which('ffmpeg') and shutil.which('ffprobe')"
       - name: Create playable 6-second MP4 (no API keys)
         env:
@@ -246,5 +246,49 @@ jobs:
           path: |
             artifacts/offline-demo-60-fake-voice/demo.mp4
             artifacts/offline-demo-60-fake-voice/manifest.json
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Render 60s approved two-actor multi-cue WAV timeline into actual MP4
+        env:
+          DRAMA_FACTORY_OFFLINE: '1'
+        run: |
+          python -m drama_factory.pipeline.offline_demo --seconds 60 --fake-cast-timeline --out artifacts/offline-demo-60-fake-cast
+      - name: Confirm two distinct approved actors, three cue slots, silent shot and release gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("artifacts/offline-demo-60-fake-cast")
+          data = json.loads((root / "manifest.json").read_text("utf-8"))
+          assert (root / "demo.mp4").is_file()
+          assert data["fake_cast_timeline"] is True
+          assert data["fake_cast_actors"] == 2
+          assert data["fake_cast_cues"] == 3
+          assert data["fake_voice_timeline"] is False
+          assert len(data["shots"]) == 3
+          assert 59.4 <= data["media"]["duration_seconds"] <= 60.6
+          assert data["media"]["video_codec"] == "h264"
+          assert data["media"]["audio_codec"] == "aac"
+          assert data["media"]["subtitle_codec"] == "mov_text"
+          assert data["offline_audio_mix"]["locally_supplied_dialogue"] is True
+          assert data["offline_audio_mix"]["locally_supplied_music"] is True
+          assert data["technical_qa"]["technical_decode_passed"] is True
+          assert data["technical_qa"]["subtitle_sidecar_timing_passed"] is True
+          assert data["technical_qa"]["publish_approved"] is False
+          assert data["technical_qa"]["production_ready"] is False
+          assert data["voice_license_independently_verified"] is False
+          assert data["spoken_dialogue_generated"] is False
+          assert data["real_tts_generated"] is False
+          assert data["paid_api_calls"] == 0
+          PY
+          ffprobe -v error -show_entries format=duration:stream=codec_type,codec_name,width,height -of json artifacts/offline-demo-60-fake-cast/demo.mp4
+      - name: Upload approved-cast 60s fake dialogue MP4 (synthetic tones ONLY)
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-one-minute-two-actor-fake-cues
+          path: |
+            artifacts/offline-demo-60-fake-cast/demo.mp4
+            artifacts/offline-demo-60-fake-cast/manifest.json
           retention-days: 7
           if-no-files-found: error

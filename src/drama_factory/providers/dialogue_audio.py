@@ -40,6 +40,10 @@ class DialogueGenerationSpec(BaseModel):
     dialogue_text: str = Field(min_length=1, max_length=1000)
     duration_seconds: int = Field(ge=1, le=_LIMIT)
     language: Literal["zh-CN", "en-NZ", "en-US"] = "zh-CN"
+    # Exact ordinal + speaker bind duplicate dialogue texts to the right
+    # actor and immutable voice ID. Legacy single-line callers may omit.
+    cue_index: int | None = Field(default=None, ge=0, le=50)
+    speaker_actor_id: str | None = Field(default=None, min_length=1, max_length=120)
     operator_confirmed_voice_rights: bool = False
 
 
@@ -59,6 +63,31 @@ def _spec_fingerprint(db: Database, spec: DialogueGenerationSpec) -> tuple[str, 
     shot = next((item for item in episode.shots if item.shot_id == spec.shot_id), None)
     if shot is None or spec.dialogue_text not in shot.dialogue:
         raise DialogueGenerationDenied("Dialogue must exactly match an approved shot line")
+    if (spec.cue_index is None) != (spec.speaker_actor_id is None):
+        raise DialogueGenerationDenied("Cue index and speaker must be provided together")
+    if spec.cue_index is not None:
+        if spec.cue_index >= len(shot.dialogue_cues):
+            raise DialogueGenerationDenied("Approved structured speaker cue is missing")
+        cue = shot.dialogue_cues[spec.cue_index]
+        if (
+            cue.speaker_actor_id != spec.speaker_actor_id
+            or spec.dialogue_text != f"{cue.speaker_actor_id}: {cue.text}"
+            or cue.speaker_actor_id not in shot.character_ids
+        ):
+            raise DialogueGenerationDenied("Voice cue conflicts with reviewed actor and text")
+        actor = db.one(
+            """SELECT specification_json FROM series_assets
+               WHERE id=? AND series_id=? AND kind='actor'""",
+            (cue.speaker_actor_id, spec.series_id),
+        )
+        if actor is None:
+            raise DialogueGenerationDenied("Approved speaker actor missing from series")
+        try:
+            assigned_voice = json.loads(actor["specification_json"])["voice_asset_id"]
+        except (TypeError, ValueError, KeyError):
+            raise DialogueGenerationDenied("Approved actor has no voice assignment") from None
+        if assigned_voice != spec.voice_asset_id:
+            raise DialogueGenerationDenied("Voice asset does not match approved actor")
     if spec.duration_seconds > shot.duration_seconds:
         raise DialogueGenerationDenied("Dialogue tone duration exceeds approved shot")
     voice = db.one(
@@ -83,6 +112,8 @@ def _spec_fingerprint(db: Database, spec: DialogueGenerationSpec) -> tuple[str, 
         "voice_version": voice["version"],
         "voice_spec_sha256": hashlib.sha256(voice["specification_json"].encode()).hexdigest(),
         "dialogue_sha256": hashlib.sha256(spec.dialogue_text.encode()).hexdigest(),
+        "cue_index": spec.cue_index,
+        "speaker_actor_id": spec.speaker_actor_id,
         "language": spec.language, "duration": spec.duration_seconds,
     }
     key = hashlib.sha256(
