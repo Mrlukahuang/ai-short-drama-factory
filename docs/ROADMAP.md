@@ -106,6 +106,7 @@
 - [ ] 真实多 Worker 调度、按单集和每日预算告警、Provider 账单自动核对与失效凭据管理（仍需鉴权与正式调度环境）
 - [x] PR-14a（纯离线**技术**质量验收）：新增 MP4 文件哈希、FFmpeg 完整音视频解码、H264/AAC/mov_text、逐镜 SRT sidecar 时间对齐、披露标签与不可冒充真 AI 视频/真人对白/已审核发布的只读 QA。第四个强制 FFmpeg CI 执行本地成片实际 QA；不自动改 production 状态或生成任何外部请求。详见 [PR14_OFFLINE_TECHNICAL_QA](PR14_OFFLINE_TECHNICAL_QA.md)。
 - [x] PR-14b（本地实际成片门禁）：将 PR-14a 技术质检真正接入 `render_approved_preview`：MP4 完整解码、哈希、字幕对齐全部通过**之后**才允许更新 `productions.status=offline_preview_finished` 并记录 `technical_qa`；质检失败不改 DB 状态、不发布 manifest，不调用供应商；技术通过也仍需人工审核，不代表真人视频/正式上线。新增真实 FFmpeg 故障注入回归测试。详见 [PR14_OFFLINE_TECHNICAL_QA](PR14_OFFLINE_TECHNICAL_QA.md)。
+- [x] PR-14c（离线逐镜缓存内容完整性）：缓存镜头不仅须可解码/时长正确，还必须与独立持久的 SHA256 marker 匹配才可复用；缓存丢失 marker 或被**其他仍可播放的视频替换**时安全重建指定镜头，其他镜头仍命中缓存。预览 manifest 增加逐镜 `clip_sha256`，最终 QA 独立验证本地 clip 内容，测试用真实 H264/AAC 视频互换模拟缺陷。此 marker **不能替代签名、访问控制或对抗可同时篡改文件/marker 的攻击者**，不涉及外部供应商。详见 [PR14_OFFLINE_TECHNICAL_QA](PR14_OFFLINE_TECHNICAL_QA.md)。
 - [ ] PR-14：自动 QA（解码、字幕音长、演员视觉一致性提示及人工审批）
 
 ## M4：后期成片

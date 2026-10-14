@@ -161,3 +161,63 @@ def test_preview_qa_failure_quarantines_unverified_mp4_before_db_commit(client, 
     assert recovered["technical_qa"]["technical_decode_passed"] is True
     assert all(shot["cached"] for shot in recovered["shots"])
     assert recovered["paid_api_calls"] == 0
+
+
+@requires_ffmpeg
+def test_valid_but_wrong_mp4_cache_is_rebuilt_from_original_shot(client, tmp_path):
+    _, production = make_production(client)
+    client.post(f"/api/v1/productions/{production}/approve-script")
+    client.post(f"/api/v1/productions/{production}/approve-characters")
+    root = tmp_path / "cache-reuse"
+    initial = render_approved_preview(client.app.state.db, production, root)
+    clips_dir = Path(initial["mp4_path"]).parent / "clips"
+    clip_a = clips_dir / initial["shots"][0]["clip_name"]
+    clip_b = clips_dir / initial["shots"][1]["clip_name"]
+    hash_before = initial["shots"][0]["clip_sha256"]
+    assert hash_before != initial["shots"][1]["clip_sha256"]
+    assert (clips_dir / (clip_a.name + ".sha256")).read_text().strip() == hash_before
+    # Replace A with another VALID, same-length MP4. Probing codec/duration
+    # would miss this. Content hash must reject that cache entry.
+    shutil.copyfile(clip_b, clip_a)
+    assert inspect_mp4(clip_a, 1)["video_codec"] == "h264"
+    rebuilt = render_approved_preview(client.app.state.db, production, root)
+    assert [shot["cached"] for shot in rebuilt["shots"]] == [False, True]
+    assert rebuilt["shots"][0]["clip_sha256"] == hash_before
+    assert rebuilt["mp4_sha256"] == initial["mp4_sha256"]
+    assert rebuilt["technical_qa"]["video_sha256_matches_manifest"] is True
+    assert rebuilt["paid_api_calls"] == 0
+
+
+@requires_ffmpeg
+def test_missing_cache_digest_is_never_reused_even_when_mp4_decodes(client, tmp_path):
+    _, production = make_production(client)
+    client.post(f"/api/v1/productions/{production}/approve-script")
+    client.post(f"/api/v1/productions/{production}/approve-characters")
+    root = tmp_path / "cache-missing-digest"
+    original = render_approved_preview(client.app.state.db, production, root)
+    clip_dir = Path(original["mp4_path"]).parent / "clips"
+    path = clip_dir / original["shots"][0]["clip_name"]
+    marker = clip_dir / (path.name + ".sha256")
+    marker.unlink()
+    assert inspect_mp4(path, 1)["video_codec"] == "h264"
+    checked = render_approved_preview(client.app.state.db, production, root)
+    assert [x["cached"] for x in checked["shots"]] == [False, True]
+    assert marker.is_file()
+    assert marker.read_text("ascii").strip() == checked["shots"][0]["clip_sha256"]
+
+
+@requires_ffmpeg
+def test_delivery_qa_rejects_modified_valid_shot_clip_after_manifest(client, tmp_path):
+    from drama_factory.pipeline.offline_qa import OfflineQAError, inspect_offline_delivery
+    _, production = make_production(client)
+    client.post(f"/api/v1/productions/{production}/approve-script")
+    client.post(f"/api/v1/productions/{production}/approve-characters")
+    result = render_approved_preview(client.app.state.db, production, tmp_path / "out")
+    path = Path(result["mp4_path"])
+    clip_dir = path.parent / "clips"
+    source = clip_dir / result["shots"][1]["clip_name"]
+    victim = clip_dir / result["shots"][0]["clip_name"]
+    shutil.copyfile(source, victim)  # correct codec/length, wrong visual content
+    assert inspect_mp4(victim, 1)["audio_codec"] == "aac"
+    with pytest.raises(OfflineQAError, match="clip no longer matches"):
+        inspect_offline_delivery(result, path)

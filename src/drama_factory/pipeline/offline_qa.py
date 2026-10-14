@@ -110,6 +110,23 @@ def inspect_offline_delivery(manifest: dict, media_path: Path, *,
             durations.append(length)
             if shot["media_source"] not in ("placeholder", "provided_local_clip"):
                 raise OfflineQAError("Unknown preview media source")
+            clip_name, clip_digest = shot["clip_name"], shot["clip_sha256"]
+            if (
+                type(clip_name) is not str
+                or re.fullmatch(r"[0-9]{3}_[a-f0-9]{24}\.mp4", clip_name) is None
+                or type(clip_digest) is not str
+                or _DIGEST.fullmatch(clip_digest) is None
+            ):
+                raise OfflineQAError("Missing or unsafe clip integrity metadata")
+            local_clip = file.parent / "clips" / clip_name
+            if local_clip.is_symlink() or not local_clip.is_file():
+                raise OfflineQAError("Missing or symlinked local clip")
+            clip_hash = hashlib.sha256()
+            with local_clip.open("rb") as clip_data:
+                for chunk in iter(lambda: clip_data.read(1024 * 1024), b""):
+                    clip_hash.update(chunk)
+            if clip_hash.hexdigest() != clip_digest:
+                raise OfflineQAError("Local clip no longer matches delivery manifest")
         if len(set(shot_ids)) != len(shot_ids):
             raise OfflineQAError("Duplicate shot identifiers")
         total = sum(durations)
