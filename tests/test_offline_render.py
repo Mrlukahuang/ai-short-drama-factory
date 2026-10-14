@@ -105,3 +105,59 @@ def test_entire_real_api_to_mp4_demo(tmp_path):
     assert len(report["shots"]) == 3
     assert report["paid_api_calls"] == 0
     assert report["media"]["duration_seconds"] == pytest.approx(6, abs=0.6)
+
+
+@requires_ffmpeg
+def test_preview_state_records_independent_qa_before_marking_preview_complete(client, tmp_path):
+    _, production = make_production(client)
+    client.post(f"/api/v1/productions/{production}/approve-script")
+    client.post(f"/api/v1/productions/{production}/approve-characters")
+    manifest = render_approved_preview(client.app.state.db, production, tmp_path / "render")
+    qa = manifest["technical_qa"]
+    assert qa["technical_decode_passed"] is True
+    assert qa["subtitle_sidecar_timing_passed"] is True
+    assert qa["video_sha256_matches_manifest"] is True
+    assert qa["shots_checked"] == 2
+    assert qa["paid_provider_calls"] == 0
+    assert qa["genuine_ai_video_verified"] is False
+    assert qa["operator_review_required"] is True
+    assert qa["publish_approved"] is False
+    assert qa["production_ready"] is False
+    record = client.app.state.db.one(
+        "SELECT status,result_json FROM productions WHERE id=?", (production,)
+    )
+    assert record["status"] == "offline_preview_finished"
+    assert json.loads(record["result_json"])["technical_qa"] == qa
+    saved = json.loads((Path(manifest["mp4_path"]).parent / "manifest.json").read_text())
+    assert saved["technical_qa"] == qa
+
+
+@requires_ffmpeg
+def test_preview_qa_failure_quarantines_unverified_mp4_before_db_commit(client, tmp_path, monkeypatch):
+    from drama_factory.pipeline import offline_qa
+    _, production = make_production(client)
+    client.post(f"/api/v1/productions/{production}/approve-script")
+    client.post(f"/api/v1/productions/{production}/approve-characters")
+
+    real_inspector = offline_qa.inspect_offline_delivery
+    def force_qa_failure(*_args, **_kwargs):
+        raise offline_qa.OfflineQAError("Synthetic QA failure (test only)")
+
+    monkeypatch.setattr(offline_qa, "inspect_offline_delivery", force_qa_failure)
+    working = tmp_path / "render"
+    with pytest.raises(PreviewError, match="failed technical QA"):
+        render_approved_preview(client.app.state.db, production, working)
+    row = client.app.state.db.one(
+        "SELECT status,result_json FROM productions WHERE id=?", (production,)
+    )
+    assert row["status"] == "ready_for_video_generation"
+    assert row["result_json"] is None
+    assert not list(working.rglob("manifest.json"))
+
+    # After independent QA is restored, locally cached clips can be used
+    # without another paid generation or externally submitted provider task.
+    monkeypatch.setattr(offline_qa, "inspect_offline_delivery", real_inspector)
+    recovered = render_approved_preview(client.app.state.db, production, working)
+    assert recovered["technical_qa"]["technical_decode_passed"] is True
+    assert all(shot["cached"] for shot in recovered["shots"])
+    assert recovered["paid_api_calls"] == 0
