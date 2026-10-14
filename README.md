@@ -36,6 +36,10 @@ flowchart TD
   C --> O[审片 + 交付 MP4]
 ```
 
+## 本机资产版本参考图库（PR-07b6）
+
+「资产与生产任务」页新增按剧集、演员／场景／道具**精确资产版本**绑定的本机参考图库；原创或获授权的 JPG/PNG/WEBP 上传在本机经过文件格式/尺寸检查、缩放、重编码为不带 EXIF/GPS 的 PNG 并追加保存，每次展示先重验内容哈希和版本归属。仅供操作者人工对照，不自动作为模型参考帧，也不构成版权或肖像许可审查；不能公网开放。见 [PR07B6_LOCAL_ASSET_REFERENCE_GALLERY](docs/PR07B6_LOCAL_ASSET_REFERENCE_GALLERY.md)。
+
 ## 本机原创视频镜头导入与技术试片（PR-07b5）
 
 「本机审片」支持选择已批准的 Production 镜头，上传单个最多 32 MiB 的本机原创/已获使用权视频到本机哈希登记库，并把视频画面交给现有 FFmpeg 离线渲染器；未上传镜头仍使用占位画面。每次重验镜头归属、文件 SHA256 和原视频长度；浏览器按钮无法修改剧本审批状态。只有操作员**自行声明权利**，没有独立法律许可或公网认证，不可对外公开、不得视为商业 AI 成片。详见 [PR07B5_LOCAL_SHOT_MEDIA_WORKBENCH](docs/PR07B5_LOCAL_SHOT_MEDIA_WORKBENCH.md)。
