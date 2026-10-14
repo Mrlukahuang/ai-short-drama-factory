@@ -31,6 +31,7 @@
 - [x] PR-07b2（**仅本机人工原创分镜→制作审批交互流程**）：Streamlit 新增「分镜与审批」页，使用本剧现有 Story Bible/演员/场景创建人工编辑草稿、严格服务端 Screenplay 校验、SHA256 失效检查和人工确认后提交 Episode；随后分别复核剧本与人物并推进既有 Production 状态机，再交给 PR-07b1 离线 MP4 审片。包含零付费真实 API→FFmpeg→QA 集成测试；**仍不是真实 AI 成片、公网认证或发行审批**。详见 [PR07B2_LOCAL_STORY_WORKFLOW](PR07B2_LOCAL_STORY_WORKFLOW.md)。
 - [x] PR-07b3（**可视化逐镜头分镜编辑子阶段**）：Streamlit 默认提供逐镜长短、动作、摄影方式、本剧演员/场景、连续性与多对白行的表单和可编辑时槽；纯 Python 合同保护镜头 ID/顺序/对白和 90s 本机技术预览长度，应用修改会使旧人工验证失效。高级 JSON 编辑保留。**无真实 AI 画面、用户鉴权/公网部署或付费调用**。详见 [PR07B3_VISUAL_STORYBOARD_EDITOR](PR07B3_VISUAL_STORYBOARD_EDITOR.md)。
 - [x] PR-07b4（**本地导演时间轴与连续性提示，非发布门禁**）：在可视化分镜页增加从已应用草稿读取的镜头/对白分轨整数秒时间轴，标明实际指定时槽与离线均分时槽；只读提示相邻镜头状态文本变化、草稿占位、场景/出镜演员更换及未定时对白超长。修复嵌套 Streamlit Expander。**无自动断言穿帮、无剧本修改/审批、无真实 AI 画面或收费调用**。见 [PR07B4_DIRECTOR_TIMELINE](PR07B4_DIRECTOR_TIMELINE.md)。
+- [x] PR-07b5（**本机原创镜头视频登记→现有 MP4 渲染**）：Streamlit「本机审片」可上传并绑定本剧已审批 Production 镜头的本地 MP4/MOV/WEBM/MKV（每段≤32 MiB），明确自述版权确认、哈希存储、逐镜哈希+媒体重验和按镜头恢复，交由现有 FFmpeg 渲染器生成混合**真实提供的视频画面与占位**的技术 MP4。没有公网媒体服务、抗病毒沙盒、独立许可核验或真实 AI 生成，不代表 PR-07b 整体完成。见 [PR07B5_LOCAL_SHOT_MEDIA_WORKBENCH](PR07B5_LOCAL_SHOT_MEDIA_WORKBENCH.md)。
 - [x] PR-08a：Google Nano Banana 2.1 受控 SDK Provider + Fake + 门禁测试；未实际调用、未存储媒体、尚无参考图条件输入
 - [x] PR-09a：手动单张 Google 图片冒烟测试工作流、私有 Secret 和零调用默认模式；**真实 API 调用尚未执行**
 - [ ] PR-08b：Google 图片生成端到端真实试片、参考图载入、审核后保存资产版本（需用户设置 Secret 并确认预算）
