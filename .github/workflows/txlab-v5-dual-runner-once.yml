@@ -1,0 +1,194 @@
+name: TxLab v5 — isolated two-Runner one-use experiment (PREP LOCKED)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/txlab-v5-dual-runner-once.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: drama-isolated-libsql-txlab-single-run
+  cancel-in-progress: false
+
+# The FIRST prep PR ships permanently FALSE. A separate reviewed activation
+# PR may switch the setup condition for ONE identifiable merge commit only.
+# Never reuse prior v1-v4 one-off write authority.
+jobs:
+  setup:
+    name: v5-setup
+    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR31-V5-EXECUTE-ONCE-20261014') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Hard gate before loading ANY Turso Secrets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/main" || "$GITHUB_RUN_ATTEMPT" != "1" ]]; then
+            echo "::error::First merge to main ONLY; v5 cannot rerun"
+            exit 1
+          fi
+          marker="PR31-V5-EXECUTE-ONCE-20261014"
+          message=$(git show -s --format=%B "$GITHUB_SHA")
+          if [[ "$message" != *"$marker"* ]]; then
+            echo "::error::Activation marker missing; v5 remains locked"
+            exit 1
+          fi
+          history=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/txlab-v5-dual-runner-once.yml/runs?event=push&per_page=100" \
+            --jq ".workflow_runs | map(select(.head_sha == \"$GITHUB_SHA\")) | length")
+          if [[ "$history" != "1" ]]; then
+            echo "::error::One-use GitHub SHA history gate blocked; NEVER replay"
+            exit 1
+          fi
+      - name: Install pinned native SDK
+        run: python -m pip install -e '.[test,turso-libsql]' 'libsql==0.1.11'
+      - name: Setup isolated-only schema (no production data, single attempt)
+        id: setup
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_V5_CONFIRM: RUN_ISOLATED_TXLAB_V5_ONCE
+          DRAMA_ENABLE_TXLAB_V5_WRITE: 'YES'
+          DRAMA_TXLAB_V5_MAX_USD: '2.00'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DRAMA_TXLAB_V5_JOB_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | select(.name=="v5-setup") | .id' | head -n1)
+          test -n "$DRAMA_TXLAB_V5_JOB_ID"
+          export DRAMA_TXLAB_V5_JOB_ID
+          python -m drama_factory.storage.txlab_v5_isolated_dual_runner --stage setup
+
+  actor-a:
+    name: actor-a
+    needs: setup
+    if: ${{ github.run_attempt == 1 && needs.setup.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    outputs:
+      receipt: ${{ steps.execute.outputs.receipt }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[test,turso-libsql]' 'libsql==0.1.11'
+      - name: One atomic synthetic attempt, no retry
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_V5_CONFIRM: RUN_ISOLATED_TXLAB_V5_ONCE
+          DRAMA_ENABLE_TXLAB_V5_WRITE: 'YES'
+          DRAMA_TXLAB_V5_MAX_USD: '2.00'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DRAMA_TXLAB_V5_JOB_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | select(.name=="actor-a") | .id' | head -n1)
+          test -n "$DRAMA_TXLAB_V5_JOB_ID"
+          export DRAMA_TXLAB_V5_JOB_ID
+          receipt=$(python -m drama_factory.storage.txlab_v5_isolated_dual_runner --stage actor --role a)
+          echo "receipt=$receipt" >> "$GITHUB_OUTPUT"
+          echo "actor A receipt recorded (synthetic only)"
+
+  actor-b:
+    name: actor-b
+    needs: setup
+    if: ${{ github.run_attempt == 1 && needs.setup.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    outputs:
+      receipt: ${{ steps.execute.outputs.receipt }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[test,turso-libsql]' 'libsql==0.1.11'
+      - name: One atomic synthetic attempt, no retry
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_V5_CONFIRM: RUN_ISOLATED_TXLAB_V5_ONCE
+          DRAMA_ENABLE_TXLAB_V5_WRITE: 'YES'
+          DRAMA_TXLAB_V5_MAX_USD: '2.00'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DRAMA_TXLAB_V5_JOB_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | select(.name=="actor-b") | .id' | head -n1)
+          test -n "$DRAMA_TXLAB_V5_JOB_ID"
+          export DRAMA_TXLAB_V5_JOB_ID
+          receipt=$(python -m drama_factory.storage.txlab_v5_isolated_dual_runner --stage actor --role b)
+          echo "receipt=$receipt" >> "$GITHUB_OUTPUT"
+          echo "actor B receipt recorded (synthetic only)"
+
+  seal:
+    name: v5-seal
+    needs: [actor-a, actor-b]
+    if: ${{ github.run_attempt == 1 && needs.actor-a.result == 'success' && needs.actor-b.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[test,turso-libsql]' 'libsql==0.1.11'
+      - name: Pause durable epoch; reject old-token write
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_V5_CONFIRM: RUN_ISOLATED_TXLAB_V5_ONCE
+          DRAMA_ENABLE_TXLAB_V5_WRITE: 'YES'
+          DRAMA_TXLAB_V5_MAX_USD: '2.00'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DRAMA_TXLAB_V5_JOB_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | select(.name=="v5-seal") | .id' | head -n1)
+          test -n "$DRAMA_TXLAB_V5_JOB_ID"
+          export DRAMA_TXLAB_V5_JOB_ID
+          python -m drama_factory.storage.txlab_v5_isolated_dual_runner --stage seal
+
+  observer:
+    name: v5-observer-read-only
+    needs: [actor-a, actor-b, seal]
+    if: ${{ github.run_attempt == 1 && needs.seal.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[test,turso-libsql]' 'libsql==0.1.11'
+      - name: Independent fresh Turso SELECT-only observation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_V5_CONFIRM: RUN_ISOLATED_TXLAB_V5_ONCE
+          DRAMA_ENABLE_TXLAB_V5_WRITE: 'YES'
+          DRAMA_TXLAB_V5_MAX_USD: '2.00'
+          DRAMA_V5_ACTOR_A_RECEIPT: ${{ needs.actor-a.outputs.receipt }}
+          DRAMA_V5_ACTOR_B_RECEIPT: ${{ needs.actor-b.outputs.receipt }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          DRAMA_TXLAB_V5_JOB_ID=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" --jq '.jobs[] | select(.name=="v5-observer-read-only") | .id' | head -n1)
+          test -n "$DRAMA_TXLAB_V5_JOB_ID"
+          export DRAMA_TXLAB_V5_JOB_ID
+          python -m drama_factory.storage.txlab_v5_isolated_dual_runner --stage observe
