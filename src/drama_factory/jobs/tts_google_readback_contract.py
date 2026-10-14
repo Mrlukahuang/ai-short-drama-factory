@@ -46,6 +46,8 @@ class OfflineFakeGoogleInteractionsGetter:
     """
 
     original_interaction_id: str = field(repr=False)
+    project_ref_sha256: str = field(repr=False)
+    principal_ref_sha256: str = field(repr=False)
     fault: str | None = None
     get_calls: int = 0
     _audio_base64: str | None = field(default=None, repr=False)
@@ -72,7 +74,7 @@ class OfflineFakeGoogleInteractionsGetter:
 
 
 def _snapshot(db: Database, task_id: str):
-    """Audit task and hold in a single read transaction; return no private text."""
+    """Audit task, hold and original Google scope in ONE read transaction."""
     with db.connection() as conn:
         conn.execute("BEGIN")
         row = conn.execute(
@@ -103,9 +105,22 @@ def _snapshot(db: Database, task_id: str):
             or summary["recovery_class"] != "recover_existing_interaction_audio_only"
         ):
             raise OriginalTtsReadbackDenied("Original acknowledged TTS GET required")
+        scope = conn.execute(
+            """SELECT project_ref_sha256,principal_ref_sha256,source
+               FROM tts_google_origin_scopes WHERE task_id=?""",
+            (task_id,),
+        ).fetchone()
+        if (
+            scope is None or scope["source"] != "offline_unverified"
+            or not re.fullmatch(r"[0-9a-f]{64}", scope["project_ref_sha256"])
+            or not re.fullmatch(r"[0-9a-f]{64}", scope["principal_ref_sha256"])
+            or scope["project_ref_sha256"] == scope["principal_ref_sha256"]
+        ):
+            raise OriginalTtsReadbackDenied("Original Google scope registration absent or invalid")
         return (
             row["interaction_id"], row["approved_slot_seconds"],
             row["status"], row["budget_status"], len(events),
+            scope["project_ref_sha256"], scope["principal_ref_sha256"],
         )
 
 
@@ -127,9 +142,14 @@ def inspect_offline_original_google_tts_get(
     if type(task_id) is not str or not re.fullmatch(r"ttstask_[a-f0-9]{14}", task_id):
         raise OriginalTtsReadbackDenied("Invalid opaque TTS task identifier")
 
-    original_id, slot, status, budget, events = _snapshot(db, task_id)
+    original_id, slot, status, budget, events, project, principal = _snapshot(db, task_id)
     if original_id != getter.original_interaction_id:
         raise OriginalTtsReadbackDenied("Original ID differs from durable task")
+    if (
+        project != getter.project_ref_sha256
+        or principal != getter.principal_ref_sha256
+    ):
+        raise OriginalTtsReadbackDenied("Original Google origin context mismatch")
     try:
         response = getter.get(id=original_id, include_input=False, stream=False)
         if (
@@ -149,7 +169,9 @@ def inspect_offline_original_google_tts_get(
         )
         if duplicate is not None:
             raise OriginalTtsReadbackDenied("Audio receipt already used by another cue")
-        if _snapshot(db, task_id) != (original_id, slot, status, budget, events):
+        if _snapshot(db, task_id) != (
+            original_id, slot, status, budget, events, project, principal,
+        ):
             raise OriginalTtsReadbackDenied("Durable TTS state changed during GET")
     except Exception:
         raise OriginalTtsReadbackDenied(
@@ -158,6 +180,8 @@ def inspect_offline_original_google_tts_get(
     return {
         "kind": "offline_original_google_interaction_get_inspected",
         "original_interaction_id_matches_durable_record": True,
+        "offline_google_origin_scopes_match": True,
+        "offline_scope_is_provider_authenticated": False,
         "wav_sha256": inspected.sha256,
         "duration_seconds": round(inspected.duration_seconds, 6),
         "original_get_attempts": getter.get_calls,

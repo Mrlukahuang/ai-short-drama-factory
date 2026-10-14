@@ -301,6 +301,22 @@ CREATE TRIGGER IF NOT EXISTS tts_task_events_no_update
 CREATE TRIGGER IF NOT EXISTS tts_task_events_no_delete
  BEFORE DELETE ON tts_task_events
  BEGIN SELECT RAISE(ABORT,'tts task events are append-only'); END;
+-- PR-10o: optional, immutable OFFLINE assertion of original Google context.
+-- This is not an authenticated provider proof and enables NO live GET.
+CREATE TABLE IF NOT EXISTS tts_google_origin_scopes (
+ task_id TEXT PRIMARY KEY REFERENCES tts_tasks(id),
+ project_ref_sha256 TEXT NOT NULL CHECK(length(project_ref_sha256)=64),
+ principal_ref_sha256 TEXT NOT NULL CHECK(length(principal_ref_sha256)=64),
+ source TEXT NOT NULL DEFAULT 'offline_unverified'
+   CHECK(source='offline_unverified'),
+ created_at TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS tts_google_origin_no_update
+ BEFORE UPDATE ON tts_google_origin_scopes
+ BEGIN SELECT RAISE(ABORT,'tts google origin scopes are immutable'); END;
+CREATE TRIGGER IF NOT EXISTS tts_google_origin_no_delete
+ BEFORE DELETE ON tts_google_origin_scopes
+ BEGIN SELECT RAISE(ABORT,'tts google origin scopes are immutable'); END;
 CREATE TABLE IF NOT EXISTS adaptation_jobs (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL, status TEXT NOT NULL,
  request_json TEXT NOT NULL, created_at TEXT NOT NULL,
