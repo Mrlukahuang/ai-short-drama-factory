@@ -6,3 +6,4 @@
 - 2026-10-15 | GPT-6 | G1/R1.3 | 统一 VideoProvider 请求/结果协议；Omni + Fake 适配与离线测试，无付费调用；其余两家 Provider 待 R1.1/R1.2；所有者合并后移交 | PR #114
 - 2026-10-15 | GPT-6 | G1/R1.1 | 火山方舟 Seedance 2.5 Provider+Fake+无密钥契约测试；零真实调用/零费用；需新 Key/平台决定 Issue #116 | PR #117
 - 2026-10-15 | GPT-6 | G1/R1.2 | Kling 3.0 Omni 可配置 Provider+Fake+离线合同与 FFmpeg，0 次真实请求/US$0；新 Key 见 Issue #116 | PR #118
+- 2026-10-15 | GPT-6 | G1/R1.5 | 固定3镜×3模型×1 PLAN-ONLY；手动确认+≤$30计划上限，实际付费0次/US$0，真实运行需预算Issue #120 | PR #121
