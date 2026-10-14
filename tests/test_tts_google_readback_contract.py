@@ -101,11 +101,13 @@ def test_unsubmitted_unknown_ack_and_already_verified_all_block_before_get(clien
 
 def test_get_refuses_tampered_audit_before_external_operation(client):
     db, task = _acknowledged(client)
-    with db.connection() as conn:
-        conn.execute(
-            "DELETE FROM tts_task_events WHERE task_id=? AND action='interaction_id_recorded'",
-            (task,),
-        )
+    db.exec(
+        """INSERT INTO tts_task_events
+           (id,task_id,action,previous_state,next_state,details_json,created_at)
+           VALUES (?,?,?,?,?,?,?)""",
+        ("extra-readback-test-event", task, "paid_intent_committed",
+         "prepared", "submission_intent", "{}", "2026-10-14T00:00:00Z"),
+    )
     getter = OfflineFakeGoogleInteractionsGetter("original-interaction-one")
     with pytest.raises(OriginalTtsReadbackDenied, match="audit"):
         inspect_offline_original_google_tts_get(db, task, getter)
