@@ -27,9 +27,19 @@ class OriginalProjectCreate(BaseModel):
     column_id: str | None = None  # Legacy callers are placed in the default column.
 
 class ApprovedDialogueCue(BaseModel):
-    """Speaker provenance retained after human screenplay approval."""
+    """Speaker provenance and optional exact integer-second reviewed slot."""
     speaker_actor_id: str = Field(min_length=1, max_length=120)
     text: str = Field(min_length=1, max_length=500)
+    start_second: int | None = Field(default=None, ge=0, strict=True)
+    end_second: int | None = Field(default=None, gt=0, strict=True)
+
+    @model_validator(mode="after")
+    def timing_both_or_none(self):
+        if (self.start_second is None) != (self.end_second is None):
+            raise ValueError("Dialogue cue must have both start and end or neither")
+        if self.start_second is not None and self.start_second >= self.end_second:
+            raise ValueError("Dialogue cue timing must have positive duration")
+        return self
 
 
 class ShotDraft(BaseModel):
@@ -57,6 +67,15 @@ class ShotDraft(BaseModel):
                 raise ValueError("Approved structured dialogue differs from legacy shot lines")
             if any(cue.speaker_actor_id not in self.character_ids for cue in self.dialogue_cues):
                 raise ValueError("Approved dialogue speaker must belong to this shot")
+            timed = [cue.start_second is not None for cue in self.dialogue_cues]
+            if any(timed) and not all(timed):
+                raise ValueError("Approved shot cannot mix timed and untimed cues")
+            previous_end = 0
+            if all(timed):
+                for cue in self.dialogue_cues:
+                    if cue.start_second < previous_end or cue.end_second > self.duration_seconds:
+                        raise ValueError("Approved cue order overlaps or exceeds shot duration")
+                    previous_end = cue.end_second
         return self
 
 
