@@ -247,6 +247,60 @@ CREATE TRIGGER IF NOT EXISTS drive_events_no_update
 CREATE TRIGGER IF NOT EXISTS drive_events_no_delete
  BEFORE DELETE ON drive_artifact_events
  BEGIN SELECT RAISE(ABORT,'drive events are append-only'); END;
+-- PR-10g: isolated LOCAL SQLite per-cue TTS intent (never provider-submitting).
+-- Schema is additive; does not migrate or switch production/Turso.
+CREATE TABLE IF NOT EXISTS tts_tasks (
+ id TEXT PRIMARY KEY,
+ production_id TEXT NOT NULL REFERENCES productions(id),
+ series_id TEXT NOT NULL REFERENCES projects(id),
+ shot_id TEXT NOT NULL,
+ cue_index INTEGER NOT NULL CHECK(cue_index>=0),
+ request_sha256 TEXT NOT NULL UNIQUE,
+ model_id TEXT NOT NULL, voice_name TEXT NOT NULL,
+ provider TEXT NOT NULL DEFAULT 'google' CHECK(provider='google'),
+ max_acknowledged_spend_usd TEXT NOT NULL,
+ approved_slot_seconds INTEGER NOT NULL CHECK(approved_slot_seconds BETWEEN 1 AND 30),
+ status TEXT NOT NULL CHECK(status IN
+   ('prepared','submission_intent','acknowledged','quarantined','verified')),
+ interaction_id TEXT,
+ output_sha256 TEXT,
+ output_duration_seconds TEXT,
+ created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+ UNIQUE(production_id,shot_id,cue_index)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tts_interaction
+ ON tts_tasks(provider,interaction_id) WHERE interaction_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tts_tasks_series_status ON tts_tasks(series_id,status);
+CREATE TABLE IF NOT EXISTS tts_budget_reservations (
+ id TEXT PRIMARY KEY,
+ task_id TEXT NOT NULL UNIQUE REFERENCES tts_tasks(id),
+ column_id TEXT NOT NULL REFERENCES columns(id),
+ series_id TEXT NOT NULL REFERENCES projects(id),
+ provider TEXT NOT NULL DEFAULT 'google',
+ day_utc TEXT NOT NULL,
+ reserved_usd TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('held','released','reconciled')),
+ actual_usd TEXT, evidence_reference TEXT, reviewed_by TEXT,
+ policy_snapshot_json TEXT NOT NULL,
+ created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tts_reservations_day
+ ON tts_budget_reservations(day_utc,column_id,series_id,provider,status);
+CREATE TABLE IF NOT EXISTS tts_task_events (
+ id TEXT PRIMARY KEY,
+ task_id TEXT NOT NULL REFERENCES tts_tasks(id),
+ action TEXT NOT NULL,
+ previous_state TEXT,
+ next_state TEXT NOT NULL,
+ details_json TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tts_task_events ON tts_task_events(task_id,created_at);
+CREATE TRIGGER IF NOT EXISTS tts_task_events_no_update
+ BEFORE UPDATE ON tts_task_events
+ BEGIN SELECT RAISE(ABORT,'tts task events are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS tts_task_events_no_delete
+ BEFORE DELETE ON tts_task_events
+ BEGIN SELECT RAISE(ABORT,'tts task events are append-only'); END;
 CREATE TABLE IF NOT EXISTS adaptation_jobs (
  id TEXT PRIMARY KEY, source_id TEXT NOT NULL, status TEXT NOT NULL,
  request_json TEXT NOT NULL, created_at TEXT NOT NULL,
