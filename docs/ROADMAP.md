@@ -33,6 +33,7 @@
 - [x] PR-13a：Omni 1.1 VideoProvider + Fake、URI/内联交付模拟测试及一次性手动付费工作流（尚未真实试片）
 - [ ] PR-13b：真实 Omni 单镜头试片及端到端合成、账单实测（需用户手动触发）
 - [ ] PR-09：生产级 Omni 视频任务状态记录、恢复轮询/下载和可播放性校验
+- [x] PR-10a（**离线 FakeDialogueAudioProvider**）：新增 Series 内版本化 Voice Asset 与来源同意记录门禁、Production 审核、镜头已批准台词逐字核验、可验证 48kHz PCM WAV 正弦时间占位音、SHA256 幂等内容缓存与破损重建，输出直连 PR-15b 视频混音与技术 QA；真实 Gemini TTS 入口继续硬拒绝、收费调用 0，不能视为真人配音或声音版权最终授权。详见 [PR10_FAKE_DIALOGUE_AUDIO](PR10_FAKE_DIALOGUE_AUDIO.md)。
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
 - [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
 
