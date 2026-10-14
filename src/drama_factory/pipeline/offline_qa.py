@@ -107,6 +107,64 @@ def _validate_approved_subtitle_schedule(
     return len(schedule)
 
 
+def _subtitle_items(source: str) -> list[tuple[int, int, str]]:
+    """Bounded SRT canonical view used on *independent* sidecar and MP4 track."""
+    if type(source) is not str or len(source.encode("utf-8")) > 128 * 1024:
+        raise OfflineQAError("Subtitle text outside safe bounds")
+    pieces = re.split(r"\r?\n\s*\r?\n", source.lstrip("\ufeff").strip())
+    if not 1 <= len(pieces) <= _MAX_SHOTS * 8:
+        raise OfflineQAError("Subtitle cue count outside safe bounds")
+    items = []
+    last_end = 0
+    for number, piece in enumerate(pieces, 1):
+        lines = piece.splitlines()
+        if len(lines) < 3 or lines[0].strip() != str(number):
+            raise OfflineQAError("Malformed decoded subtitle numbering")
+        timing = _TIMING.fullmatch(lines[1].strip())
+        if timing is None:
+            raise OfflineQAError("Malformed decoded subtitle timing")
+        begin = _stamp(timing.group(1))
+        end = _stamp(timing.group(2))
+        text = " ".join(line.strip() for line in lines[2:] if line.strip())
+        if begin < last_end or end <= begin or not text:
+            raise OfflineQAError("Invalid decoded subtitle order or content")
+        items.append((begin, end, text))
+        last_end = end
+    return items
+
+
+def _verify_muxed_subtitles(media_path: Path, sidecar: Path) -> int:
+    """Extract actual mov_text from MP4, compare each time/text with SRT.
+
+    A valid external SRT plus a mov_text codec declaration is insufficient:
+    a remuxed MP4 could contain different subtitle text while both pass
+    those separate checks. This comparison never logs subtitle contents.
+    """
+    try:
+        if sidecar.is_symlink() or not sidecar.is_file() or sidecar.stat().st_size > 128 * 1024:
+            raise OfflineQAError("Missing or unsafe subtitle sidecar")
+        local = _subtitle_items(sidecar.read_text(encoding="utf-8-sig"))
+        proc = subprocess.run(
+            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-xerror",
+             "-nostdin", "-i", str(media_path), "-map", "0:s:0",
+             "-f", "srt", "pipe:1"],
+            check=True, capture_output=True, timeout=45,
+        )
+        if len(proc.stdout) > 128 * 1024:
+            raise OfflineQAError("Embedded subtitle track exceeds safe bounds")
+        embedded = _subtitle_items(proc.stdout.decode("utf-8-sig"))
+    except OfflineQAError:
+        raise
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired,
+            OSError, UnicodeError, ValueError):
+        # Never echo ffmpeg stderr; it can contain user-supplied text,
+        # file paths or private media metadata.
+        raise OfflineQAError("Embedded subtitle inspection unavailable") from None
+    if embedded != local:
+        raise OfflineQAError("Embedded MP4 subtitles differ from reviewed sidecar")
+    return len(embedded)
+
+
 def _decode_all_streams(path: Path) -> None:
     try:
         subprocess.run(
@@ -199,6 +257,11 @@ def inspect_offline_delivery(manifest: dict, media_path: Path, *,
             _validate_srt(file.parent / "captions.srt", durations)
             subtitles_checked = len(durations)
         _decode_all_streams(file)
+        embedded_cues = _verify_muxed_subtitles(
+            file, file.parent / "captions.srt",
+        )
+        if embedded_cues != subtitles_checked:
+            raise OfflineQAError("Embedded subtitle cue count mismatch")
         placeholder = any(x["media_source"] == "placeholder" for x in shots)
         if type(manifest.get("placeholder_visuals")) is not bool or manifest["placeholder_visuals"] != placeholder:
             raise OfflineQAError("Placeholder disclosure does not match shots")
@@ -254,6 +317,8 @@ def inspect_offline_delivery(manifest: dict, media_path: Path, *,
         "approved_subtitle_schedule_verified": "subtitle_schedule" in manifest,
         "subtitle_cues_checked": subtitles_checked,
         "muxed_subtitle_track_present": True,
+        "muxed_subtitle_content_verified": True,
+        "muxed_subtitle_cues_checked": embedded_cues,
         "video_sha256_matches_manifest": True,
         "portrait_h264_aac_verified": True,
         "shots_checked": len(shots),
