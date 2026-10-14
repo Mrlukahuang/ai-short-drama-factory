@@ -48,3 +48,9 @@
 - 交接只通过 `docs/handoff/CURRENT.md` + PR 描述，不依赖聊天记录。
 - 接手方先读 CURRENT.md，再跑 `pytest -q` 确认基线绿，再开工。
 - 不同意上一个 Agent 的做法：写在 CURRENT.md 的「异议」栏，由所有者裁决，不要直接推翻重写。
+
+## 7. 合并规则（私有仓库无法强制分支保护，靠自觉）
+
+- **任何检查是红叉（尤其 `scope`、`test`）的 PR，Agent 不得合并，也不得建议所有者合并。**
+- Agent 不得直接推送到 `main`，一律走分支 + PR。
+- 只有所有者可以合并 PR、加 `amend-approved` 标签。
