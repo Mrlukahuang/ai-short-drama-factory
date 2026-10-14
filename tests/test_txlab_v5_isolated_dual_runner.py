@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from drama_factory.storage.txlab_v5_isolated_dual_runner import (
-    _OBJECTS, V5Denied, V5StageError,
+    _OBJECTS, V5Denied,
     stage_setup, stage_actor, stage_seal, stage_observe, run_stage, cli,
 )
 
@@ -70,7 +70,7 @@ def test_gate_does_not_allow_out_of_order_seal_or_lost_actor(tmp_path):
     stage_setup(factory, run_id=7)
     with pytest.raises(V5Denied):
         stage_seal(factory)
-    with pytest.raises(V5StageError):
+    with pytest.raises(V5Denied, match="independently ready"):
         stage_actor(factory, run_id=7, job_id=100, role="a", wait_seconds=.15)
     with sqlite3.connect(tmp_path / "v5-no-out-of-order.sqlite") as db:
         assert db.execute("SELECT COUNT(*) FROM pr31_v5_holds").fetchone() == (0,)
