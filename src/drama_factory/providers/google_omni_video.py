@@ -16,6 +16,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from drama_factory.pipeline.media_ingest import inspect_source
+from drama_factory.providers.video_provider import VideoRequest, VideoResult
 
 MODEL_ID = "gemini-omni-1.1-flash"
 
@@ -80,12 +81,44 @@ class OmniVideoSpec(BaseModel):
     operator_approved: bool = False
 
 
+def _omni_legacy_spec(request: VideoRequest) -> OmniVideoSpec:
+    """Validate G1 common fields BEFORE any provider/network side effects.
+
+    The current Google Interactions request is prompt-only and 9:16. It does
+    not actually send reference images or an audio reference, nor can it
+    guarantee an exact output duration: min_duration_seconds is a floor.
+    """
+    if request.reference_images:
+        raise VideoCallDisabled("Omni reference image inputs not implemented")
+    if request.audio_reference is not None:
+        raise VideoCallDisabled("Omni does not support uploaded audio references")
+    if request.aspect_ratio != "9:16":
+        raise VideoCallDisabled("Omni adapter currently supports 9:16 only")
+    if not 3 <= request.duration_seconds <= 10:
+        raise VideoCallDisabled("Omni supports a requested duration floor of 3–10s")
+    return OmniVideoSpec(
+        prompt=request.prompt,
+        aspect_ratio=request.aspect_ratio,
+        min_duration_seconds=request.duration_seconds,
+        maximum_acknowledged_spend_usd=request.maximum_acknowledged_spend_usd,
+        operator_approved=request.operator_approved,
+    )
+
+
 class FakeOmniVideoProvider:
     def generate(self, spec: OmniVideoSpec, destination: Path) -> dict:
         return {
             "model": spec.model_id, "is_mock": True, "model_calls": 0,
             "media_path": None, "source_sha256": None,
         }
+
+    def generate_video(self, request: VideoRequest, destination: Path) -> VideoResult:
+        spec = _omni_legacy_spec(request)
+        receipt = self.generate(spec, destination)
+        return VideoResult(
+            model_id=spec.model_id, mp4_path=None, task_id=None,
+            actual_fee_usd=None, is_mock=True, model_calls=receipt["model_calls"],
+        )
 
 
 class GoogleOmniVideoProvider:
@@ -179,6 +212,9 @@ class GoogleOmniVideoProvider:
                 "resolution": spec.resolution, "delivery": "uri",
             },
         )
+        task_id = getattr(interaction, "id", None)
+        if not isinstance(task_id, str) or not (1 <= len(task_id) <= 256):
+            task_id = None  # Do not fabricate a provider task ID.
         video = getattr(interaction, "output_video", None)
         if video is None:
             raise InvalidVideoResponse("Omni returned no video object")
@@ -201,6 +237,7 @@ class GoogleOmniVideoProvider:
                     client, file_id, str(uri), dest, spec.min_duration_seconds,
                 )
                 info["model_calls"] = 1
+                info["provider_task_id"] = task_id
                 info["recovered_existing"] = False
                 info["recovery_metadata_path"] = str(receipt_path)
                 return info
@@ -222,7 +259,28 @@ class GoogleOmniVideoProvider:
                 "media_path": str(dest), "source_sha256": media["sha256"],
                 "source_duration_seconds": media["duration"], "delivery": delivery,
                 "recovered_existing": False,
+                "provider_task_id": task_id,
             }
         except Exception:
             dest.unlink(missing_ok=True)
             raise
+
+
+    def generate_video(self, request: VideoRequest, destination: Path) -> VideoResult:
+        """G1 common protocol, delegating to the existing one-call Omni path.
+
+        An SDK interaction ID is returned only if the SDK actually exposed it.
+        No Omni receipt currently carries a verified invoice charge, so the
+        actual fee remains None rather than using an assumed per-second price.
+        """
+        spec = _omni_legacy_spec(request)
+        receipt = self.generate(spec, destination)
+        if receipt["is_mock"] or receipt["model_calls"] != 1 or not receipt["media_path"]:
+            raise InvalidVideoResponse("Real Omni provider returned no real video")
+        return VideoResult(
+            model_id=spec.model_id,
+            mp4_path=Path(receipt["media_path"]),
+            task_id=receipt.get("provider_task_id"),
+            actual_fee_usd=None,
+            is_mock=False, model_calls=receipt["model_calls"],
+        )
