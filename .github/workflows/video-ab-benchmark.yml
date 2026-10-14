@@ -1,0 +1,45 @@
+name: G1 video A/B benchmark plan (no paid calls)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type G1-PLAN-ONLY. Does NOT trigger paid video generation."
+        required: true
+        type: string
+      budget_usd:
+        description: "Maximum proposed G1 total budget (1 to 30 USD); NOT billing authorization"
+        required: true
+        default: "30.00"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  plan-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DRAMA_ENABLE_PAID_GENERATION: "NO"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Enforce manual confirmation and offline-only fixed benchmark
+        env:
+          G1_CONFIRMATION: ${{ inputs.confirmation }}
+          G1_MAX_BUDGET: ${{ inputs.budget_usd }}
+        run: |
+          python scripts/ab_benchmark.py \
+            --confirm "$G1_CONFIRMATION" \
+            --budget-usd "$G1_MAX_BUDGET" \
+            --out artifacts/g1-ab-plan.json
+      - name: Archive plan JSON only (never videos, keys, source portraits)
+        uses: actions/upload-artifact@v4
+        with:
+          name: g1-ab-plan-only
+          path: artifacts/g1-ab-plan.json
+          if-no-files-found: error
+          retention-days: 7
