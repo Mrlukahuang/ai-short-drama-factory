@@ -18,7 +18,7 @@ from drama_factory.jobs.tts_recovery_readonly import (
 
 def inspect_episode_tts_recovery(db: Database, production_id: str) -> dict:
     if type(production_id) is not str or not re.fullmatch(
-        r"prod_[a-f0-9]{14}", production_id
+        r"run_[a-f0-9]{14}", production_id
     ):
         raise TtsRecoveryDenied("Invalid opaque production identifier")
     with db.connection() as conn:
