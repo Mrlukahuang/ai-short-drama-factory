@@ -20,7 +20,8 @@ def _post(client, path, body=None):
 
 
 def build_offline_demo(out: Path, *, source_override: Path | None = None,
-                       duration_seconds: int = 6) -> dict:
+                       duration_seconds: int = 6,
+                       with_synthetic_audio_mix: bool = False) -> dict:
     """Approved-offline full pipeline: 6s smoke or 60s vertical technical sample.
 
     Both variants use synthetic tones/text placeholders, never paid AI media.
@@ -91,10 +92,29 @@ def build_offline_demo(out: Path, *, source_override: Path | None = None,
                 "-t", str(per_shot), "-c:v", "libx264", "-preset", "ultrafast",
                 "-pix_fmt", "yuv420p", str(test_footage),
             ], capture_output=True, text=True, timeout=90, check=True)
+        # These waves are synthetic TIMING TEST TONES, not spoken voice,
+        # licensed music, human likeness or a real TTS result.
+        audio_args = {}
+        if with_synthetic_audio_mix:
+            stems = (
+                ("dialogue_audio", "synthetic-dialogue-timing-tone.wav", 540),
+                ("music_audio", "synthetic-background-timing-tone.wav", 180),
+            )
+            for label, filename, frequency in stems:
+                wav = out / filename
+                subprocess.run([
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-f", "lavfi", "-i",
+                    f"sine=frequency={frequency}:duration={duration_seconds}:sample_rate=48000",
+                    "-ac", "1", "-c:a", "pcm_s16le", str(wav),
+                ], capture_output=True, text=True, timeout=90, check=True)
+                audio_args[label] = wav
+            audio_args["operator_confirmed_audio_rights"] = True  # original synthetic tones only
         result = render_approved_preview(
             client.app.state.db, production, out / "working",
-            source_clips={"S002": test_footage},
+            source_clips={"S002": test_footage}, **audio_args,
         )
+        result["synthetic_test_tone_stems"] = bool(with_synthetic_audio_mix)
     shutil.copyfile(result["mp4_path"], out / "demo.mp4")
     (out / "manifest.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return result
@@ -105,14 +125,21 @@ def main(argv: list[str] | None = None):
     parser.add_argument("--out", type=Path, default=Path("artifacts/offline-demo"))
     parser.add_argument("--seconds", type=int, choices=(6, 60), default=6,
                         help="Build a 6-second smoke test or full 60-second vertical sample")
+    parser.add_argument("--synthetic-audio-mix", action="store_true",
+                        help="Add two original PCM timing TONES (not human voice or licensed music)")
     args = parser.parse_args(argv)
-    manifest = build_offline_demo(args.out, duration_seconds=args.seconds)
+    manifest = build_offline_demo(
+        args.out, duration_seconds=args.seconds,
+        with_synthetic_audio_mix=args.synthetic_audio_mix,
+    )
     print(json.dumps({
         "success": True, "preview_file": str(args.out / "demo.mp4"),
         "duration": manifest["media"]["duration_seconds"],
         "shots": len(manifest["shots"]), "paid_api_calls": 0,
         "placeholder_visuals": manifest["placeholder_visuals"],
         "supplied_local_clips": manifest["supplied_local_clips"],
+        "synthetic_test_tone_stems": manifest["synthetic_test_tone_stems"],
+        "real_tts_generated": False, "publish_approved": False,
     }))
 
 
