@@ -1,0 +1,66 @@
+name: Manual TxLab v4 — one authorized isolated synthetic test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Exact one-run approval: RUN_ISOLATED_TXLAB_V4_ONCE"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: drama-isolated-libsql-txlab-single-run
+  cancel-in-progress: false
+
+jobs:
+  isolated-v4-one-use:
+    # Explicit user authorization 2026-10-14. Only the original first main
+    # dispatch may reach SQL. A re-run attempt / later dispatch must fail
+    # closed, even before execution of credentials or libsql driver.
+    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V4_ONCE' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout reviewed main code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned SDK and offline dependencies
+        run: python -m pip install -e '.[test,turso-libsql]' 'libsql==0.1.11'
+      - name: ONE original dispatch gate before any remote SQL or credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/main" || "$GITHUB_RUN_ATTEMPT" != "1" ]]; then
+            echo "::error::Only the first original main-branch run is permitted; no SQL"
+            exit 1
+          fi
+          history=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/manual-isolated-libsql-txlab-v4.yml/runs?event=workflow_dispatch&per_page=100" \
+            --jq '[.total_count, (.workflow_runs[0].id // 0)] | @tsv')
+          read -r count original_id <<< "$history"
+          if [[ "$count" != "1" || "$original_id" != "$GITHUB_RUN_ID" ]]; then
+            echo "::error::TxLab v4 one-use history gate blocked; do not retry"
+            exit 1
+          fi
+      - name: Run only authorized isolated v4 production-shaped synthetic canary
+        env:
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_TXLAB_V4_CONFIRM: RUN_ISOLATED_TXLAB_V4_ONCE
+          DRAMA_ENABLE_TXLAB_V4_WRITE: 'YES'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$DRAMA_TXLAB_DATABASE_URL" || -z "$DRAMA_TXLAB_AUTH_TOKEN" ]]; then
+            echo "::error::Dedicated TxLab v4 credentials missing; no remote SQL"
+            exit 1
+          fi
+          python -m drama_factory.storage.txlab_v4_isolated_canary --live
