@@ -17,6 +17,7 @@ from drama_factory.pipeline.local_story_workflow import (
     canonical_screenplay_digest, validated_draft_still_matches,
 )
 from visual_editor import show_visual_storyboard
+from asset_reference_gallery import show_local_asset_reference_gallery
 
 API = os.getenv("DRAMA_FACTORY_API", "http://127.0.0.1:8000")
 st.set_page_config(page_title="AI 短剧工厂", layout="wide")
@@ -150,6 +151,8 @@ with project_tab:
             if productions is not None:
                 st.markdown("#### 当前剧集生产任务")
                 st.dataframe(productions, use_container_width=True)
+            if assets is not None:
+                show_local_asset_reference_gallery(series_id, assets)
         else:
             st.info("当前栏目暂无剧集，可在『原创短剧』创建。")
     st.caption("真实并发调度、预算控制和跨剧共享授权将在后续 PR 实现；当前不执行视频模型。")
