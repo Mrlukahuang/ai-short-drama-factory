@@ -7,6 +7,7 @@ The review receipt is deliberately insufficient to authorize a paid request.
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
@@ -55,7 +56,7 @@ def inspect_offline_job_recovery(
     try:
         # Adapter constructor already verified the marker. Revalidate INSIDE
         # the read snapshot in case the backing file changed since construction.
-        with sqlite3.connect(backend.path.as_uri() + "?mode=ro", uri=True, timeout=5) as conn:
+        with closing(sqlite3.connect(backend.path.as_uri() + "?mode=ro", uri=True, timeout=5)) as conn:
             conn.execute("PRAGMA query_only=ON")
             conn.execute("BEGIN")
             marker = conn.execute(
@@ -128,7 +129,7 @@ def inspect_offline_job_recovery(
             conn.rollback()  # End read snapshot; never replay prior transaction.
     except OfflineRecoveryDenied:
         raise
-    except (sqlite3.Error, OSError, TypeError, ValueError) as exc:
+    except (sqlite3.Error, OSError, TypeError, ValueError):
         raise OfflineRecoveryDenied("Offline read-only inspection unavailable") from None
 
     return {
