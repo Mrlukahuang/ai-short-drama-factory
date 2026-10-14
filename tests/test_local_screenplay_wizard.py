@@ -168,3 +168,10 @@ def test_human_screenplay_to_two_approvals_real_mp4_and_readonly_review(client, 
     assert len(report["shots"]) == 2
     assert delivery["media"]["subtitle_codec"] == "mov_text"
     assert client.post(f"/api/v1/productions/{run}/approve-characters").status_code == 409
+
+
+def test_frontend_local_workbench_python_syntax_is_valid():
+    # CI normally installs the backend without Streamlit; still compile the UI.
+    import ast
+    source = Path(__file__).resolve().parents[1] / "frontend" / "app.py"
+    ast.parse(source.read_text("utf-8"), filename=str(source))
