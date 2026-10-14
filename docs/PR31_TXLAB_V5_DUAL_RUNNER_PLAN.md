@@ -1,4 +1,20 @@
-# TxLab v5 — 自主授权下的双 GitHub Runner 隔离实验（PREP 硬锁）
+# TxLab v5 — 单次隔离双 Runner 实验（授权已消耗，观察者未验收）
+
+## 实际单次执行证据与不通过部分（2026-10-14）
+
+**授权已使用且 v5 写入入口永久锁止，不允许 rerun 或自动补写。**
+
+[远端 Actions #38509779430](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38509779430)，事件 `push`，Run attempt=1，整体状态 **failure**（不是 green）。按照五个真实 GitHub Job 日志：
+
+- Setup `115675379919`：success，日志打印新对象数 `schema_objects=6`、`synthetic_only=true`、`production_touched=false`、`paid_provider_calls=0`。
+- Writer actor-a `115675529609`：success，脱敏 output JSON 表示 `outcome=denied`。
+- Writer actor-b `115675529344`：success，脱敏 output JSON 表示 `outcome=accepted`。两 Job 不同，收到同一 run ID 和 synthetic nonce。**不能仅凭这些 status 证明数据库端最终完整性。**
+- Seal `115675656460`：success，已按本地操作合同把隔离 gate 改为 paused/epoch=2，并禁止旧 token 继续产生新预算写入。
+- 第三个独立 SELECT-only Observer `115675757454`：**failure**，只获得安全错误 `TxLab v5 stage=observe category=unknown`，不能确定是远端 SQL、query-only PRAGMA、服务端视图或证据校验失败。没有通过独立只读对账，所以 `remote_multi_runner_verified=false`、`remote_fencing_verified=false`，不允许升级为已通过。
+
+以上严格区分“actor 竞争运行”和“远端完整验收”。因为此前数据库事务可能已提交，**禁止再次触发此 Workflow**，绝不解锁之前的 v1–v4。为后续排障，可以新建不修改数据库的专用**只读**验收器，分阶段输出固定类别及汇总计数；这应被视为新的只读查询而非重新执行 v5。
+
+
 
 ## 授权与成本边界
 
