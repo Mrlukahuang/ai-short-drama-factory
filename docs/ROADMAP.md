@@ -34,6 +34,7 @@
 - [ ] PR-13b：真实 Omni 单镜头试片及端到端合成、账单实测（需用户手动触发）
 - [ ] PR-09：生产级 Omni 视频任务状态记录、恢复轮询/下载和可播放性校验
 - [x] PR-10a（**离线 FakeDialogueAudioProvider**）：新增 Series 内版本化 Voice Asset 与来源同意记录门禁、Production 审核、镜头已批准台词逐字核验、可验证 48kHz PCM WAV 正弦时间占位音、SHA256 幂等内容缓存与破损重建，输出直连 PR-15b 视频混音与技术 QA；真实 Gemini TTS 入口继续硬拒绝、收费调用 0，不能视为真人配音或声音版权最终授权。详见 [PR10_FAKE_DIALOGUE_AUDIO](PR10_FAKE_DIALOGUE_AUDIO.md)。
+- [x] PR-10b（**离线逐镜 FakeVoice 整集音轨**）：从审核过的 Production、Series 内音色资产/来源同意记录出发，按镜头逐字核对批准台词、版本和时长，生成 SHA256 幂等 Fake WAV，合成不超过 90 秒的完整单声道 PCM 时间线；再与本地合成背景音经 PR-15b 混音、PR-14 QA，FFmpeg CI 实际编码并上传 60 秒 MP4 技术样片。严格要求每镜一行台词，其余复杂对话拒绝；**并非真实 TTS/演员声音/声线商用授权**，收费 0。详见 [PR10_EPISODE_FAKE_VOICE_TIMELINE](PR10_EPISODE_FAKE_VOICE_TIMELINE.md)。
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
 - [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
 
