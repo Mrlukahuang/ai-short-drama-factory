@@ -1,4 +1,4 @@
-name: Manual TxLab v4 — one authorized isolated synthetic test
+name: Manual TxLab v4 — CONSUMED (no further remote writes)
 
 on:
   workflow_dispatch:
@@ -18,10 +18,11 @@ concurrency:
 
 jobs:
   isolated-v4-one-use:
-    # Explicit user authorization 2026-10-14. Only the original first main
-    # dispatch may reach SQL. A re-run attempt / later dispatch must fail
-    # closed, even before execution of credentials or libsql driver.
-    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V4_ONCE' }}
+    # CONSUMED: single authorized real remote run #38505044059 was successful.
+    # Permanent hard lock: no later dispatch, rerun, or changed input may
+    # reach credentials or remote SQL. Changing this requires an entirely
+    # new operator approval and a separately reviewed pull request.
+    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V4_ONCE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
