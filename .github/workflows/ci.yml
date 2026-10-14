@@ -98,7 +98,7 @@ jobs:
         env:
           DRAMA_FACTORY_OFFLINE: '1'
         run: |
-          pytest -q tests/test_offline_render.py tests/test_offline_qa.py tests/test_offline_audio_mix.py tests/test_dialogue_audio_provider.py tests/test_offline_dialogue_timeline.py tests/test_offline_cast_timeline.py tests/test_media_ingest.py tests/test_google_omni_video.py tests/test_offline_workers.py tests/test_google_recovery.py tests/test_artifact_storage.py tests/test_cloud_objects.py tests/test_cloud_canary.py tests/test_drive_objects.py tests/test_drive_canary.py tests/test_turso_receipts.py tests/test_turso_canary.py -rs
+          pytest -q tests/test_offline_render.py tests/test_offline_qa.py tests/test_offline_audio_mix.py tests/test_dialogue_audio_provider.py tests/test_offline_dialogue_timeline.py tests/test_offline_cast_timeline.py tests/test_offline_cue_timing.py tests/test_media_ingest.py tests/test_google_omni_video.py tests/test_offline_workers.py tests/test_google_recovery.py tests/test_artifact_storage.py tests/test_cloud_objects.py tests/test_cloud_canary.py tests/test_drive_objects.py tests/test_drive_canary.py tests/test_turso_receipts.py tests/test_turso_canary.py -rs
           python -c "import shutil; assert shutil.which('ffmpeg') and shutil.which('ffprobe')"
       - name: Create playable 6-second MP4 (no API keys)
         env:
@@ -265,6 +265,26 @@ jobs:
           assert data["fake_cast_timeline"] is True
           assert data["fake_cast_actors"] == 2
           assert data["fake_cast_cues"] == 3
+          # Independent 48 kHz source PCM check: final 60s includes
+          # reviewer-approved silence at onset, between lines and shot 3.
+          import hashlib, wave
+          tracks = list((root / "fake-cast").glob("fake-structured-cast-*.wav"))
+          assert len(tracks) == 1
+          assert hashlib.sha256(tracks[0].read_bytes()).hexdigest() == data["offline_audio_mix"]["dialogue_sha256"]
+          with wave.open(str(tracks[0]), "rb") as pcm:
+              assert pcm.getframerate() == 48000
+              assert pcm.getnchannels() == 1
+              assert pcm.getnframes() == 60 * 48000
+              samples = pcm.readframes(pcm.getnframes())
+          def region(a, b):
+              return samples[a*48000*2:b*48000*2]
+          assert region(0, 1) == b"\\x00" * (48000*2)
+          assert any(region(1, 10))
+          assert region(10, 11) == b"\\x00" * (48000*2)
+          assert any(region(11, 19))
+          assert region(19, 22) == b"\\x00" * (3*48000*2)
+          assert any(region(22, 39))
+          assert region(39, 60) == b"\\x00" * (21*48000*2)
           assert data["fake_voice_timeline"] is False
           assert len(data["shots"]) == 3
           assert 59.4 <= data["media"]["duration_seconds"] <= 60.6
