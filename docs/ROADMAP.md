@@ -94,7 +94,7 @@
   - [x] PR-31c3b（仅本地 SELECT-only，零远端网络）：追加暂停恢复前的 `quiescence` 检查，独立只读事务交叉核对 writer epoch/audit、旧租约、未清付费意图、Provider Task ID、held 预算与账本异常；即使全部通过也不自动授权真实 Worker 恢复/付费请求/生产切换。详见 [PR31_OFFLINE_WRITER_QUIESCENCE](PR31_OFFLINE_WRITER_QUIESCENCE.md)。
   - [x] PR-31c3c：v5 候选协议的**纯离线 720 种执行顺序穷举**（双 Worker、合成预算、模拟 Task ID、pause/resume）+ **30 个实际 libsql 0.1.11 本地事务顺序差分测试**；逐步断言 audit、预算、epoch、Task 和旧 Worker 失效。**既不是两台远端 GitHub Runner，也没有 Turso v5 写入授权**。详见 [PR31_V5_OFFLINE_SCHEDULE_ORACLE](PR31_V5_OFFLINE_SCHEDULE_ORACLE.md)。
   - [x] PR-31c3d（仅离线合成证据合同）：未来 TxLab v5 的双 Runner 实验须具备**两个不同 GitHub job/同一首次 run、同一批次摘要、第三个只读观察者、预算/意图/epoch 审计、没有重复 Task 和模糊 COMMIT**等完整记录；拒绝伪造或不一致输入，**即使结构完整也不能自行把 `remote_multi_runner_verified` 置为 true**。没有云端连接或写入、没有 v5 自动工作流。详见 [PR31_V5_DUAL_RUNNER_EVIDENCE_CONTRACT](PR31_V5_DUAL_RUNNER_EVIDENCE_CONTRACT.md)。
-  - [ ] TxLab v5 真实双 Runner（新用户 <$2 预算授权）：PR-31v5a 先准备 `pr31_v5_*` 独立表、独立两 Runner barrier 预算竞争、持久 pause、第三 Runner SELECT-only 验收与 5×6 分钟限制；**本准备 PR 工作流 Setup 强制 `if:false`，不得宣称已执行远端测试**。另行通过全绿激活 PR 一次性执行，随后以专门安全 PR 锁止；v1–v4 已消耗工作流绝不重开。详见 [PR31_TXLAB_V5_DUAL_RUNNER_PLAN](PR31_TXLAB_V5_DUAL_RUNNER_PLAN.md)。
+  - [ ] TxLab v5 真实双 Runner（新用户 <$2 预算授权）：PR-31v5a 先准备 `pr31_v5_*` 独立表、独立两 Runner barrier 预算竞争、持久 pause、第三 Runner SELECT-only 验收与 5×6 分钟限制；准备 PR #74 的硬锁和本地 SDK CI 已通过；**本激活 PR 仅允许在唯一标记的首次 main Merge commit 执行一次**，结果必须以新 Actions 运行记录核验，不得预先宣称远端已通过。执行后立即以专门安全 PR 锁止；v1–v4 已消耗工作流绝不重开。详见 [PR31_TXLAB_V5_DUAL_RUNNER_PLAN](PR31_TXLAB_V5_DUAL_RUNNER_PLAN.md)。
   - [ ] PR-31c3：真正跨 Runner 的持久写入闸门、恢复/权限与外部供应商计费中断验收（需另外授权）。
   - [ ] PR-31d：独立 TxLab v3 串行多表/约束已经真实通过；**完整生产 Schema 兼容、跨 Runner 并发、网络故障恢复和正式迁移/回滚仍未验证**，需要后续分阶段明确授权，生产切换继续关闭。
 - [ ] PR-24：正式云端持续 Worker 与 Google 视频任务 ID 调度（仍需付费审批）
