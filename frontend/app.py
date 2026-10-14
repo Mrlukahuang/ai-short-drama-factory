@@ -3,6 +3,11 @@ import json
 import os
 import requests
 import streamlit as st
+from pathlib import Path
+
+from drama_factory.db import Database
+from drama_factory.pipeline.offline_render import PreviewError, render_approved_preview
+from drama_factory.pipeline.offline_review import LocalReviewDenied, load_local_offline_review
 
 API = os.getenv("DRAMA_FACTORY_API", "http://127.0.0.1:8000")
 st.set_page_config(page_title="AI 短剧工厂", layout="wide")
@@ -29,8 +34,8 @@ selected_column = st.sidebar.selectbox(
     key="selected_column") if columns else None
 st.sidebar.caption("每个栏目拥有独立剧集；人物、场景和声线默认不能跨剧引用。")
 
-column_tab, original_tab, novel_tab, project_tab, model_tab = st.tabs(
-    ["栏目管理", "原创短剧", "小说导入（独立端口）", "资产与生产任务", "模型注册表"])
+column_tab, original_tab, novel_tab, project_tab, review_tab, model_tab = st.tabs(
+    ["栏目管理", "原创短剧", "小说导入（独立端口）", "资产与生产任务", "本机审片", "模型注册表"])
 
 with column_tab:
     st.subheader("栏目总览")
@@ -139,6 +144,82 @@ with project_tab:
         else:
             st.info("当前栏目暂无剧集，可在『原创短剧』创建。")
     st.caption("真实并发调度、预算控制和跨剧共享授权将在后续 PR 实现；当前不执行视频模型。")
+
+with review_tab:
+    st.subheader("🎞️ 本机离线审片工作台")
+    st.warning("仅在本机使用：不包含用户认证、网络文件分发或发行审批。预览为占位画面和本地合成测试音，不是真实 AI 短剧。")
+    st.caption("仅接收当前栏目下已登记的剧集/Production；播放前会重新核验 MP4 SHA256、所有镜头缓存、字幕轨、完整音视频解码。零付费模型请求。")
+    local_data = Path(os.getenv("DRAMA_FACTORY_DATA_DIR", "./data")).expanduser().resolve()
+    review_root = Path(os.getenv(
+        "DRAMA_OFFLINE_RENDER_ROOT", "./artifacts/offline-reviews",
+    )).expanduser().resolve()
+    local_db_file = local_data / "factory.sqlite3"
+    if not selected_column:
+        st.info("请先选中栏目。")
+    elif not local_db_file.is_file():
+        st.info("未找到本机 factory.sqlite3。请确保 Streamlit 与 API 使用相同的 DRAMA_FACTORY_DATA_DIR。")
+    else:
+        review_series = json_request("GET", f"/api/v1/columns/{selected_column}/series") or []
+        if not review_series:
+            st.info("当前栏目还没有剧集。")
+        else:
+            review_names = {s["id"]: s["title"] for s in review_series}
+            review_series_id = st.selectbox(
+                "选中待审剧集", list(review_names),
+                format_func=lambda sid: review_names[sid], key="offline_review_series",
+            )
+            review_runs = json_request(
+                "GET", "/api/v1/productions", params={"series_id": review_series_id},
+            ) or []
+            if not review_runs:
+                st.info("还没有 Production。请先提交剧本并完成剧本、人物审核。")
+            else:
+                runs = {p["id"]: p for p in review_runs}
+                run_id = st.selectbox(
+                    "选择 Production", list(runs),
+                    format_func=lambda rid: f'{rid} · {runs[rid]["status"]}',
+                    key="offline_review_run",
+                )
+                status = runs[run_id]["status"]
+                st.caption(f"当前状态：{status}。只有完成审核的 Production 才可渲染；预览不会批准发行。")
+                local_db = Database(local_db_file)
+                if st.button(
+                    "生成 / 更新已审核的离线 MP4",
+                    disabled=status not in ("ready_for_video_generation", "offline_preview_finished"),
+                ):
+                    try:
+                        scoped = local_db.one(
+                            """SELECT e.project_id FROM productions p
+                               JOIN episodes e ON p.episode_id=e.id WHERE p.id=?""",
+                            (run_id,),
+                        )
+                        if scoped is None or scoped["project_id"] != review_series_id:
+                            raise LocalReviewDenied("当前 Production 不属于所选剧集")
+                        render_approved_preview(local_db, run_id, review_root)
+                        st.success("离线 MP4 渲染及独立技术 QA 已通过。可以复核并播放。")
+                    except (PreviewError, LocalReviewDenied, OSError, ValueError):
+                        st.error("预览渲染失败或审核条件不满足；没有启用付费生成。")
+                # Never trust a DB manifest filename as a path for Streamlit:
+                # playback is opened only by the local read-only verifier.
+                if status == "offline_preview_finished" or st.button("复核本机已完成的样片"):
+                    try:
+                        report = load_local_offline_review(
+                            local_db, run_id, review_root, series_id=review_series_id,
+                        )
+                    except LocalReviewDenied:
+                        st.info("尚无可播放、可校验的本机样片。渲染后刷新页面，或检查本机路径。")
+                    else:
+                        st.video(report["preview_path"])
+                        st.caption(
+                            f'已验证时长 {report["duration_seconds"]:.1f}s · '
+                            f'镜头 {len(report["shots"])} · '
+                            f'本地素材镜头 {report["actual_local_media_clips"]}'
+                        )
+                        if report["placeholder_visuals"]:
+                            st.warning("含占位镜头；不可当作真实影视画面发布。")
+                        st.dataframe(report["shots"], use_container_width=True)
+                        st.caption("技术 QA 合格 ≠ 内容、版权、声音或发布审核合格。")
+    st.caption("生产部署前必须先完善身份认证、角色权限和私有媒体访问控制。本界面禁止公网暴露。")
 
 with model_tab:
     model_config = json_request("GET", "/api/v1/models")
