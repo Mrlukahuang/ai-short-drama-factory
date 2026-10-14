@@ -49,7 +49,7 @@ jobs:
           DRAMA_TXLAB_AUTH_TOKEN: ''
         run: |
           python -c "import libsql; import importlib.metadata as m; assert m.version('libsql') == '0.1.11'"
-          pytest -q tests/test_libsql_sdk_local_only.py tests/test_real_ledger_libsql_sdk_local.py tests/test_libsql_sdk_local_ledger_adapter.py tests/test_libsql_sdk_local_concurrency.py tests/test_pr31_offline_recovery_native_sdk.py tests/test_pr31_native_fenced_job_lab.py tests/test_pr31_native_fenced_intent_lab.py -rs
+          pytest -q tests/test_libsql_sdk_local_only.py tests/test_real_ledger_libsql_sdk_local.py tests/test_libsql_sdk_local_ledger_adapter.py tests/test_libsql_sdk_local_concurrency.py tests/test_pr31_offline_recovery_native_sdk.py tests/test_pr31_native_fenced_job_lab.py tests/test_pr31_native_fenced_intent_lab.py tests/test_pr31_native_synthetic_task_lab.py -rs
 
   offline-video:
     runs-on: ubuntu-latest
