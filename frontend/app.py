@@ -8,11 +8,15 @@ from pathlib import Path
 from drama_factory.db import Database
 from drama_factory.pipeline.offline_render import PreviewError, render_approved_preview
 from drama_factory.pipeline.offline_review import LocalReviewDenied, load_local_offline_review
+from drama_factory.pipeline.local_story_workflow import (
+    LocalStoryWizardError, make_storyboard_template,
+    canonical_screenplay_digest, validated_draft_still_matches,
+)
 
 API = os.getenv("DRAMA_FACTORY_API", "http://127.0.0.1:8000")
 st.set_page_config(page_title="AI 短剧工厂", layout="wide")
 st.title("🎬 AI 短剧工厂 · 栏目 / 剧集管理")
-st.caption("离线原型：人物与场景已按剧集隔离；尚未调用付费模型或生成可播放视频。")
+st.caption("本机开发原型：可生成带测试画面/音效的可播放技术 MP4；没有真实 AI 视频成片，也没有启用付费模型。")
 
 
 def json_request(method, url, **kwargs):
@@ -34,8 +38,8 @@ selected_column = st.sidebar.selectbox(
     key="selected_column") if columns else None
 st.sidebar.caption("每个栏目拥有独立剧集；人物、场景和声线默认不能跨剧引用。")
 
-column_tab, original_tab, novel_tab, project_tab, review_tab, model_tab = st.tabs(
-    ["栏目管理", "原创短剧", "小说导入（独立端口）", "资产与生产任务", "本机审片", "模型注册表"])
+column_tab, original_tab, novel_tab, project_tab, script_tab, review_tab, model_tab = st.tabs(
+    ["栏目管理", "原创短剧", "小说导入（独立端口）", "资产与生产任务", "分镜与审批", "本机审片", "模型注册表"])
 
 with column_tab:
     st.subheader("栏目总览")
@@ -144,6 +148,256 @@ with project_tab:
         else:
             st.info("当前栏目暂无剧集，可在『原创短剧』创建。")
     st.caption("真实并发调度、预算控制和跨剧共享授权将在后续 PR 实现；当前不执行视频模型。")
+
+
+with script_tab:
+    st.subheader("🎬 原创分镜 → 剧本确认 → 制作审批")
+    st.info("仅操作本机现有栏目与剧集。先创建 Story Bible、登记本剧角色/场景，再编辑分镜；系统只执行确定性校验。剧本提交、剧本批准、角色批准必须分别人工操作。")
+    if not selected_column:
+        st.info("请先创建或选择一个栏目。")
+    else:
+        script_series = json_request(
+            "GET", f"/api/v1/columns/{selected_column}/series",
+        ) or []
+        if not script_series:
+            st.info("该栏目尚未有剧集。请先在「原创短剧」页创建。")
+        else:
+            series_names = {s["id"]: s["title"] for s in script_series}
+            chosen_series = st.selectbox(
+                "当前原创剧集", list(series_names),
+                format_func=lambda sid: series_names[sid], key="wizard_series",
+            )
+            st.markdown("#### 1 · Story Bible（全剧设定）")
+            bibles = json_request(
+                "GET", f"/api/v1/series/{chosen_series}/story-bibles",
+            ) or []
+            with st.expander("新增 Story Bible（版本追加，不覆盖旧设定）"):
+                with st.form("wizard_create_bible"):
+                    bible_title = st.text_input("设定名称", "第一季人物关系")
+                    bible_logline = st.text_area("一句话梗概", "请填写原创故事主线")
+                    bible_genre = st.text_input("故事类型", "都市悬疑")
+                    if st.form_submit_button("保存 Story Bible 版本"):
+                        created = json_request(
+                            "POST", f"/api/v1/series/{chosen_series}/story-bibles",
+                            json={
+                                "title": bible_title, "logline": bible_logline,
+                                "genre": bible_genre,
+                            },
+                        )
+                        if created:
+                            st.success("Story Bible 已保存。")
+                            st.rerun()
+            actors_scenes = json_request(
+                "GET", f"/api/v1/series/{chosen_series}/assets",
+            ) or []
+            actors = {
+                a["id"]: a["asset_key"] + f' v{a["version"]}'
+                for a in actors_scenes if a["kind"] == "actor"
+            }
+            scenes = {
+                a["id"]: a["asset_key"] + f' v{a["version"]}'
+                for a in actors_scenes if a["kind"] == "scene"
+            }
+            if not bibles or not actors:
+                st.warning("至少需要一个 Story Bible 和一名本剧演员资产。演员请到「资产与生产任务」页登记。")
+            else:
+                bible_names = {b["id"]: f'设定 v{b["version"]}' for b in bibles}
+                chosen_bible = st.selectbox(
+                    "选定 Story Bible", list(bible_names),
+                    format_func=lambda bid: bible_names[bid],
+                    key="wizard_bible",
+                )
+                st.markdown("#### 2 · 编写、校验分镜")
+                selected_actors = st.multiselect(
+                    "镜头中的角色（同剧已登记资产）", list(actors),
+                    default=list(actors)[:1], format_func=lambda aid: actors[aid],
+                    key=f"wizard_actors_{chosen_series}",
+                )
+                chosen_scene = st.selectbox(
+                    "镜头场景", [None, *scenes],
+                    format_func=lambda sid: scenes.get(sid, "不指定场景"),
+                    key=f"wizard_scene_{chosen_series}",
+                )
+                next_episode = st.number_input(
+                    "分集编号", 1, 999, 1, 1, key=f"wizard_episode_{chosen_series}",
+                )
+                num_shots = st.number_input(
+                    "初始镜头数", 1, 12, 3, 1, key=f"wizard_shots_{chosen_series}",
+                )
+                per_shot = st.number_input(
+                    "每镜头秒数（可在 JSON 里逐镜修改，总时长最多 90 秒）",
+                    1, 30, 20, 1, key=f"wizard_length_{chosen_series}",
+                )
+                editor_key = f"wizard_json_{chosen_series}_{chosen_bible}"
+                if st.button("初始化 / 重置可编辑分镜草稿"):
+                    try:
+                        template = make_storyboard_template(
+                            chosen_series, chosen_bible, selected_actors,
+                            chosen_scene, episode_number=int(next_episode),
+                            shot_count=int(num_shots), seconds_per_shot=int(per_shot),
+                        )
+                        st.session_state[editor_key] = json.dumps(
+                            template, ensure_ascii=False, indent=2,
+                        )
+                        st.session_state.pop("wizard_validated", None)
+                    except LocalStoryWizardError:
+                        st.error("请先选择角色，并确保总长度不超过 90 秒。")
+                if editor_key not in st.session_state:
+                    st.caption("点「初始化」建立草稿，再编辑动作、对白、镜头连续性和时长。")
+                else:
+                    raw_script = st.text_area(
+                        "可编辑分镜 JSON（按 Screenplay zh.v1 合同）",
+                        height=420, key=editor_key,
+                    )
+                    script_payload = None
+                    try:
+                        script_payload = json.loads(raw_script)
+                        if type(script_payload) is not dict:
+                            raise ValueError("not object")
+                    except (ValueError, TypeError):
+                        st.error("分镜必须是合法的 JSON 对象。")
+                    if st.button("① 校验分镜（不会提交或扣费）", disabled=script_payload is None):
+                        try:
+                            expected = canonical_screenplay_digest(script_payload)
+                        except (ValueError, TypeError):
+                            st.session_state.pop("wizard_validated", None)
+                            st.error("分镜字段/时长/对白不满足本机 Screenplay 契约。")
+                        else:
+                            result = json_request(
+                                "POST", f"/api/v1/series/{chosen_series}/screenplays/validate",
+                                json=script_payload,
+                            )
+                            if result and result.get("valid") is True and result.get("review_required") is True:
+                                st.session_state["wizard_validated"] = {
+                                    "series_id": chosen_series, "fingerprint": expected,
+                                    "valid": True, "review_required": True,
+                                    "paid_api_calls": result.get("paid_api_calls"),
+                                }
+                                st.success(f'服务器校验通过：{result["shot_count"]} 个镜头。需人工确认才可提交。')
+                                st.json(result["episode_draft"])
+                            else:
+                                st.session_state.pop("wizard_validated", None)
+                    ready_to_commit = (
+                        script_payload is not None
+                        and validated_draft_still_matches(
+                            script_payload, st.session_state.get("wizard_validated"),
+                            chosen_series,
+                        )
+                    )
+                    if script_payload is not None and not ready_to_commit:
+                        st.caption("当前编辑内容尚未验证或在验证后已修改。任何改动都需重新校验。")
+                    # A reviewed checkbox belongs to one validated exact draft.
+                    # Revalidation of edited text MUST produce a fresh checkbox.
+                    review_digest = (
+                        st.session_state["wizard_validated"]["fingerprint"]
+                        if ready_to_commit else "not_validated"
+                    )
+                    confirmed = st.checkbox(
+                        "我已亲自检查此版分镜、对白、角色/场景归属，并确认提交为不可原地覆盖的 Episode。",
+                        key=f"wizard_manual_review_{chosen_series}_{chosen_bible}_{review_digest}",
+                        disabled=not ready_to_commit,
+                    )
+                    if st.button(
+                        "② 人工确认并提交 Episode", disabled=not ready_to_commit or not confirmed,
+                    ):
+                        committed = json_request(
+                            "POST", f"/api/v1/series/{chosen_series}/screenplays/commit",
+                            json={
+                                "screenplay": script_payload,
+                                "reviewed_by_operator": True,
+                            },
+                        )
+                        if committed:
+                            st.session_state.pop("wizard_validated", None)
+                            st.success(f'Episode 已创建：{committed["episode_id"]}。')
+                            st.rerun()
+            st.markdown("#### 3 · 创建 Production 并逐级人工审批")
+            episodes = json_request(
+                "GET", f"/api/v1/projects/{chosen_series}/episodes",
+            ) or []
+            if not episodes:
+                st.caption("当前剧集还没有已提交的 Episode。完成分镜校验和人工提交后继续。")
+            else:
+                episode_map = {e["id"]: e for e in episodes}
+                chosen_episode = st.selectbox(
+                    "待制作分集", list(episode_map),
+                    format_func=lambda eid: (
+                        f'第 {episode_map[eid]["episode_number"]} 集 · '
+                        f'{episode_map[eid]["title"]}'
+                    ),
+                    key="wizard_chosen_episode",
+                )
+                approved_episode = json.loads(episode_map[chosen_episode]["body_json"])
+                st.dataframe([
+                    {
+                        "镜头": sh["shot_id"], "秒数": sh["duration_seconds"],
+                        "角色数": len(sh["character_ids"]), "已批准对白数": len(sh["dialogue"]),
+                    } for sh in approved_episode["shots"]
+                ], use_container_width=True)
+                all_runs = json_request(
+                    "GET", "/api/v1/productions", params={"series_id": chosen_series},
+                ) or []
+                episode_runs = [r for r in all_runs if r["episode_id"] == chosen_episode]
+                if not episode_runs:
+                    if st.button("③ 为此分集创建 Production"):
+                        created = json_request(
+                            "POST", f"/api/v1/episodes/{chosen_episode}/productions",
+                        )
+                        if created:
+                            st.success("Production 已创建，下一步审核剧本。")
+                            st.rerun()
+                else:
+                    run_map = {r["id"]: r for r in episode_runs}
+                    chosen_run = st.selectbox(
+                        "Production", list(run_map),
+                        format_func=lambda rid: f'{rid} · {run_map[rid]["status"]}',
+                        key="wizard_chosen_run",
+                    )
+                    run_status = run_map[chosen_run]["status"]
+                    if run_status == "script_review_pending":
+                        with st.expander("展开已提交的完整分集剧本（含对白）", expanded=True):
+                            st.json(approved_episode)
+                        script_checked = st.checkbox(
+                            "我已人工复核此 Production 对应的完整剧本、对白与时长。",
+                            key=f"wizard_approve_script_{chosen_run}",
+                        )
+                        if st.button("④ 批准剧本", disabled=not script_checked):
+                            result = json_request(
+                                "POST", f"/api/v1/productions/{chosen_run}/approve-script",
+                            )
+                            if result:
+                                st.success("剧本已批准。下一阶段：审核人物与场景。")
+                                st.rerun()
+                    elif run_status == "character_review_pending":
+                        used_assets = {
+                            a for shot in approved_episode["shots"]
+                            for a in [*shot["character_ids"], *([shot["scene_id"]] if shot["scene_id"] else [])]
+                        }
+                        st.caption("当前分集引用的人物与场景规格（仅本剧登记版本）：")
+                        st.json([
+                            {
+                                "asset_id": a["id"], "kind": a["kind"],
+                                "key": a["asset_key"], "version": a["version"],
+                                "specification": json.loads(a["specification_json"]),
+                            }
+                            for a in actors_scenes if a["id"] in used_assets
+                        ])
+                        cast_checked = st.checkbox(
+                            "我已人工核对分集的人物身份、造型版本、场景及授权信息。",
+                            key=f"wizard_approve_cast_{chosen_run}",
+                        )
+                        if st.button("⑤ 批准人物与场景", disabled=not cast_checked):
+                            result = json_request(
+                                "POST", f"/api/v1/productions/{chosen_run}/approve-characters",
+                            )
+                            if result:
+                                st.success("Production 已通过两级审核。转到「本机审片」生成技术预览。")
+                                st.rerun()
+                    elif run_status in ("ready_for_video_generation", "offline_preview_finished"):
+                        st.success("两级人工审批已完成。请转到「本机审片」页进行免费离线渲染与播放。")
+                    else:
+                        st.info("该 Production 处于其他状态，无法在此重复审批。")
+    st.caption("校验、提交和审批均沿用现有 FastAPI 路由。无自动模型生成、无批量确认或自动发行。")
 
 with review_tab:
     st.subheader("🎞️ 本机离线审片工作台")

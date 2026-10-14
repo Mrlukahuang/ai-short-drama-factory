@@ -28,6 +28,7 @@
 - [x] PR-07a：人物/场景/声样媒体参考版本、来源许可与审核记录（只登记元数据，无二进制存储）
 - [ ] PR-07b：安全媒体上传、对象存储、真正的妆发/服装/表情资产编辑界面与审片工作台
 - [x] PR-07b1（**仅本地离线审片子阶段**）：Streamlit 新增基于当前栏目/剧集 Production 的离线 MP4 生成和本地播放器；每次先核对单剧集归属、DB 与磁盘 manifest、原 MP4/缓存哈希、字幕和完整 FFmpeg 技术 QA，禁止路径跨越/符号链接；绝不代表 AI 真实画面或发行许可。**未实现鉴权、上传/资产编辑、公网部署、真实收费媒体 Worker**。详见 [PR07B1_LOCAL_OFFLINE_REVIEW](PR07B1_LOCAL_OFFLINE_REVIEW.md)。
+- [x] PR-07b2（**仅本机人工原创分镜→制作审批交互流程**）：Streamlit 新增「分镜与审批」页，使用本剧现有 Story Bible/演员/场景创建人工编辑草稿、严格服务端 Screenplay 校验、SHA256 失效检查和人工确认后提交 Episode；随后分别复核剧本与人物并推进既有 Production 状态机，再交给 PR-07b1 离线 MP4 审片。包含零付费真实 API→FFmpeg→QA 集成测试；**仍不是真实 AI 成片、公网认证或发行审批**。详见 [PR07B2_LOCAL_STORY_WORKFLOW](PR07B2_LOCAL_STORY_WORKFLOW.md)。
 - [x] PR-08a：Google Nano Banana 2.1 受控 SDK Provider + Fake + 门禁测试；未实际调用、未存储媒体、尚无参考图条件输入
 - [x] PR-09a：手动单张 Google 图片冒烟测试工作流、私有 Secret 和零调用默认模式；**真实 API 调用尚未执行**
 - [ ] PR-08b：Google 图片生成端到端真实试片、参考图载入、审核后保存资产版本（需用户设置 Secret 并确认预算）
