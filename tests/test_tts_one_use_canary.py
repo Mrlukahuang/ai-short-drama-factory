@@ -121,3 +121,15 @@ def test_workflow_is_pinned_to_one_merge_and_static_phrase():
     assert "event=push" in workflow
     assert "  workflow_dispatch:" not in workflow
     assert "  schedule:" not in workflow
+
+
+def test_single_paid_tts_experiment_is_consumed_and_permanently_locked():
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] /
+              ".github/workflows/tts-one-use-canary.yml").read_text("utf-8")
+    assert "CONSUMED" in source
+    assert "38525869818" in source
+    assert "if: ${{ false && github.ref == 'refs/heads/main'" in source
+    assert "github.run_attempt == 1" in source
+    assert "  workflow_dispatch:" not in source
+    assert "  schedule:" not in source
