@@ -12,6 +12,12 @@ from drama_factory.models import EpisodeDraft
 from drama_factory.pipeline.local_shot_media import (
     LocalShotMediaError, stage_local_shot_video, get_staged_shot_clips,
 )
+from drama_factory.pipeline.local_asset_references import (
+    LocalReferenceError, list_local_asset_references,
+)
+from drama_factory.pipeline.local_reference_animatic import (
+    LocalAnimaticError, stage_reference_motion_clip,
+)
 from drama_factory.pipeline.local_story_workflow import (
     LocalStoryWizardError, make_storyboard_template,
     canonical_screenplay_digest, validated_draft_still_matches,
@@ -489,6 +495,117 @@ with review_tab:
                             shot.shot_id: shot.duration_seconds
                             for shot in approved_episode.shots
                         }
+                        with st.expander("从本机参考图制作动态分镜（不收费、非 AI 视频）", expanded=False):
+                            st.caption(
+                                "把当前 Production 已审批镜头中的演员/场景静态参考图，"
+                                "在本机制作带明确水印的缓慢推镜 MP4。"
+                                "不是 AI 生成的真人镜头，不能作为公开发行的画面。"
+                            )
+                            motion_shot_id = st.selectbox(
+                                "制作参考图动态片段的镜头",
+                                list(duration_by_shot),
+                                format_func=lambda sid: (
+                                    f"{sid} · {duration_by_shot[sid]}秒"
+                                ),
+                                key=f"motion_shot_{run_id}",
+                            )
+                            motion_shot = next(
+                                shot for shot in approved_episode.shots
+                                if shot.shot_id == motion_shot_id
+                            )
+                            image_assets = list(motion_shot.character_ids)
+                            if motion_shot.scene_id:
+                                image_assets.append(motion_shot.scene_id)
+                            known_assets = json_request(
+                                "GET", f"/api/v1/series/{review_series_id}/assets",
+                            ) or []
+                            asset_names = {a["id"]: (
+                                f'{a["kind"]} · {a["asset_key"]} v{a["version"]}'
+                            ) for a in known_assets}
+                            if not image_assets:
+                                st.info("该镜头没有已批准的演员或场景资产，无法制作参考图动态片段。")
+                            else:
+                                motion_asset_id = st.selectbox(
+                                    "选择该镜头演员/场景的具体资产版本",
+                                    image_assets,
+                                    format_func=lambda aid: asset_names.get(aid, aid),
+                                    key=f"motion_asset_{run_id}_{motion_shot_id}",
+                                )
+                                try:
+                                    image_refs = list_local_asset_references(
+                                        local_db, review_series_id, motion_asset_id,
+                                        local_data / "local-asset-references",
+                                    )
+                                except (LocalReferenceError, OSError):
+                                    image_refs = []
+                                    st.error("本机图库完整性检查未通过，不能制作动态片段。")
+                                if not image_refs:
+                                    st.info("该资产版本没有有效参考图。请到「资产与生产任务」上传。")
+                                else:
+                                    image_by_sha = {
+                                        item["source_sha256"]: item for item in image_refs
+                                    }
+                                    picked_sha = st.selectbox(
+                                        "确认要使用的参考图片（不会发送给模型）",
+                                        list(image_by_sha),
+                                        format_func=lambda sha: f'已登记参考图 {sha[:12]}…',
+                                        key=f"motion_ref_{run_id}_{motion_shot_id}_{motion_asset_id}",
+                                    )
+                                    st.image(
+                                        image_by_sha[picked_sha]["png_bytes"],
+                                        width=240,
+                                    )
+                                    try:
+                                        current_sources = get_staged_shot_clips(
+                                            local_db, run_id, review_series_id,
+                                            source_root,
+                                        )
+                                        existing_motion_target = motion_shot_id in current_sources
+                                    except (LocalShotMediaError, OSError):
+                                        current_sources = None
+                                        existing_motion_target = True
+                                        st.error("原有视频素材检查失败，必须先修复。")
+                                    overwrite = st.checkbox(
+                                        "若该镜头已有视频，我明确允许用此参考图模拟片段替换它",
+                                        value=False,
+                                        key=f"motion_replace_{run_id}_{motion_shot_id}",
+                                    ) if existing_motion_target else False
+                                    motion_approved = st.checkbox(
+                                        "我确认对此静态参考图具有本机制作派生技术样片的权利；"
+                                        "理解它仅是水印模拟运动，不是 AI 影视画面。",
+                                        key=f"motion_rights_{run_id}_{motion_shot_id}_{picked_sha}",
+                                    )
+                                    if st.button(
+                                        "制作并登记此镜头的动态参考技术片段",
+                                        disabled=(
+                                            not motion_approved
+                                            or current_sources is None
+                                            or (existing_motion_target and not overwrite)
+                                        ),
+                                        key=f"motion_generate_{run_id}_{motion_shot_id}",
+                                    ):
+                                        try:
+                                            result = stage_reference_motion_clip(
+                                                local_db,
+                                                series_id=review_series_id,
+                                                production_id=run_id,
+                                                shot_id=motion_shot_id,
+                                                asset_id=motion_asset_id,
+                                                reference_sha256=picked_sha,
+                                                image_root=local_data / "local-asset-references",
+                                                media_root=source_root,
+                                                operator_confirmed_local_derivative_use=motion_approved,
+                                                replace_existing_video=overwrite,
+                                            )
+                                        except (LocalAnimaticError, OSError):
+                                            st.error("动态参考片段生成失败：审核、素材完整性或本机 FFmpeg 条件不足。")
+                                        else:
+                                            st.success(
+                                                f'动态技术片段已登记到 {result["shot_id"]}。'
+                                                "点击下方「生成 / 更新已审核的离线 MP4」合成整集；"
+                                                "不会自动开始任何收费生成。"
+                                            )
+                                            st.rerun()
                         shot_choice = st.selectbox(
                             "选择将被本地视频替换的镜头",
                             list(duration_by_shot),
