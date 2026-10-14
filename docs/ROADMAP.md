@@ -34,6 +34,7 @@
 - [x] PR-07b5（**本机原创镜头视频登记→现有 MP4 渲染**）：Streamlit「本机审片」可上传并绑定本剧已审批 Production 镜头的本地 MP4/MOV/WEBM/MKV（每段≤32 MiB），明确自述版权确认、哈希存储、逐镜哈希+媒体重验和按镜头恢复，交由现有 FFmpeg 渲染器生成混合**真实提供的视频画面与占位**的技术 MP4。没有公网媒体服务、抗病毒沙盒、独立许可核验或真实 AI 生成，不代表 PR-07b 整体完成。见 [PR07B5_LOCAL_SHOT_MEDIA_WORKBENCH](PR07B5_LOCAL_SHOT_MEDIA_WORKBENCH.md)。
 - [x] PR-07b6（**本机演员、场景、道具资产版本参考图库**）：Streamlit 追加素材可视化上传/缩略图，限制 8MiB JPEG/PNG/WEBP 和 1200 万像素，Pillow 仅存去 EXIF/GPS 等元数据的缩放 RGB PNG；将 SHA256 收据不可覆盖地绑定至本剧资产 ID/版本/规格哈希，每次展示重新核验，拒绝跨剧、声样、非法文件和符号链接。**仅操作者自述素材权利，未接真实收费模型或独立版权认证/公网上传服务。**见 [PR07B6_LOCAL_ASSET_REFERENCE_GALLERY](PR07B6_LOCAL_ASSET_REFERENCE_GALLERY.md)。
 - [x] PR-07b7（**本机导演逐镜参考图明确选择及相邻镜头对照**）：按精准 Screenplay 指纹 + Series/Shot/Asset 版本选择已登记图片，手动确认原子持久化；相邻镜头同一资产版本选择不同图或缺失给出非权威人工复查提示，图片每次读取重新验证归属与 SHA256；道具仅做导演注释，不修改既有剧本及发布许可。无模型调用或公网服务。见 [PR07B7_SHOT_REFERENCE_DIRECTOR_BOARD](PR07B7_SHOT_REFERENCE_DIRECTOR_BOARD.md)。
+- [x] PR-07b8（**本机真实动态分镜技术片段**）：已过两级人工审批的 Production 单镜，可将已登记的同剧同镜演员/场景版本参考图，**另经操作者确认本机衍生使用许可**后，利用纯本机 FFmpeg 做带“NOT AI VIDEO”水印的慢推镜 MP4，沿现有素材登记和整集渲染/独立 QA 产出整集。已有视频替换需另行明示；零 Google/收费请求。静态图片模拟运动**不是真实 AI 真人镜头或发布许可**。见 [PR07B8_LOCAL_REFERENCE_MOTION_ANIMATIC](PR07B8_LOCAL_REFERENCE_MOTION_ANIMATIC.md)。
 - [x] PR-08a：Google Nano Banana 2.1 受控 SDK Provider + Fake + 门禁测试；未实际调用、未存储媒体、尚无参考图条件输入
 - [x] PR-09a：手动单张 Google 图片冒烟测试工作流、私有 Secret 和零调用默认模式；**真实 API 调用尚未执行**
 - [ ] PR-08b：Google 图片生成端到端真实试片、参考图载入、审核后保存资产版本（需用户设置 Secret 并确认预算）
