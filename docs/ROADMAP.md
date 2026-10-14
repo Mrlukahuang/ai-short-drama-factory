@@ -88,6 +88,7 @@
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
   - [x] PR-31b2o3（仅真正 native libSQL SDK 本地）：在**带隔离 marker 的临时生产形状账本**上提供独立的 writer epoch gate，镜头领取与 attempt 递增、审计原子提交、未付费意图的 fenced CAS 更新，以及 pause/resume、同名旧 Worker、过期租约、并发和模拟 COMMIT ACK 丢失测试。**仅供离线实验，不接入当前生产 Worker、不代表跨 Runner/Turso 真实验收**。详见 [PR31_NATIVE_FENCED_JOB_ATOMIC_LAB](PR31_NATIVE_FENCED_JOB_ATOMIC_LAB.md)。
   - [x] PR-31b2o4（真实 native libSQL SDK 的本地隔离账本）：在同一个临时 SQLite 事务内校验 writer epoch/attempt/租约和栏目、剧集、Provider 三级预算，原子完成 held 预留、预算审计、镜头生成意图与镜头/gate 审计；验证同额度并发竞争、过期 token、审计回滚与 COMMIT 回执丢失不重试。**只验证本地，未开启收费请求与远端跨 Runner**。详见 [PR31_NATIVE_FENCED_BUDGET_INTENT](PR31_NATIVE_FENCED_BUDGET_INTENT.md)。
+  - [x] PR-31b2o5（仅真实 native SDK 的隔离本地模拟回执）：带标记的测试 SQLite 上校验真正持久的付费意图/held 预算事件后，用 **SYNTHETIC_ Task ID** 做 Worker attempt+epoch+租约条件回填、同供应商 Task ID 唯一、防旧 Worker 抢写和 COMMIT 回执丢失不重放。没有真实供应商请求/账单/远端测试或生产切换。详见 [PR31_NATIVE_SYNTHETIC_TASK_FENCING](PR31_NATIVE_SYNTHETIC_TASK_FENCING.md)。
   - [ ] PR-31c3：真正跨 Runner 的持久写入闸门、恢复/权限与外部供应商计费中断验收（需另外授权）。
   - [ ] PR-31d：独立 TxLab v3 串行多表/约束已经真实通过；**完整生产 Schema 兼容、跨 Runner 并发、网络故障恢复和正式迁移/回滚仍未验证**，需要后续分阶段明确授权，生产切换继续关闭。
 - [ ] PR-24：正式云端持续 Worker 与 Google 视频任务 ID 调度（仍需付费审批）
