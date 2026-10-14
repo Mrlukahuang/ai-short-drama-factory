@@ -113,7 +113,7 @@ def inspect_offline_delivery(manifest: dict, media_path: Path, *,
             clip_name, clip_digest = shot["clip_name"], shot["clip_sha256"]
             if (
                 type(clip_name) is not str
-                or re.fullmatch(r"[0-9]{3}_[a-f0-9]{24}\\.mp4", clip_name) is None
+                or re.fullmatch(r"[0-9]{3}_[a-f0-9]{24}\.mp4", clip_name) is None
                 or type(clip_digest) is not str
                 or _DIGEST.fullmatch(clip_digest) is None
             ):
