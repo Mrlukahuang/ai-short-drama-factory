@@ -8,7 +8,7 @@ from pathlib import Path
 from drama_factory.db import Database
 from drama_factory.pipeline.offline_render import PreviewError, render_approved_preview
 from drama_factory.pipeline.offline_review import LocalReviewDenied, load_local_offline_review
-from workflow import (
+from drama_factory.pipeline.local_story_workflow import (
     LocalStoryWizardError, make_storyboard_template,
     canonical_screenplay_digest, validated_draft_still_matches,
 )
