@@ -278,13 +278,13 @@ jobs:
               samples = pcm.readframes(pcm.getnframes())
           def region(a, b):
               return samples[a*48000*2:b*48000*2]
-          assert region(0, 1) == b"\\x00" * (48000*2)
+          assert region(0, 1) == b"\x00" * (48000*2)
           assert any(region(1, 10))
-          assert region(10, 11) == b"\\x00" * (48000*2)
+          assert region(10, 11) == b"\x00" * (48000*2)
           assert any(region(11, 19))
-          assert region(19, 22) == b"\\x00" * (3*48000*2)
+          assert region(19, 22) == b"\x00" * (3*48000*2)
           assert any(region(22, 39))
-          assert region(39, 60) == b"\\x00" * (21*48000*2)
+          assert region(39, 60) == b"\x00" * (21*48000*2)
           assert data["fake_voice_timeline"] is False
           assert len(data["shots"]) == 3
           assert 59.4 <= data["media"]["duration_seconds"] <= 60.6
