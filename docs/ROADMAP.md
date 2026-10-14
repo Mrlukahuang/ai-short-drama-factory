@@ -86,6 +86,7 @@
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。
+  - [x] PR-31b2o3（仅真正 native libSQL SDK 本地）：在**带隔离 marker 的临时生产形状账本**上提供独立的 writer epoch gate，镜头领取与 attempt 递增、审计原子提交、未付费意图的 fenced CAS 更新，以及 pause/resume、同名旧 Worker、过期租约、并发和模拟 COMMIT ACK 丢失测试。**仅供离线实验，不接入当前生产 Worker、不代表跨 Runner/Turso 真实验收**。详见 [PR31_NATIVE_FENCED_JOB_ATOMIC_LAB](PR31_NATIVE_FENCED_JOB_ATOMIC_LAB.md)。
   - [ ] PR-31c3：真正跨 Runner 的持久写入闸门、恢复/权限与外部供应商计费中断验收（需另外授权）。
   - [ ] PR-31d：独立 TxLab v3 串行多表/约束已经真实通过；**完整生产 Schema 兼容、跨 Runner 并发、网络故障恢复和正式迁移/回滚仍未验证**，需要后续分阶段明确授权，生产切换继续关闭。
 - [ ] PR-24：正式云端持续 Worker 与 Google 视频任务 ID 调度（仍需付费审批）
