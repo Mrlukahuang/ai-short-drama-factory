@@ -228,12 +228,21 @@ def stage_seal(factory) -> dict:
 
 
 def stage_observe(factory, *, run_id: int, job_id: int, actor_a: dict, actor_b: dict) -> dict:
-    """THIRD separate GitHub job reads same remote DB, never writes SQL."""
+    """Independent snapshot using only read-oriented SQL, no PRAGMA toggles.
+
+    Turso's libsql 0.1.11 remote connection rejected PRAGMA query_only=ON
+    in actual v5 Job #115675757454. A separate SELECT-only forensic run
+    #38510686538 verified identical data and PRAGMA foreign_key_check.
+    This routine never performs writes; it does NOT prove database-level
+    read-only token authorization or authorize replay of consumed v5 jobs.
+    """
     c = None
     try:
         c = factory()
-        _fk(c)
-        c.execute("PRAGMA query_only=ON")
+        # Deliberately do not call _fk: PRAGMA foreign_keys=ON sets a
+        # connection flag and is not required for SELECT-only inspection.
+        # BEGIN establishes a consistent read snapshot on both SQLite and
+        # the verified libSQL remote backend.
         c.execute("BEGIN")
         if c.execute("PRAGMA foreign_key_check").fetchall():
             raise V5Denied("Remote foreign key check rejected")
@@ -272,6 +281,8 @@ def stage_observe(factory, *, run_id: int, job_id: int, actor_a: dict, actor_b: 
         "one_accepted_one_denied": True, "remote_job_ids_distinct": True,
         "remote_provenance_must_be_verified_with_github": True,
         "synthetic_receipt_shape_validated": True,
+        "read_only_sql_path": True,
+        "database_level_read_only_token_verified": False,
         "remote_multi_runner_verified": False,  # independent post-run review
         "network_commit_ack_loss_verified": False,
         "production_backend_switched": False,
