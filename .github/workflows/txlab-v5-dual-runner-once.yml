@@ -1,4 +1,4 @@
-name: TxLab v5 — isolated two-Runner one-use experiment (PREP LOCKED)
+name: TxLab v5 — isolated two-Runner ONE authorized merge activation
 
 on:
   push:
@@ -14,13 +14,13 @@ concurrency:
   group: drama-isolated-libsql-txlab-single-run
   cancel-in-progress: false
 
-# The FIRST prep PR ships permanently FALSE. A separate reviewed activation
-# PR may switch the setup condition for ONE identifiable merge commit only.
-# Never reuse prior v1-v4 one-off write authority.
+# ONE reviewed, cost-bounded activation is allowed on the uniquely marked
+# merge commit only. No dispatch, rerun or other PR can reach Turso. After
+# this single test, immediately hard-lock via follow-on safety PR.
 jobs:
   setup:
     name: v5-setup
-    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR31-V5-EXECUTE-ONCE-20261014') }}
+    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR31-V5-EXECUTE-ONCE-20261014') }}
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
