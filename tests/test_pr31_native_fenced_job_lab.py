@@ -54,12 +54,31 @@ def test_six_concurrent_native_claims_cannot_share_a_job_or_epoch(client):
 
     def claim(i):
         gate.wait(timeout=20)
-        return fenced_claim_local_job(
-            backend, f"fenced-worker-{i}", production_id=run, now=NOW
-        )
+        try:
+            return fenced_claim_local_job(
+                backend, f"fenced-worker-{i}", production_id=run, now=NOW
+            )
+        except NativeFenceLabDenied as exc:
+            # The real native libSQL SDK occasionally refuses simultaneous
+            # BEGIN IMMEDIATE *before* entering any transaction. This is a
+            # safely declined claim, not a lost paid COMMIT acknowledgement.
+            assert "pretransaction" in str(exc)
+            return None
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         claimed = [x for x in pool.map(claim, range(6)) if x is not None]
+    assert len(claimed) <= 2
+    assert len({t.job_id for t in claimed}) == len(claimed)
+    # Once the initial race is over, issue distinct NEW unpaid claim
+    # attempts to account for any legitimately declined pre-BEGIN workers.
+    # This is NOT resubmission of an external/paid generation request.
+    for i in range(2):
+        remaining = fenced_claim_local_job(
+            backend, f"fenced-fresh-unpaid-worker-{i}",
+            production_id=run, now=NOW,
+        )
+        if remaining is not None:
+            claimed.append(remaining)
     assert len(claimed) == 2
     assert len({t.job_id for t in claimed}) == len(claimed)
     assert all(t.attempt == 1 and t.epoch == 1 for t in claimed)
@@ -212,3 +231,37 @@ def test_pause_racing_write_serializes_without_post_pause_success(client):
     for _ in range(3):
         with pytest.raises(NativeFenceLabDenied, match="epoch"):
             fenced_fail_unsubmitted_local_job(backend, token, now=NOW)
+
+
+def test_declined_prebegin_native_busy_has_no_audit_or_claim_and_no_internal_retry(
+    client, monkeypatch,
+):
+    backend, _, run = _ready_lab(client)
+    real_execute = _NativeConnection.execute
+    seen = []
+
+    def reject_only_begin(conn, sql, params=()):
+        if sql == "BEGIN IMMEDIATE":
+            seen.append(sql)
+            raise ValueError("database is locked")
+        return real_execute(conn, sql, params)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(_NativeConnection, "execute", reject_only_begin)
+        with pytest.raises(NativeFenceLabDenied, match="pretransaction"):
+            fenced_claim_local_job(
+                backend, "declined-worker", production_id=run, now=NOW,
+            )
+    assert seen == ["BEGIN IMMEDIATE"]  # no internal retry after rejection
+    assert _count(backend, "shot_job_events", action="claimed") == 0
+    assert _count(backend, "pr31_native_job_fence_events", action="fenced_claim") == 0
+    assert backend.one(
+        "SELECT COUNT(*) AS n FROM shot_jobs WHERE status='pending'"
+    )["n"] == 2
+    # Separate, later unpaid attempt is valid only because no paid intent
+    # and no transaction ever started in the rejected call.
+    token = fenced_claim_local_job(
+        backend, "later-unpaid-worker", production_id=run, now=NOW,
+    )
+    assert token is not None and token.attempt == 1
+    assert _count(backend, "shot_job_events", action="claimed") == 1
