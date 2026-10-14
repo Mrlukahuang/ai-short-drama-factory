@@ -72,6 +72,11 @@ def inspect_tts_recovery(db: Database, task_id: str) -> dict:
             (task_id,),
         ).fetchall()
 
+    return _classify_tts_snapshot(row, events)
+
+
+def _classify_tts_snapshot(row, events) -> dict:
+    """Validate a task and its append-only audit from ONE pinned snapshot."""
     status = row["status"]
     expected = _EXPECTED.get(status)
     if expected is None:
