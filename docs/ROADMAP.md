@@ -46,6 +46,7 @@
 - [x] PR-10k（**已 ACK 的原始 TTS 音频安全恢复，严格离线 Fake**）：对持久 `acknowledged` + 原 Provider Interaction ID、原 held/reconciled 费用记录进行只读取回模拟；重新确认 ID 完全相同、24k mono PCM WAV/时长和最终持久元数据二次验收，成功标记 verified。超时、错 ID、损坏 WAV 一律保持已有 ACK 与预算，不请求第二次付费生成；原 `quarantined`/未知 ACK 不能伪装已确认 ID 进行恢复。只接受确切 Fake 类、没有真实 Google SDK/网络请求或商业发布许可。详见 [PR10_EXISTING_AUDIO_RECOVERY](PR10_EXISTING_AUDIO_RECOVERY.md)。
 - [x] PR-10m（**整集 TTS 只读恢复清单**）：在一个本地 SQLite 读事务中逐个核对已审核 Episode 的所有 `shot_id + cue_index`、持久 TTS 任务、三级预算预留与不可变审计链；任何缺少句子、未知分镜、审计伪造会整集 fail-closed。输出仅脱敏数量及未知 ACK/既有音频回读分类，始终禁止自动重发、发布和生产切换。没有 Google 真实调用。详见 [PR10_EPISODE_RECOVERY_TRIAGE](PR10_EPISODE_RECOVERY_TRIAGE.md)。
 - [x] PR-10n（**原始 Google Interactions GET 的纯离线合同**）：核实官方 `interactions.get(id=...)` 与交互存储保留期；新增仅 exact Fake 可调用的原始持久 ID 单次 GET、已 ACK 状态/预算/审计只读核对、WAV 二次格式校验、重用音频拒绝和全套权限/失效/超时回归。**真实 Google GET、账号/项目归属、权限、真正音频可恢复性仍未实测**，不持久化新结果、不允许付费提交、原 canary 继续硬锁。详见 [PR10_GOOGLE_ORIGINAL_GET_CONTRACT](PR10_GOOGLE_ORIGINAL_GET_CONTRACT.md)。
+- [x] PR-10o（**本地 TTS 原始 Google 项目/身份指纹不可变绑定**）：新建仅离线 `tts_google_origin_scopes` 一任务一行，只有 `prepared` 状态可登记非秘密原始项目/主体引用摘要，数据库触发器禁止覆盖/删除；PR-10n Fake 原 ID GET 进一步要求记录与读取 Fake 的两个上下文指纹严格相符，旧无绑定任务和串号前置阻断。**来源仍只是不可信本地声明，真实凭据/项目身份、Google GET/账单、生产账号权限均未验收**，无联网和付费。详见 [PR10_GOOGLE_ORIGIN_SCOPE](PR10_GOOGLE_ORIGIN_SCOPE.md)。
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
 - [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
 
