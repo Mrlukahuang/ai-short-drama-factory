@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from ..models import EpisodeDraft, ShotDraft
+from ..models import EpisodeDraft, ShotDraft, ApprovedDialogueCue
 
 SCRIPT_SCHEMA_VERSION = "screenplay.zh.v1"
 
@@ -72,6 +72,12 @@ class Screenplay(BaseModel):
                     character_ids=shot.character_ids,
                     scene_id=shot.scene_id,
                     dialogue=[f"{line.speaker_actor_id}: {line.text}" for line in shot.dialogue],
+                    dialogue_cues=[
+                        ApprovedDialogueCue(
+                            speaker_actor_id=line.speaker_actor_id,
+                            text=line.text,
+                        ) for line in shot.dialogue
+                    ],
                     audio_mode="locked_voice" if shot.dialogue else "silent",
                 )
                 for shot in self.shots
