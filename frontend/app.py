@@ -12,6 +12,7 @@ from drama_factory.pipeline.local_story_workflow import (
     LocalStoryWizardError, make_storyboard_template,
     canonical_screenplay_digest, validated_draft_still_matches,
 )
+from visual_editor import show_visual_storyboard
 
 API = os.getenv("DRAMA_FACTORY_API", "http://127.0.0.1:8000")
 st.set_page_config(page_title="AI 短剧工厂", layout="wide")
@@ -245,10 +246,28 @@ with script_tab:
                 if editor_key not in st.session_state:
                     st.caption("点「初始化」建立草稿，再编辑动作、对白、镜头连续性和时长。")
                 else:
-                    raw_script = st.text_area(
-                        "可编辑分镜 JSON（按 Screenplay zh.v1 合同）",
-                        height=420, key=editor_key,
+                    st.caption("推荐在逐镜表单编辑。修改只有点击「应用到草稿」才生效；随后必须重新校验并人工确认。")
+                    revision_key = f"{editor_key}_visual_revision"
+                    applied = show_visual_storyboard(
+                        st.session_state[editor_key], actors, scenes,
+                        form_key=f"shot_form_{chosen_series}_{chosen_bible}_"
+                        f"{st.session_state.get(revision_key, 0)}",
                     )
+                    if applied is not None:
+                        # Update canonical JSON before instantiating its widget.
+                        st.session_state[editor_key] = json.dumps(
+                            applied, ensure_ascii=False, indent=2,
+                        )
+                        st.session_state.pop("wizard_validated", None)
+                        st.session_state[revision_key] = (
+                            st.session_state.get(revision_key, 0) + 1
+                        )
+                        st.rerun()
+                    with st.expander("高级 JSON 编辑（完整 Screenplay 格式）", expanded=False):
+                        raw_script = st.text_area(
+                            "Screenplay zh.v1 源 JSON",
+                            height=380, key=editor_key,
+                        )
                     script_payload = None
                     try:
                         script_payload = json.loads(raw_script)

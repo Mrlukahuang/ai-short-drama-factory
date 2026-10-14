@@ -36,6 +36,10 @@ flowchart TD
   C --> O[审片 + 交付 MP4]
 ```
 
+## 本机逐镜头可视化编辑（PR-07b3）
+
+「分镜与审批」页新增结构化编辑表单：可逐镜更改画面、摄影、时长、角色、场景与连续性，并用表格添加按角色绑定的对白和精确起止秒。修改先应用到草稿，再经过原服务器校验、独立人工确认和两级制作审批。高级 JSON 仍保留。仅限本地离线技术样片，非商业成片。详见 [PR07B3_VISUAL_STORYBOARD_EDITOR](docs/PR07B3_VISUAL_STORYBOARD_EDITOR.md)。
+
 ## 本机原创分镜与制作审批（PR-07b2）
 
 在 Streamlit「分镜与审批」页，可选择剧集现有 Story Bible、演员、场景生成待人工编辑的分镜 JSON；校验通过且确认内容未改变后才提交 Episode，接着创建 Production、分别人工批准剧本及人物，最后转「本机审片」执行 FFmpeg 技术样片渲染。全部是已存在服务端门禁串联，无付费模型调用、无公开部署或商业发布许可。详见 [PR07B2_LOCAL_STORY_WORKFLOW](docs/PR07B2_LOCAL_STORY_WORKFLOW.md)。
