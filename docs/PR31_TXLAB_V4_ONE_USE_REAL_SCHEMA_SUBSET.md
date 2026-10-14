@@ -1,5 +1,14 @@
 # TxLab v4 — 单次真实隔离 Schema 子集兼容性与 fenced 事务验收
 
+## 真实远端一次性验收结果（2026-10-14）
+
+**已实际执行，且授权已消耗，禁止再次派发。** 证据：[GitHub Actions #38505044059](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38505044059)：
+
+- 工作流 `manual-isolated-libsql-txlab-v4.yml`，事件 `workflow_dispatch`、首次 `run_attempt=1`，完成状态 `completed/success`；Job `isolated-v4-one-use` 成功，远端执行的报告确实打印在该 Job 日志，而不仅是离线 CI。
+- 原始远端脱敏 JSON 回执：`mode=isolated_live`，`isolated_v4_lab_verified=true`，`schema_objects_verified=22`，`exact_core_business_table_columns_rehearsed=true`，`synthetic_claim_intent_task_atomic=true`，`synthetic_three_scope_budget_held=true`，`rollback_and_independent_readback_verified=true`，`local_or_serial_epoch_pause_verified=true`，`no_automatic_retry=true`。
+- 原始回执同时明确：`remote_multiworker_concurrency_verified=false`、`server_clock_lease_verified=false`、`network_commit_ack_loss_verified=false`、`full_production_schema_verified=false`、`vendor_billing_verified=false`、`production_database_touched=false`、`production_backend_switched=false`、`live_cutover_permitted=false`、`paid_provider_calls=0`。
+- 防重入结论：**授权已使用**，安全收尾 PR 将手动 Job `if: ${{ false && ... }}` 永久锁止。历史脚本/文档中的运行步骤只留作追溯，绝不能再次操作或绕过。
+
 ## 授权与范围
 
 用户于 2026-10-14 授权 **TxLab v4 单次真实隔离测试**。这只是独立、可丢弃实验库中的一次新 `pr31_v4_*` DDL/DML 演练。沿用此前已经配置的专用 `DRAMA_TXLAB_DATABASE_URL` / `DRAMA_TXLAB_AUTH_TOKEN` GitHub Secrets，并通过 `validate_lab_url` 严格限制主机名必须为 `ai-short-drama-factory-txlab-*.*.turso.io`（或等价该 validator 接受的隔离名），禁止生产库、原数据、Google Drive、外部付费模型。
@@ -17,7 +26,7 @@
 
 成功报告只含安全布尔标记与 Schema 对象数量，不含库 URL、Token、Job ID、资产、SQL 原文、私有业务信息或金额。失败只打印固定 stage/category；因为远端 COMMIT/DDL 可能已经持久化，任何失败都不得重新运行，必须另外只读诊断。
 
-## GitHub Actions 单次运行门禁
+## GitHub Actions 原单次运行门禁（现已消耗并锁止）
 
 新 `.github/workflows/manual-isolated-libsql-txlab-v4.yml` 只能通过 **main 分支的手动 workflow_dispatch** 启动，确认字符串精确为 `RUN_ISOLATED_TXLAB_V4_ONCE`。预防二次写入：
 
@@ -25,9 +34,9 @@
 - 在加载数据库 Secrets 及任何 SQL 前，用 GitHub API 读取该 workflow 既有 **所有**手动派发次数，必须 `total_count == 1` 且首条运行 ID 等于本次。第二次 workflow_dispatch、Re-run job、误操作都不能重走远端实验。
 - 沿用与 v1/v2/v3 相同的 TxLab concurrency group，避免多个独立实验 Workflow 并行争抢同一目标。
 - 确认后仍只运行受 `DRAMA_TXLAB_V4_CONFIRM` 和 `DRAMA_ENABLE_TXLAB_V4_WRITE` 双环境门禁、单独验证隔离域的 Python v4 入口。
-- 已消耗的 v1/v2/v3 Workflow 保持各自 `if: false` 永久硬锁；v4 完成后也必须再 PR 设置 `if: false`，不能用一个新授权来重新打开旧工作流。
+- v1/v2/v3 以及本轮已使用的 v4 Workflow 均保持 `if: false` 永久硬锁；不得复用历史授权进行新写入。
 
-目前 GitHub 连接器仅支持读取 workflow 运行状态及部分 rerun 操作，**不支持创建新的 workflow_dispatch**。因此代码、离线 SDK 测试和 PR 全绿合并到 main 后，需要用户在 GitHub 网站上**亲自仅点击一次** `Run workflow`。测试后本助手可读取 Actions 日志、远端汇总报告，并立即提出锁止 PR、合并、验证 main。
+历史执行说明：GitHub 连接器不支持创建新的 `workflow_dispatch`，2026-10-14 用户已从 GitHub 网页完成首次且唯一的 v4 手动测试。**禁止再次点击或重新运行**。
 
 ## 不覆盖的生产门槛
 
