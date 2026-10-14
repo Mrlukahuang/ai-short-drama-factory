@@ -28,6 +28,8 @@ def build_offline_demo(out: Path, *, source_override: Path | None = None,
     """
     if type(duration_seconds) is not int or duration_seconds not in (6, 60):
         raise ValueError("Offline technical demo supports only 6s or 60s")
+    if type(with_synthetic_audio_mix) is not bool:
+        raise ValueError("Synthetic audio mix flag must be boolean")
     out = Path(out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     with TestClient(create_app(out / "data")) as client:
