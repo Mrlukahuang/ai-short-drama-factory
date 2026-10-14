@@ -229,3 +229,35 @@ def test_offline_demo_rejects_unsupported_duration_before_any_side_effect(tmp_pa
     with pytest.raises(ValueError, match="supports only 6s or 60s"):
         build_offline_demo(root, duration_seconds=invalid)
     assert not root.exists()
+
+
+@requires_ffmpeg
+def test_synthetic_timing_tones_generate_actual_mixed_mp4_without_fake_voice_claims(tmp_path):
+    root = tmp_path / "two-stem-offline-test"
+    doc = build_offline_demo(
+        root, duration_seconds=6, with_synthetic_audio_mix=True,
+    )
+    assert (root / "demo.mp4").is_file()
+    assert (root / "manifest.json").is_file()
+    assert doc["synthetic_test_tone_stems"] is True
+    assert doc["local_dialogue_audio_supplied"] is True
+    assert doc["local_music_audio_supplied"] is True
+    assert doc["voice_license_independently_verified"] is False
+    assert doc["spoken_dialogue_generated"] is False
+    assert doc["paid_api_calls"] == 0
+    assert doc["offline_audio_mix"]["real_tts_generated"] is False
+    assert doc["offline_audio_mix"]["locally_supplied_dialogue"] is True
+    assert doc["offline_audio_mix"]["locally_supplied_music"] is True
+    assert doc["technical_qa"]["technical_decode_passed"] is True
+    assert doc["technical_qa"]["publish_approved"] is False
+    assert doc["technical_qa"]["production_ready"] is False
+    assert inspect_mp4(root / "demo.mp4", 6)["subtitle_codec"] == "mov_text"
+    assert json.loads((root / "manifest.json").read_text("utf-8"))["synthetic_test_tone_stems"] is True
+
+
+@pytest.mark.parametrize("bad", ["true", None, 1, 0, []])
+def test_synthetic_audio_demo_flag_must_be_explicit_boolean_before_io(tmp_path, bad):
+    root = tmp_path / "never-created-by-flag"
+    with pytest.raises(ValueError, match="audio mix flag"):
+        build_offline_demo(root, with_synthetic_audio_mix=bad)
+    assert not root.exists()
