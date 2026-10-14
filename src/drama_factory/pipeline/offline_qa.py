@@ -59,6 +59,54 @@ def _validate_srt(sidecar: Path, durations: list[int]) -> None:
         cursor = finish
 
 
+def _validate_approved_subtitle_schedule(
+    sidecar: Path, schedule: list[dict], total_duration: int,
+) -> int:
+    """Verify each SRT cue timestamp and exact text against a bounded manifest.
+
+    Gaps are legal (intended dialogue pauses); overlaps, omitted text,
+    missing timestamps and altered approved text hashes are not.
+    """
+    if type(schedule) is not list or not 1 <= len(schedule) <= _MAX_SHOTS * 8:
+        raise OfflineQAError("Invalid approved subtitle cue list")
+    try:
+        if sidecar.is_symlink() or not sidecar.is_file() or sidecar.stat().st_size > 128 * 1024:
+            raise OfflineQAError("Missing or unsafe subtitle sidecar")
+        source = sidecar.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeError):
+        raise OfflineQAError("Unreadable subtitle sidecar") from None
+    cues = re.split(r"\r?\n\s*\r?\n", source.strip())
+    if len(cues) != len(schedule):
+        raise OfflineQAError("Subtitle cue count mismatch")
+    previous_end = 0
+    for ordinal, (item, raw) in enumerate(zip(schedule, cues, strict=True), start=1):
+        if type(item) is not dict:
+            raise OfflineQAError("Invalid approved subtitle metadata")
+        start, end, digest = (
+            item.get("start_second"), item.get("end_second"),
+            item.get("text_sha256"),
+        )
+        if (
+            type(start) is not int or type(end) is not int
+            or start < previous_end or end <= start or end > total_duration
+            or type(digest) is not str or _DIGEST.fullmatch(digest) is None
+        ):
+            raise OfflineQAError("Subtitle gaps, overlaps or missing text")
+        lines = raw.splitlines()
+        if len(lines) < 3 or lines[0].strip() != str(ordinal):
+            raise OfflineQAError("Subtitle cue numbering invalid")
+        match = _TIMING.fullmatch(lines[1].strip())
+        if match is None:
+            raise OfflineQAError("Subtitle timing line invalid")
+        if _stamp(match.group(1)) != start * 1000 or _stamp(match.group(2)) != end * 1000:
+            raise OfflineQAError("Subtitle gaps, overlaps or missing text")
+        visible_text = " ".join(x.strip() for x in lines[2:] if x.strip())
+        if not visible_text or hashlib.sha256(visible_text.encode("utf-8")).hexdigest() != digest:
+            raise OfflineQAError("Approved subtitle text hash mismatch")
+        previous_end = end
+    return len(schedule)
+
+
 def _decode_all_streams(path: Path) -> None:
     try:
         subprocess.run(
@@ -141,7 +189,15 @@ def inspect_offline_delivery(manifest: dict, media_path: Path, *,
         info = inspect_mp4(file, total)
         if info["subtitle_codec"] != "mov_text":
             raise OfflineQAError("Expected mov_text subtitle track")
-        _validate_srt(file.parent / "captions.srt", durations)
+        if "subtitle_schedule" in manifest:
+            subtitles_checked = _validate_approved_subtitle_schedule(
+                file.parent / "captions.srt", manifest["subtitle_schedule"], total,
+            )
+        else:
+            # Historical/legacy manifest inspection remains supported; only
+            # newly generated deliveries claim approved per-line schedule QA.
+            _validate_srt(file.parent / "captions.srt", durations)
+            subtitles_checked = len(durations)
         _decode_all_streams(file)
         placeholder = any(x["media_source"] == "placeholder" for x in shots)
         if type(manifest.get("placeholder_visuals")) is not bool or manifest["placeholder_visuals"] != placeholder:
@@ -195,6 +251,8 @@ def inspect_offline_delivery(manifest: dict, media_path: Path, *,
         "kind": "offline_technical_preview_qa",
         "technical_decode_passed": True,
         "subtitle_sidecar_timing_passed": True,
+        "approved_subtitle_schedule_verified": "subtitle_schedule" in manifest,
+        "subtitle_cues_checked": subtitles_checked,
         "muxed_subtitle_track_present": True,
         "video_sha256_matches_manifest": True,
         "portrait_h264_aac_verified": True,

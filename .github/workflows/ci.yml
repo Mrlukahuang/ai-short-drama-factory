@@ -98,7 +98,7 @@ jobs:
         env:
           DRAMA_FACTORY_OFFLINE: '1'
         run: |
-          pytest -q tests/test_offline_render.py tests/test_offline_qa.py tests/test_offline_audio_mix.py tests/test_dialogue_audio_provider.py tests/test_offline_dialogue_timeline.py tests/test_offline_cast_timeline.py tests/test_offline_cue_timing.py tests/test_media_ingest.py tests/test_google_omni_video.py tests/test_offline_workers.py tests/test_google_recovery.py tests/test_artifact_storage.py tests/test_cloud_objects.py tests/test_cloud_canary.py tests/test_drive_objects.py tests/test_drive_canary.py tests/test_turso_receipts.py tests/test_turso_canary.py -rs
+          pytest -q tests/test_offline_render.py tests/test_offline_qa.py tests/test_offline_audio_mix.py tests/test_dialogue_audio_provider.py tests/test_offline_dialogue_timeline.py tests/test_offline_cast_timeline.py tests/test_offline_cue_timing.py tests/test_offline_subtitle_alignment.py tests/test_media_ingest.py tests/test_google_omni_video.py tests/test_offline_workers.py tests/test_google_recovery.py tests/test_artifact_storage.py tests/test_cloud_objects.py tests/test_cloud_canary.py tests/test_drive_objects.py tests/test_drive_canary.py tests/test_turso_receipts.py tests/test_turso_canary.py -rs
           python -c "import shutil; assert shutil.which('ffmpeg') and shutil.which('ffprobe')"
       - name: Create playable 6-second MP4 (no API keys)
         env:
@@ -265,6 +265,11 @@ jobs:
           assert data["fake_cast_timeline"] is True
           assert data["fake_cast_actors"] == 2
           assert data["fake_cast_cues"] == 3
+          assert [(s["start_second"], s["end_second"]) for s in data["subtitle_schedule"]] == [
+              (1,10), (11,19), (22,39), (40,60)
+          ]
+          assert data["technical_qa"]["approved_subtitle_schedule_verified"] is True
+          assert data["technical_qa"]["subtitle_cues_checked"] == 4
           # Independent 48 kHz source PCM check: final 60s includes
           # reviewer-approved silence at onset, between lines and shot 3.
           import hashlib, wave
