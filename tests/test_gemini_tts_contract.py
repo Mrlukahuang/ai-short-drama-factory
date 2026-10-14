@@ -147,3 +147,32 @@ def test_unary_wav_response_correctly_parsed_and_fails_closed_on_malformed_audio
     for b64 in (_fake_gemini_unary_wav(2.0), _fake_gemini_unary_wav(1.0, 8000)):
         with pytest.raises(GeminiTtsContractDenied):
             inspect_gemini_tts_unary_response(b64, 1)
+
+@pytest.mark.skipif(
+    __import__("shutil").which("ffmpeg") is None
+    or __import__("shutil").which("ffprobe") is None,
+    reason="Dedicated offline-video CI has both FFmpeg binaries",
+)
+def test_offline_mock_sdk_wav_format_feeds_real_approved_mp4_with_no_tts_claim(client, tmp_path):
+    from drama_factory.pipeline.offline_render import render_approved_preview
+    db, spec, _, _ = _approved_spec(client)
+    plan = prepare_gemini_tts_request(
+        db, spec, GeminiTtsPreparation(consent_reviewed_by_operator=True),
+    )
+    # This is NOT a real SDK response: the provider remains intentionally
+    # disabled. It tests future 24k WAV output format via real FFmpeg.
+    fake_sdk_response = _fake_gemini_unary_wav(0.75)
+    validated = inspect_gemini_tts_unary_response(fake_sdk_response, plan.approved_slot_seconds)
+    local = tmp_path / "fake-format-only.wav"
+    local.write_bytes(validated.wav_bytes)
+    manifest = render_approved_preview(
+        db, spec.production_id, tmp_path / "video",
+        dialogue_audio=local, operator_confirmed_audio_rights=True,
+    )
+    assert manifest["offline_audio_mix"]["locally_supplied_dialogue"] is True
+    assert manifest["technical_qa"]["technical_decode_passed"] is True
+    assert manifest["technical_qa"]["muxed_subtitle_content_verified"] is True
+    assert manifest["voice_license_independently_verified"] is False
+    assert manifest["spoken_dialogue_generated"] is False
+    assert manifest["paid_api_calls"] == 0
+    assert manifest["technical_qa"]["publish_approved"] is False
