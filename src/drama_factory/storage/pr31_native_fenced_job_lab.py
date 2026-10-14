@@ -133,7 +133,17 @@ def fenced_claim_local_job(
     instant = point.isoformat()
     expiry = (point + timedelta(seconds=lease_seconds)).isoformat()
     with db.connection() as conn:
-        conn.execute("BEGIN IMMEDIATE")
+        # A *pre-transaction* native libSQL lock collision can reject one
+        # racing worker before any CAS, audit or provider intent exists.
+        # Recognize only this exact known SDK busy result at BEGIN. Never
+        # retry or suppress a later SQL/COMMIT error: its outcome may be
+        # durable but unknown to the caller.
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+        except ValueError as exc:
+            if str(exc) == "database is locked":
+                raise NativeFenceLabDenied("Offline pretransaction write lock unavailable") from None
+            raise
         epoch, state = _gate(conn)
         if state != "running":
             raise NativeFenceLabDenied("Offline writer gate paused")
