@@ -18,7 +18,7 @@ from drama_factory.storage.pr31_native_fenced_job_lab import (
 from test_libsql_sdk_local_ledger_adapter import _backend, _production
 
 libsql = pytest.importorskip("libsql")
-NOW = datetime(2026, 10, 14, 3, tzinfo=timezone.utc)
+NOW = datetime.now(timezone.utc)
 
 
 def _ready_lab(client):
@@ -75,11 +75,11 @@ def test_reused_worker_name_cannot_commit_stale_attempt_after_manual_retry(clien
     backend, _, run = _ready_lab(client)
     old = fenced_claim_local_job(backend, "same-worker", production_id=run, now=NOW)
     assert old and old.attempt == 1
-    fenced_fail_unsubmitted_local_job(backend, old, now=NOW)
-    assert restore_failed_job(backend, old.job_id, operator_reviewed=True)["status"] == "pending"
-    # Second pending job may be older: scope this repeat by parking it as leased.
+    # Occupy the other pending job before retrying, so only the first is ready.
     other = fenced_claim_local_job(backend, "different-worker", production_id=run, now=NOW)
     assert other and other.job_id != old.job_id
+    fenced_fail_unsubmitted_local_job(backend, old, now=NOW)
+    assert restore_failed_job(backend, old.job_id, operator_reviewed=True)["status"] == "pending"
     current = fenced_claim_local_job(backend, "same-worker", production_id=run, now=NOW)
     assert current and current.job_id == old.job_id
     assert current.attempt == 2 and current.worker_id == old.worker_id
@@ -129,9 +129,9 @@ def test_expiry_and_paid_intent_never_allow_local_fenced_failure(client):
     for scope, key in (("column", column_id), ("series", series), ("provider", "google")):
         configure_policy(backend, scope, key, daily_limit_usd="2.00", max_active_jobs=2)
     # Use current day for both reservation and intent; fixed NOW is only for lease fixture.
-    reservation = reserve_job_budget(backend, second.job_id, estimated_charge_usd="0.40")
+    reservation = reserve_job_budget(backend, second.job_id, estimated_charge_usd="0.40", now=NOW)
     assert reservation["status"] == "held"
-    record_submission_intent(backend, second.job_id, "owner-2")
+    record_submission_intent(backend, second.job_id, "owner-2", now=NOW)
     with pytest.raises(NativeFenceLabDenied, match="safely unsubmitted"):
         fenced_fail_unsubmitted_local_job(backend, second, now=NOW)
     assert backend.one(
