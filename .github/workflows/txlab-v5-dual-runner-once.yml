@@ -1,4 +1,4 @@
-name: TxLab v5 — isolated two-Runner ONE authorized merge activation
+name: TxLab v5 — CONSUMED (no more remote writes)
 
 on:
   push:
@@ -14,13 +14,14 @@ concurrency:
   group: drama-isolated-libsql-txlab-single-run
   cancel-in-progress: false
 
-# ONE reviewed, cost-bounded activation is allowed on the uniquely marked
-# merge commit only. No dispatch, rerun or other PR can reach Turso. After
-# this single test, immediately hard-lock via follow-on safety PR.
+# CONSUMED: single write-bearing run #38509779430 reached isolated Turso.
+# Actor A denied, actor B accepted, seal succeeded; read-only observer failed.
+# DO NOT RERUN, including re-running failed observer or retrying ambiguous
+# writes. Changing this lock requires separately reviewed fresh permission.
 jobs:
   setup:
     name: v5-setup
-    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR31-V5-EXECUTE-ONCE-20261014') }}
+    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR31-V5-EXECUTE-ONCE-20261014') }}
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:

@@ -1,13 +1,14 @@
-"""V5 reviewed activation ONLY on one marker-bound main merge."""
+"""V5 consumed one-time authorization MUST remain permanently hard locked."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_v5_activation_requires_unique_main_merge_marker_first_attempt_and_five_small_jobs():
+def test_consumed_v5_is_hard_locked_alongside_old_txlab_versions():
     content = (ROOT / ".github/workflows/txlab-v5-dual-runner-once.yml").read_text("utf-8")
-    assert "if: ${{ github.ref == 'refs/heads/main'" in content
-    assert "false && github.ref" not in content
+    assert "if: ${{ false && github.ref == 'refs/heads/main'" in content
+    assert "CONSUMED" in content
+    assert "38509779430" in content
     assert "contains(github.event.head_commit.message, 'PR31-V5-EXECUTE-ONCE-20261014')" in content
     assert "head_sha ==" in content
     assert "workflow_dispatch" not in content
