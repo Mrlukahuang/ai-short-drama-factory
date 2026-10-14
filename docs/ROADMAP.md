@@ -38,6 +38,7 @@
 - [x] PR-10c（多角色**离线测试音**）：人工审核的 Screenplay 将有序 `dialogue_cues`（actor_id + 原台词）同步存到 EpisodeDraft，防止丢失说话人身份；新多角色 Fake PCM 时间线根据演员绑定的同剧集声音资产、版本/同意记录、精确台词和句序逐条检查，再按整数秒槽拼接每镜多句、无声镜头静音与 60 秒真实 FFmpeg MP4，继续使用全片 QA。多声线文本不是口型同步或真实 TTS，不能自动商用发行。详见 [PR10_MULTI_ACTOR_FAKE_TIMELINE](PR10_MULTI_ACTOR_FAKE_TIMELINE.md)。
 - [x] PR-10d（**导演审核精确对白时槽，离线 PCM**）：为多角色 ShotDraft 的有序台词加入可选 `start_second/end_second` 整秒起止，审批和持久 EpisodeDraft 双重拒绝部分填写、时间重叠、越界或乱序；未填写的旧剧本保留原平均分配。新 Fake 多角色时间线遵循批准的开始/结束，实际插入 PCM 静音空档并把时槽纳入 SHA256 缓存，CI 对 60 秒样片逐帧检查多段静音、有声片段、整轨长度和最终 MP4 QA。仍非真实 TTS、毫秒级 lip-sync 或发行授权。详见 [PR10_APPROVED_CUE_TIMING](PR10_APPROVED_CUE_TIMING.md)。
 - [x] PR-10e（**Gemini 3.8 TTS 官方格式离线合同，真实提交保持关闭**）：根据 Google 当前 Interactions API 规范准备仅内存中的单角色已批准台词/声线请求、SHA256 幂等指纹和 <=2 USD 自我承诺（非供应商硬上限）；校验模拟 API 的 Base64 unary 24kHz mono 16-bit RIFF WAV 格式及时长，走既有 FFmpeg 混音/字幕 QA。**从未实际调用 Google TTS**，`GeminiDialogueAudioProvider` 仍硬拒绝；正式计费前必须补真实提交与任务恢复/账本、声线许可。详见 [PR10_GEMINI_TTS_DRY_RUN](PR10_GEMINI_TTS_DRY_RUN.md)。
+- [ ] PR-10f（**一次性真实单句 Gemini TTS 小额实测**，待 Actions 回执）：仅允许合并本 PR 后一次 `gemini-3.8-flash-lite-tts` 原创虚构短句预设 Kore 声音请求，不含任何真实版权/声纹资产；公开费率预计远低于 USD 2，保留供应商硬上限/最终计费未验证标签。新工作流有 SHA 历史、main、第一次尝试、唯一标记门禁，成功/失败/密钥缺失均不得重跑；运行后需立刻安全锁止并记录真实结果。详见 [PR10_ONE_USE_TTS_CANARY](PR10_ONE_USE_TTS_CANARY.md)。
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
 - [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
 
