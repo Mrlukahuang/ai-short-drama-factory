@@ -6,13 +6,94 @@ from __future__ import annotations
 
 import json
 
+import altair as alt
 import pandas as pd
 import streamlit as st
+
+from drama_factory.pipeline.director_timeline import (
+    DirectorTimelineError, director_timeline,
+)
 
 from drama_factory.pipeline.local_story_workflow import (
     LocalStoryWizardError, apply_visual_storyboard,
 )
 from drama_factory.pipeline.screenplay import Screenplay
+
+
+
+def show_director_timeline(draft: dict, actors: dict[str, str],
+                           scenes: dict[str, str]) -> None:
+    """Read-only visualization of the last APPLIED draft, not form edits."""
+    with st.expander("导演时间轴 · 镜头/对白/连续性（只读）", expanded=True):
+        st.caption("仅显示已应用的草稿。以下只是文本和时间检查提示，不代表导演批准、画面无穿帮或发布许可。")
+        try:
+            timeline = director_timeline(draft, actor_names=actors, scene_names=scenes)
+        except DirectorTimelineError:
+            st.info("当前草稿不符合本机时间轴预览限制（最多 12 镜、90 秒）。")
+            return
+        st.caption(
+            f'总时长 {timeline["duration_seconds"]} 秒 · {timeline["shot_count"]} 镜 · '
+            f'{len(timeline["dialogue_cues"])} 句对白 · '
+            f'{timeline["review_prompt_count"]} 条人工复查线索'
+        )
+        shots = pd.DataFrame(timeline["shots"])
+        labels = [s["shot_label"] for s in timeline["shots"]]
+        shot_chart = alt.Chart(shots).mark_bar(size=18).encode(
+            x=alt.X("start_second:Q", title="全片时间（秒）",
+                    scale=alt.Scale(domain=[0, timeline["duration_seconds"]])),
+            x2="end_second:Q",
+            y=alt.Y("shot_label:N", sort=labels, title="镜头"),
+            color=alt.Color("scene_label:N", title="场景"),
+            tooltip=["shot_label:N", "start_second:Q", "end_second:Q",
+                     "scene_label:N", "cast_label:N", "camera:N"],
+        )
+        st.altair_chart(shot_chart, use_container_width=True)
+        st.dataframe(
+            shots[["shot_label", "start_second", "end_second", "cast_label",
+                   "scene_label", "camera", "continuity_start", "continuity_end"]
+            ].rename(columns={
+                "shot_label": "镜头", "start_second": "开始秒", "end_second": "结束秒",
+                "cast_label": "出镜演员", "scene_label": "场景", "camera": "摄影",
+                "continuity_start": "开镜状态", "continuity_end": "收镜状态",
+            }), use_container_width=True, hide_index=True,
+        )
+        if timeline["dialogue_cues"]:
+            cues = pd.DataFrame(timeline["dialogue_cues"])
+            cue_chart = alt.Chart(cues).mark_bar(size=12).encode(
+                x=alt.X("start_second:Q", title="全片对白时间（秒）"),
+                x2="end_second:Q",
+                y=alt.Y("shot_label:N", sort=labels, title="镜头"),
+                color=alt.Color("speaker_label:N", title="说话角色"),
+                tooltip=["shot_label:N", "speaker_label:N", "text:N",
+                         "timing_source:N", "start_second:Q", "end_second:Q"],
+            )
+            st.altair_chart(cue_chart, use_container_width=True)
+            st.dataframe(
+                cues[["shot_label", "speaker_label", "text", "start_second",
+                      "end_second", "timing_source"]].rename(columns={
+                    "shot_label": "镜头", "speaker_label": "说话人", "text": "对白",
+                    "start_second": "开始秒", "end_second": "结束秒",
+                    "timing_source": "时槽来源",
+                }), use_container_width=True, hide_index=True,
+            )
+            if any(c["timing_source"].startswith("离线")
+                   for c in timeline["dialogue_cues"]):
+                st.info("未手动指定的对白时间，仅按本机合成规则均分；并非导演批准的配音时槽。")
+        if timeline["review_prompts"]:
+            st.warning(
+                f'{timeline["review_prompt_count"]} 条跨镜连续性或对白时槽提示，请人工核对。'
+                "正常切镜也可能触发提示。"
+            )
+            st.dataframe(
+                pd.DataFrame(timeline["review_prompts"])[
+                    ["boundary_second", "from_shot", "to_shot", "message"]
+                ].rename(columns={
+                    "boundary_second": "位置（秒）", "from_shot": "前镜头",
+                    "to_shot": "后镜头", "message": "人工复查线索",
+                }), hide_index=True, use_container_width=True,
+            )
+        else:
+            st.caption("无规则型提示；这不等于通过人物造型、镜头轴线、版权或发布审查。")
 
 
 def show_visual_storyboard(raw_json: str, actor_names: dict[str, str],
@@ -24,6 +105,7 @@ def show_visual_storyboard(raw_json: str, actor_names: dict[str, str],
     except (ValueError, TypeError):
         st.warning("当前 JSON 未通过结构校验；请在高级编辑器里修复再使用逐镜表单。")
         return None
+    show_director_timeline(draft, actor_names, scene_names)
     labels = {aid: f"{name} · {aid[-6:]}" for aid, name in actor_names.items()}
     reverse_labels = {label: aid for aid, label in labels.items()}
     with st.expander("逐镜头可视化编辑（推荐）", expanded=True):
