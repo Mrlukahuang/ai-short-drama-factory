@@ -82,7 +82,7 @@
   - [x] PR-31b2n（仅离线真实 SDK 子集）：从**现有 db.SCHEMA** 中提取九张实际业务表、六个索引、四个审计触发器，在真正 `libsql==0.1.11` 本地 SDK 中逐条 CREATE 并执行真实业务字段的三步核销回滚和外键/唯一/不可变事件测试。明确证实 SDK `fetchone()` 的 tuple 与现有 `row["status"]` 不兼容，必须先有独立 Row 适配器；**无远端真实验证、生产迁移仍关闭**。详见 [PR31_REAL_LEDGER_LIBSQL_SDK_CONTRACT](PR31_REAL_LEDGER_LIBSQL_SDK_CONTRACT.md)。
   - [x] PR-31b2o0（离线 native libSQL Row/Transaction 适配器）：对真实 SDK tuple 结果按 Cursor description 转换为支持列名/整数的只读 Mapping，重复同名列或非测试标记的数据库直接拒绝；在真实 SDK 本地测试库里复用现有镜头领取、三级预算预留、提交意图及费用核销业务函数并注入审计故障，验证回滚；**不改生产 Worker、不连接远端**。详见 [PR31_LIBSQL_LOCAL_ROW_ADAPTER](PR31_LIBSQL_LOCAL_ROW_ADAPTER.md)。
   - [x] PR-31b2o1（仅真实 SDK 本地试验）：在专用临时数据库运行已有镜头 Worker 8 线程争抢、两 Worker 三级预算上限 0.60 美元竞争，以及实际 SDK COMMIT 已持久化但回执丢失的模拟。核实审计/幂等与禁止自动重试，未知异常不掩盖。**仍不是远端 Turso/跨 Runner 验收**。详见 [PR31_NATIVE_SDK_LOCAL_CONCURRENCY](PR31_NATIVE_SDK_LOCAL_CONCURRENCY.md)。
-  - [ ] PR-31b2o2：离线生产 Worker 的故障恢复/只读对账接口与跨 Runner fencing 设计；未来真实云端测试重新单次授权。
+  - [x] PR-31b2o2（仅离线合同）：为真实 native libSQL SDK 的**隔离标记本地账本**新增 SELECT-only 脱敏恢复摘要（intent / held / reconciled / stale lease / 审计一致性）、ACK 丢失和审计失败测试，以及 attempt + worker + lease + epoch 的纯 fencing 预检查；不改变正式 Worker、无远端认证或付费授权。同期硬锁止已消耗的 v2 TxLab 手动写入入口；v1/v3 同样保持锁止。跨 Runner 的原子 CAS/生产级真实验收**尚未实现**，需新单次授权。详见 [PR31_OFFLINE_RECOVERY_AND_FENCING](PR31_OFFLINE_RECOVERY_AND_FENCING.md)。
   - [x] PR-31c0：离线 SQLite 快照→恢复至新的本地文件→完整性、结构和 SHA-256 逻辑对账；仅 Fake/本地 CI，禁止真实生产输入或云端上传。
   - [x] PR-31c1：离线三方（源库、备份、恢复副本）完整性/未结状态证据审查与源库变更检测；拟定 Durable Writer Fence、权限与回滚的明确验收契约。**没有真正停写或开放切换**。
   - [x] PR-31c2：隔离本地 SQLite 模拟持久 fencing epoch，12 个 Fake Worker 与暂停并发、事件失败回滚及旧令牌失效测试。**仅本地实验，不控制真实 Worker**。

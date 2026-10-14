@@ -18,10 +18,10 @@ concurrency:
 
 jobs:
   txlab-v2-one-use:
-    # New user approval granted for ONE v2 run only. Rerun attempts are
-    # blocked here and a preflight GitHub run-history check blocks new
-    # dispatches after this workflow has been used once.
-    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V2_ONE_TIME' }}
+    # Authorized v2 test ran as Actions #38380555425. Authorization CONSUMED.
+    # Hard lock in addition to the historical single-use preflight. Never
+    # re-enable without a new, separately reviewed and approved change.
+    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_ISOLATED_TXLAB_V2_ONE_TIME' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
