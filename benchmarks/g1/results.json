@@ -1,0 +1,111 @@
+{
+  "schema": "g1.qa-results.v1",
+  "stage": "G1",
+  "req": "R1.6",
+  "real_benchmark_completed": false,
+  "transcription_api_calls": 0,
+  "video_generation_calls": 0,
+  "paid_api_cost_usd": "0",
+  "note": "Offline metrics only; Gemini 3.5 transcription and real AI video provenance NOT verified.",
+  "results": [
+    {
+      "shot_id": "G1-S1",
+      "provider_model": "gemini-omni-1.1-flash",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    },
+    {
+      "shot_id": "G1-S1",
+      "provider_model": "doubao-seedance-2-5-260628",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    },
+    {
+      "shot_id": "G1-S1",
+      "provider_model": "kling-v3-omni",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    },
+    {
+      "shot_id": "G1-S2",
+      "provider_model": "gemini-omni-1.1-flash",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    },
+    {
+      "shot_id": "G1-S2",
+      "provider_model": "doubao-seedance-2-5-260628",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    },
+    {
+      "shot_id": "G1-S2",
+      "provider_model": "kling-v3-omni",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    },
+    {
+      "shot_id": "G1-S3",
+      "provider_model": "gemini-omni-1.1-flash",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    },
+    {
+      "shot_id": "G1-S3",
+      "provider_model": "doubao-seedance-2-5-260628",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    },
+    {
+      "shot_id": "G1-S3",
+      "provider_model": "kling-v3-omni",
+      "technical_qa": null,
+      "chinese_character_metrics": null,
+      "transcript_source": null,
+      "transcription_model_verified": null,
+      "real_video_origin_verified": false,
+      "real_benchmark_evaluation_verified": false,
+      "status": "pending_real_media"
+    }
+  ]
+}
