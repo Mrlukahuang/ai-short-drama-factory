@@ -1,0 +1,60 @@
+name: TxLab v5 — one SELECT-only diagnostic on existing isolated synthetic tables
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/txlab-v5-readonly-diagnostic-once.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: drama-isolated-libsql-txlab-single-run
+  cancel-in-progress: false
+
+jobs:
+  only-read-v5:
+    name: v5-select-only-diagnostic
+    # Explicit under-$2 blanket testing authorization. This is NOT a retry
+    # of consumed v5 writer workflow and NEVER executes a DML statement.
+    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR31-V5-READONLY-DIAG-20261014') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: One-time merge provenance before any database Secrets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/main" || "$GITHUB_RUN_ATTEMPT" != "1" ]]; then
+            echo "::error::New original main merge only"
+            exit 1
+          fi
+          if ! git show -s --format=%B "$GITHUB_SHA" | grep -Fq "PR31-V5-READONLY-DIAG-20261014"; then
+            echo "::error::Unique read-only diagnostic marker absent"
+            exit 1
+          fi
+          history=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/txlab-v5-readonly-diagnostic-once.yml/runs?event=push&per_page=100" \
+            --jq ".workflow_runs | map(select(.head_sha == \"$GITHUB_SHA\")) | length")
+          if [[ "$history" != "1" ]]; then
+            echo "::error::One-run read-only history guard blocked"
+            exit 1
+          fi
+      - run: python -m pip install -e '.[test,turso-libsql]' 'libsql==0.1.11'
+      - name: Fixed SELECT/PRAGMA only; sanitized stages and no DML
+        env:
+          DRAMA_TXLAB_DATABASE_URL: ${{ secrets.DRAMA_TXLAB_DATABASE_URL }}
+          DRAMA_TXLAB_AUTH_TOKEN: ${{ secrets.DRAMA_TXLAB_AUTH_TOKEN }}
+          DRAMA_V5_READONLY_CONFIRM: RUN_V5_SELECT_ONLY_DIAG_ONCE
+          DRAMA_V5_DIAG_MAX_USD: '2.00'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m drama_factory.storage.pr31_v5_readonly_diagnostic
