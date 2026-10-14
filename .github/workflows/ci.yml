@@ -98,7 +98,7 @@ jobs:
         env:
           DRAMA_FACTORY_OFFLINE: '1'
         run: |
-          pytest -q tests/test_offline_render.py tests/test_offline_qa.py tests/test_offline_audio_mix.py tests/test_dialogue_audio_provider.py tests/test_offline_dialogue_timeline.py tests/test_offline_cast_timeline.py tests/test_offline_cue_timing.py tests/test_offline_subtitle_alignment.py tests/test_media_ingest.py tests/test_google_omni_video.py tests/test_offline_workers.py tests/test_google_recovery.py tests/test_artifact_storage.py tests/test_cloud_objects.py tests/test_cloud_canary.py tests/test_drive_objects.py tests/test_drive_canary.py tests/test_turso_receipts.py tests/test_turso_canary.py -rs
+          pytest -q tests/test_offline_render.py tests/test_offline_qa.py tests/test_offline_audio_mix.py tests/test_dialogue_audio_provider.py tests/test_offline_dialogue_timeline.py tests/test_offline_cast_timeline.py tests/test_offline_cue_timing.py tests/test_offline_subtitle_alignment.py tests/test_muxed_subtitle_attestation.py tests/test_media_ingest.py tests/test_google_omni_video.py tests/test_offline_workers.py tests/test_google_recovery.py tests/test_artifact_storage.py tests/test_cloud_objects.py tests/test_cloud_canary.py tests/test_drive_objects.py tests/test_drive_canary.py tests/test_turso_receipts.py tests/test_turso_canary.py -rs
           python -c "import shutil; assert shutil.which('ffmpeg') and shutil.which('ffprobe')"
       - name: Create playable 6-second MP4 (no API keys)
         env:
@@ -140,6 +140,8 @@ jobs:
           assert doc["media"]["subtitle_codec"] == "mov_text"
           assert doc["technical_qa"]["technical_decode_passed"] is True
           assert doc["technical_qa"]["subtitle_sidecar_timing_passed"] is True
+          assert doc["technical_qa"]["muxed_subtitle_content_verified"] is True
+          assert doc["technical_qa"]["muxed_subtitle_cues_checked"] == len(doc["subtitle_schedule"])
           assert doc["technical_qa"]["shots_checked"] == 3
           assert doc["technical_qa"]["operator_review_required"] is True
           assert doc["technical_qa"]["publish_approved"] is False
@@ -191,6 +193,8 @@ jobs:
           assert doc["offline_audio_mix"]["subtitle_track_preserved"] is True
           assert doc["technical_qa"]["technical_decode_passed"] is True
           assert doc["technical_qa"]["subtitle_sidecar_timing_passed"] is True
+          assert doc["technical_qa"]["muxed_subtitle_content_verified"] is True
+          assert doc["technical_qa"]["muxed_subtitle_cues_checked"] == len(doc["subtitle_schedule"])
           assert doc["technical_qa"]["publish_approved"] is False
           assert doc["technical_qa"]["production_ready"] is False
           assert doc["technical_qa"]["genuine_ai_video_verified"] is False
@@ -235,6 +239,8 @@ jobs:
           assert doc["media"]["subtitle_codec"] == "mov_text"
           assert doc["technical_qa"]["technical_decode_passed"] is True
           assert doc["technical_qa"]["subtitle_sidecar_timing_passed"] is True
+          assert doc["technical_qa"]["muxed_subtitle_content_verified"] is True
+          assert doc["technical_qa"]["muxed_subtitle_cues_checked"] == len(doc["subtitle_schedule"])
           assert doc["technical_qa"]["publish_approved"] is False
           assert doc["technical_qa"]["production_ready"] is False
           assert doc["paid_api_calls"] == 0
@@ -300,6 +306,8 @@ jobs:
           assert data["offline_audio_mix"]["locally_supplied_music"] is True
           assert data["technical_qa"]["technical_decode_passed"] is True
           assert data["technical_qa"]["subtitle_sidecar_timing_passed"] is True
+          assert data["technical_qa"]["muxed_subtitle_content_verified"] is True
+          assert data["technical_qa"]["muxed_subtitle_cues_checked"] == len(data["subtitle_schedule"])
           assert data["technical_qa"]["publish_approved"] is False
           assert data["technical_qa"]["production_ready"] is False
           assert data["voice_license_independently_verified"] is False
