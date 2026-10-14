@@ -36,6 +36,10 @@ flowchart TD
   C --> O[审片 + 交付 MP4]
 ```
 
+## 本机原创分镜与制作审批（PR-07b2）
+
+在 Streamlit「分镜与审批」页，可选择剧集现有 Story Bible、演员、场景生成待人工编辑的分镜 JSON；校验通过且确认内容未改变后才提交 Episode，接着创建 Production、分别人工批准剧本及人物，最后转「本机审片」执行 FFmpeg 技术样片渲染。全部是已存在服务端门禁串联，无付费模型调用、无公开部署或商业发布许可。详见 [PR07B2_LOCAL_STORY_WORKFLOW](docs/PR07B2_LOCAL_STORY_WORKFLOW.md)。
+
 ## 本机离线审片（PR-07b1）
 
 Streamlit 已增加「本机审片」页：在本地 API 绑定同一数据库且完成剧本/角色审批后，可直接渲染、核验并播放真实可解码的 MP4 技术预览，查看镜头和占位画面状态。播放前重新执行 SHA256、缓存、字幕和 FFmpeg 完整技术 QA。所有影音为本地合成/用户明确提供的片段，**不等于真实 AI 影视成品或发行许可**。只允许 `127.0.0.1` 运行，无鉴权，不对公网开放。操作方法见 [PR07B1_LOCAL_OFFLINE_REVIEW](docs/PR07B1_LOCAL_OFFLINE_REVIEW.md)。
