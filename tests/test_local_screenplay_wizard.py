@@ -12,7 +12,7 @@ import pytest
 
 from drama_factory.pipeline.offline_render import PreviewError, render_approved_preview
 from drama_factory.pipeline.offline_review import load_local_offline_review
-from frontend.workflow import (
+from drama_factory.pipeline.local_story_workflow import (
     LocalStoryWizardError,
     canonical_screenplay_digest,
     make_storyboard_template,
