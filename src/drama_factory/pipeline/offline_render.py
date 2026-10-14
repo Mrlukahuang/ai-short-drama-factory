@@ -152,7 +152,10 @@ def _srt_time(seconds: int) -> str:
 
 
 def render_approved_preview(db: Database, production_id: str, root: Path, *,
-                            source_clips: dict[str, Path] | None = None) -> dict:
+                            source_clips: dict[str, Path] | None = None,
+                            dialogue_audio: Path | None = None,
+                            music_audio: Path | None = None,
+                            operator_confirmed_audio_rights: bool = False) -> dict:
     """Render a playable offline preview only after the existing two approvals."""
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
         raise PreviewError("ffmpeg and ffprobe must be installed")
@@ -187,6 +190,23 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
     sources = {shot_id: inspect_source(path, next(
         shot.duration_seconds for shot in episode.shots if shot.shot_id == shot_id))
         for shot_id, path in source_clips.items()}
+    # Validate local audio stems and explicit self-attested rights BEFORE
+    # output writes. An attestation never means legal/voice rights verified.
+    dialogue_stem = music_stem = None
+    if dialogue_audio is not None or music_audio is not None:
+        from drama_factory.pipeline.offline_audio import inspect_local_wav
+        if operator_confirmed_audio_rights is not True:
+            raise PreviewError("Local audio rights attestation required before mixing")
+        if dialogue_audio is not None:
+            dialogue_stem = inspect_local_wav(
+                dialogue_audio, target_seconds=episode.target_duration_seconds,
+                kind="dialogue",
+            )
+        if music_audio is not None:
+            music_stem = inspect_local_wav(
+                music_audio, target_seconds=episode.target_duration_seconds,
+                kind="music",
+            )
     root = Path(root).resolve()
     work = root / series_id / production_id
     clips_dir = work / "clips"
@@ -256,6 +276,8 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
     subtitles_path.write_text("".join(captions), encoding="utf-8")
     final = work / "preview.mp4"
     temp_final = work / "preview.part.mp4"
+    temp_mixed = work / "preview.audio.part.mp4"
+    audio_mix = None
     try:
         _run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
               "-f", "concat", "-safe", "0", "-i", str(playlist),
@@ -266,9 +288,21 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
         media = inspect_mp4(temp_final, episode.target_duration_seconds)
         if media["subtitle_codec"] != "mov_text":
             raise PreviewError("Final MP4 missing dialogue subtitle track")
+        if dialogue_stem is not None or music_stem is not None:
+            from drama_factory.pipeline.offline_audio import mix_local_stems
+            audio_mix = mix_local_stems(
+                temp_final, temp_mixed,
+                duration_seconds=episode.target_duration_seconds,
+                dialogue=dialogue_stem, music=music_stem,
+            )
+            # The mixed file has the same verified subtitle and H264 layout;
+            # replacing only the final output keeps shot cache keys intact.
+            temp_mixed.replace(temp_final)
+            media = inspect_mp4(temp_final, episode.target_duration_seconds)
         temp_final.replace(final)
     finally:
         temp_final.unlink(missing_ok=True)
+        temp_mixed.unlink(missing_ok=True)
     digest = hashlib.sha256(final.read_bytes()).hexdigest()
     manifest = {
         "production_id": production_id, "series_id": series_id,
@@ -276,7 +310,16 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
         "placeholder_visuals": any(s["media_source"] == "placeholder" for s in shot_results),
         "supplied_local_clips": len(sources),
         "spoken_dialogue_generated": False,
-        "synthetic_tone_audio": any(s["media_source"] == "placeholder" for s in shot_results),
+        "synthetic_tone_audio": (dialogue_stem is None and
+                                 any(s["media_source"] == "placeholder" for s in shot_results)),
+        "local_dialogue_audio_supplied": dialogue_stem is not None,
+        "local_music_audio_supplied": music_stem is not None,
+        "audio_rights_self_attested": (
+            operator_confirmed_audio_rights is True
+            and (dialogue_stem is not None or music_stem is not None)
+        ),
+        "voice_license_independently_verified": False,
+        "offline_audio_mix": audio_mix,
         "has_subtitle_track": True,
         "paid_api_calls": 0,
         "mp4_path": str(final), "mp4_sha256": digest, "media": media,
