@@ -8,10 +8,10 @@
 
 ## 下一个任务（按顺序，一次只做一个）
 
-1. **R1.4** 两位原创主角定妆照：Nano Banana 2.1 每人正脸/侧脸/半身各三张，须人工批准并锁定资产版本；真实付费/密钥按 AMEND-004 Issue 处理。
-2. **R1.5** `scripts/ab_benchmark.py` + G1 手动工作流：固定 3 镜×3模型×1次，≤30 USD 总预算；无需在缺 Key 时运行付费任务。
-3. **R1.6** 中文对白转写与媒体技术 QA。
-4. **R1.7 / R1.8** 所有者盲测打分、报告与 ADR-010 签字（必须 Owner Issue）。
+1. **R1.6** 中文对白转写准确率 + ffprobe 技术 QA；没有真实模型素材时只做离线 Fake/接口测试，结果标注非真实盲测。
+2. **R1.4（真实素材阻塞）** Nano Banana 2.1 两位主角定妆照（3 张×2 人）：需 [Issue #119](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/119) 的 Key/素材设定/所有者人工确认。
+3. **R1.5（实际执行阻塞）** 九任务 A/B 的真实运行：本 PR #121 仅交付固定计划/手动离线工作流，需 [Issue #120](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/120) 预算批准和可验证供应商硬限额，以及 #116 API 密钥；**不得报告 A/B 已完成**。
+4. **R1.7 / R1.8** 所有者盲测打分、报告与 ADR-010 签字，必须按 AMEND-004 升级 Issue。
 
 
 ## 需要所有者决定的事
@@ -23,12 +23,12 @@
 ## 最近一次交接
 
 - 时间：2026-10-15
-- Agent：GPT-6；Stage: **G1** / Req: **R1.2**
-- 交付：[PR #118](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/118) — 新增 `providers/kling_video.py` 内 `KlingVideoProvider`、`FakeKlingVideoProvider`；模型 ID 可配置（当前 `kling-v3-omni`），使用已公开的 Kling Omni REST 任务格式、一次提交+有限轮询、SHA/MP4 技术检查、无效参数提前拒绝。新增 `tests/test_kling_video.py` 离线 SDK 形状/假输出测试。
-- 证据：**仅官方文档 + Fake HTTP + 本机 FFmpeg**，未提交真实 Kling API 任务、实际费用未知且 `actual_fee_usd=None`。R1.3/R1.1 已先完成；不存在真实三模型 A/B 结果。
-- 需要所有者决定：平台/新 `KLING_API_KEY` 和 `ARK_API_KEY` 通过 [Issue #116](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/116)，不阻塞离线代码；未充值/未传真人素材。
-- 没做：R1.4 定妆照/付费图像生成、R1.5 盲测执行、R1.7 评分，亦未改 Schema、UI、冻结路径或账本。
-- 下一步：PR #118 scope、Python 3.11/3.13、native libSQL、offline-video 全绿后自主合并；然后处理 CURRENT 第一项 **R1.4**，付费/新 Key 按 AMEND-004 Issue 处理。
+- Agent：GPT-6；Stage: **G1** / Req: **R1.5（计划及离线工作流部分）**；[PR #121](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/121)。
+- 做了：三镜固定中文 A/B 场景 `benchmarks/g1/shots.json`、`scripts/ab_benchmark.py` 精确 3×3×1 计划生成（人工确认词，计划预算≤US$30）、手动 `video-ab-benchmark.yml` 只输出无模型媒体的 JSON，新增拒绝越权/越额 Fake 测试。
+- 未做：**没有真实 9 次视频生成**、没有人工批准的六张定妆照、没有真实供应商美元硬账单限制。不能把 plan-level 上限称为已执行的供应商硬上限。无模型调用/媒体上传/新 Secrets，费用 US$0。
+- 阻塞：[Issue #116](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/116) 平台与新密钥，[Issue #119](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/119) R1.4 定妆照授权/人工选片，[Issue #120](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/120) 实际 G1 盲测预算/硬限额确认，全部已按 AMEND-004 升级。
+- 上一项：R1.1 [#117](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/117) 和 R1.2 [#118](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/118) 已全绿自动合并；两者仅完成官方 wire adapter、Fake/合同测试，未有真实 AI 模型结果。
+- 下一步：PR #121 全 CI 绿后自动合并。继续 **R1.6** 不依赖真实素材的转写/QA 部分，未实际测得的数据填 null 并明确标注非真实评分。
 
 
 ## 异议栏（Agent 对方向有不同意见时写这里，等所有者裁决）
