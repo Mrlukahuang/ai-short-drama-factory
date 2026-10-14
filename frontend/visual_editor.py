@@ -108,7 +108,10 @@ def show_visual_storyboard(raw_json: str, actor_names: dict[str, str],
     show_director_timeline(draft, actor_names, scene_names)
     labels = {aid: f"{name} · {aid[-6:]}" for aid, name in actor_names.items()}
     reverse_labels = {label: aid for aid, label in labels.items()}
-    with st.expander("逐镜头可视化编辑（推荐）", expanded=True):
+    # Streamlit prohibits nested expanders: shot expanders live inside
+    # this plain container, not inside another expander.
+    with st.container(border=True):
+        st.subheader("逐镜头可视化编辑（推荐）")
         with st.form(form_key):
             episode_number = st.number_input(
                 "分集编号", min_value=1, max_value=999,
