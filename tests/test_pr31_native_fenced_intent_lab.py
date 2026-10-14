@@ -130,10 +130,17 @@ def test_two_workers_compete_for_same_provider_daily_cap_without_overbooking(cli
             return "committed"
         except NativeFenceLabDenied:
             return "rejected"
+        except ValueError as exc:
+            # libsql 0.1.11 may fail BEGIN IMMEDIATE immediately with this
+            # exact lock conflict. Never retry or reinterpret as a commit;
+            # independent ledger assertions below must still prove one hold.
+            if str(exc) != "database is locked":
+                raise
+            return "busy"
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(compete, tokens))
-    assert sorted(results) == ["committed", "rejected"]
+    assert sorted(results) in (["busy", "committed"], ["committed", "rejected"])
     assert _count(
         backend, "SELECT COUNT(*) AS n FROM job_budget_reservations "
         "WHERE status='held'",
