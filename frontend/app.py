@@ -18,6 +18,7 @@ from drama_factory.pipeline.local_story_workflow import (
 )
 from visual_editor import show_visual_storyboard
 from asset_reference_gallery import show_local_asset_reference_gallery
+from shot_reference_board import show_shot_reference_board
 
 API = os.getenv("DRAMA_FACTORY_API", "http://127.0.0.1:8000")
 st.set_page_config(page_title="AI 短剧工厂", layout="wide")
@@ -282,6 +283,10 @@ with script_tab:
                             raise ValueError("not object")
                     except (ValueError, TypeError):
                         st.error("分镜必须是合法的 JSON 对象。")
+                    if script_payload is not None:
+                        show_shot_reference_board(
+                            script_payload, chosen_series, actors_scenes,
+                        )
                     if st.button("① 校验分镜（不会提交或扣费）", disabled=script_payload is None):
                         try:
                             expected = canonical_screenplay_digest(script_payload)
