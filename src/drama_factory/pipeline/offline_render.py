@@ -212,6 +212,7 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
     clips_dir = work / "clips"
     clips_dir.mkdir(parents=True, exist_ok=True)
     clips, shot_results, captions = [], [], []
+    subtitle_schedule = []
     subtitle_at = 0
     for index, shot in enumerate(episode.shots, start=1):
         media_source = sources.get(shot.shot_id)
@@ -256,12 +257,48 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
                 card.unlink(missing_ok=True)
                 temp_clip.unlink(missing_ok=True)
         clips.append(clip)
-        subtitle = " / ".join(shot.dialogue) if shot.dialogue else "[OFFLINE PREVIEW: NO SPOKEN DIALOGUE]"
-        subtitle = " ".join(subtitle.split())[:300]
-        captions.append(
-            f"{index}\n{_srt_time(subtitle_at)} --> {_srt_time(subtitle_at + shot.duration_seconds)}\n"
-            f"{subtitle}\n\n"
-        )
+        # Preserve approved SPEAKER cue order and optional director-approved
+        # timing. The old one-subtitle-per-shot layout made text appear
+        # throughout pauses even after the voice timeline became cue-aware.
+        slots = []
+        if shot.dialogue_cues:
+            count = len(shot.dialogue_cues)
+            if shot.dialogue_cues[0].start_second is not None:
+                slots = [
+                    (line.start_second, line.end_second,
+                     f"{line.speaker_actor_id}: {line.text}")
+                    for line in shot.dialogue_cues
+                ]
+            else:
+                cursor = 0
+                for i, line in enumerate(shot.dialogue_cues):
+                    length = shot.duration_seconds // count + (
+                        1 if i < shot.duration_seconds % count else 0
+                    )
+                    slots.append((
+                        cursor, cursor + length,
+                        f"{line.speaker_actor_id}: {line.text}",
+                    ))
+                    cursor += length
+        else:
+            # Legacy v0.1 plain dialogue and silent technical cards remain
+            # compatible. No speaker identity is inferred from raw strings.
+            subtitle = " / ".join(shot.dialogue) if shot.dialogue else "[OFFLINE PREVIEW: NO SPOKEN DIALOGUE]"
+            slots = [(0, shot.duration_seconds, subtitle)]
+        for start, end, raw_text in slots:
+            subtitle = " ".join(raw_text.split())[:300]
+            if not subtitle or end <= start or end > shot.duration_seconds:
+                raise PreviewError("Invalid approved subtitle cue schedule")
+            absolute_start, absolute_end = subtitle_at + start, subtitle_at + end
+            subtitle_schedule.append({
+                "start_second": absolute_start,
+                "end_second": absolute_end,
+                "text_sha256": hashlib.sha256(subtitle.encode("utf-8")).hexdigest(),
+            })
+            captions.append(
+                f"{len(captions) + 1}\n{_srt_time(absolute_start)} --> {_srt_time(absolute_end)}\n"
+                f"{subtitle}\n\n"
+            )
         subtitle_at += shot.duration_seconds
         shot_results.append({"shot_id": shot.shot_id, "fingerprint": key,
                              "cached": reused, "clip_name": name,
@@ -321,6 +358,7 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
         "voice_license_independently_verified": False,
         "offline_audio_mix": audio_mix,
         "has_subtitle_track": True,
+        "subtitle_schedule": subtitle_schedule,
         "paid_api_calls": 0,
         "mp4_path": str(final), "mp4_sha256": digest, "media": media,
         "shots": shot_results,
