@@ -29,9 +29,9 @@ def build_fake_cast_dialogue_timeline(
 ) -> dict:
     """One cohesive WAV: multiple speaker cues per shot, silent gaps as needed.
 
-    Cues are assigned nonoverlapping integer-second slots, equally distributed
-    within each approved shot. This is a TECHNICAL provisional schedule,
-    not actual speech duration, synchronization or lip alignment.
+    Explicit reviewed start/end seconds are used verbatim, with real silent
+    gaps. Untimed legacy approved cues retain deterministic equal divisions.
+    Neither mode constitutes speech duration or lip synchronization.
     """
     if operator_confirmed_voice_rights is not True:
         raise DialogueGenerationDenied("Explicit voice-rights attestation required")
@@ -71,10 +71,23 @@ def build_fake_cast_dialogue_timeline(
             raise DialogueGenerationDenied("Not enough integer-second slots for approved cues")
         seconds = shot.duration_seconds
         count = len(shot.dialogue_cues)
-        parts = [seconds // count + (1 if i < seconds % count else 0)
-                 for i in range(count)] if count else []
+        if count and shot.dialogue_cues[0].start_second is not None:
+            slots = [
+                (cue.start_second, cue.end_second)
+                for cue in shot.dialogue_cues
+            ]
+        else:
+            parts = [seconds // count + (1 if i < seconds % count else 0)
+                     for i in range(count)] if count else []
+            offset = 0
+            slots = []
+            for length in parts:
+                slots.append((offset, offset + length))
+                offset += length
         cues = []
-        for index, (cue, duration) in enumerate(zip(shot.dialogue_cues, parts, strict=True)):
+        for index, (cue, slot) in enumerate(zip(shot.dialogue_cues, slots, strict=True)):
+            start_second, end_second = slot
+            duration = end_second - start_second
             required.add(cue.speaker_actor_id)
             voice_id = voice_assets_by_actor.get(cue.speaker_actor_id)
             if not voice_id:
@@ -89,7 +102,7 @@ def build_fake_cast_dialogue_timeline(
                 operator_confirmed_voice_rights=True,
             )
             key, version = _spec_fingerprint(db, spec)
-            cues.append((spec, key, version))
+            cues.append((spec, key, version, start_second, end_second))
         plans.append((shot.shot_id, seconds, cues))
     if not required or required != set(voice_assets_by_actor):
         raise DialogueGenerationDenied("Voice mapping must cover exact approved speaking cast")
@@ -99,9 +112,13 @@ def build_fake_cast_dialogue_timeline(
         "seconds": seconds,
         "cue_count": len(cues),
         "cue_keys": [item[1] for item in cues],
+        "cue_slots": [
+            {"start_second": item[3], "end_second": item[4]}
+            for item in cues
+        ],
     } for shot_id, seconds, cues in plans]
     key = hashlib.sha256(json.dumps({
-        "version": "fake-structured-cast-timeline-v1",
+        "version": "fake-structured-cast-timeline-v2-timed",
         "production": production_id, "shots": anonymous,
     }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
@@ -119,7 +136,7 @@ def build_fake_cast_dialogue_timeline(
         # causing half-rendered full-episode outputs.
         receipts = [
             provider.synthesize(db, spec, directory / "cues")
-            for _, _, cues in plans for spec, _, _ in cues
+            for _, _, cues in plans for spec, _, _, _, _ in cues
         ]
         by_key = {receipt["fingerprint"]: receipt for receipt in receipts}
         temp = None
@@ -133,14 +150,14 @@ def build_fake_cast_dialogue_timeline(
                 dest_wav.setsampwidth(2)
                 dest_wav.setframerate(_RATE)
                 for _, seconds, cues in plans:
-                    if not cues:
-                        remaining = seconds * _RATE
-                        while remaining:
-                            frames = min(remaining, 4096)
+                    at_frames = 0
+                    for spec, part_key, _, start_second, end_second in cues:
+                        # Preserve explicitly approved pauses, including
+                        # silence before the first line and between speakers.
+                        while at_frames < start_second * _RATE:
+                            frames = min(start_second * _RATE - at_frames, 4096)
                             dest_wav.writeframesraw(b"\x00\x00" * frames)
-                            remaining -= frames
-                        continue
-                    for spec, part_key, _ in cues:
+                            at_frames += frames
                         receipt = by_key[part_key]
                         source = Path(receipt["local_wav_path"])
                         if source.is_symlink() or _file_hash(source) != receipt["local_wav_sha256"]:
@@ -155,6 +172,11 @@ def build_fake_cast_dialogue_timeline(
                                 raise DialogueGenerationDenied("Invalid approved cue audio timing")
                             while data := wav.readframes(4096):
                                 dest_wav.writeframesraw(data)
+                        at_frames = end_second * _RATE
+                    while at_frames < seconds * _RATE:
+                        frames = min(seconds * _RATE - at_frames, 4096)
+                        dest_wav.writeframesraw(b"\x00\x00" * frames)
+                        at_frames += frames
                 dest_wav.writeframes(b"")
             os.replace(temp, destination)
             _write_hash_marker(destination, _file_hash(destination))
@@ -165,7 +187,7 @@ def build_fake_cast_dialogue_timeline(
             raise DialogueGenerationDenied("Complete multi-actor fake WAV did not verify")
 
     return {
-        "provider": "fake-structured-cast-timeline-v1",
+        "provider": "fake-structured-cast-timeline-v2-timed",
         "synthetic_tones_only": True,
         "real_spoken_dialogue_generated": False,
         "local_wav_path": str(destination),

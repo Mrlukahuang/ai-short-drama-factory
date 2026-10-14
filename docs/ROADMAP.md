@@ -36,6 +36,7 @@
 - [x] PR-10a（**离线 FakeDialogueAudioProvider**）：新增 Series 内版本化 Voice Asset 与来源同意记录门禁、Production 审核、镜头已批准台词逐字核验、可验证 48kHz PCM WAV 正弦时间占位音、SHA256 幂等内容缓存与破损重建，输出直连 PR-15b 视频混音与技术 QA；真实 Gemini TTS 入口继续硬拒绝、收费调用 0，不能视为真人配音或声音版权最终授权。详见 [PR10_FAKE_DIALOGUE_AUDIO](PR10_FAKE_DIALOGUE_AUDIO.md)。
 - [x] PR-10b（**离线逐镜 FakeVoice 整集音轨**）：从审核过的 Production、Series 内音色资产/来源同意记录出发，按镜头逐字核对批准台词、版本和时长，生成 SHA256 幂等 Fake WAV，合成不超过 90 秒的完整单声道 PCM 时间线；再与本地合成背景音经 PR-15b 混音、PR-14 QA，FFmpeg CI 实际编码并上传 60 秒 MP4 技术样片。严格要求每镜一行台词，其余复杂对话拒绝；**并非真实 TTS/演员声音/声线商用授权**，收费 0。详见 [PR10_EPISODE_FAKE_VOICE_TIMELINE](PR10_EPISODE_FAKE_VOICE_TIMELINE.md)。
 - [x] PR-10c（多角色**离线测试音**）：人工审核的 Screenplay 将有序 `dialogue_cues`（actor_id + 原台词）同步存到 EpisodeDraft，防止丢失说话人身份；新多角色 Fake PCM 时间线根据演员绑定的同剧集声音资产、版本/同意记录、精确台词和句序逐条检查，再按整数秒槽拼接每镜多句、无声镜头静音与 60 秒真实 FFmpeg MP4，继续使用全片 QA。多声线文本不是口型同步或真实 TTS，不能自动商用发行。详见 [PR10_MULTI_ACTOR_FAKE_TIMELINE](PR10_MULTI_ACTOR_FAKE_TIMELINE.md)。
+- [x] PR-10d（**导演审核精确对白时槽，离线 PCM**）：为多角色 ShotDraft 的有序台词加入可选 `start_second/end_second` 整秒起止，审批和持久 EpisodeDraft 双重拒绝部分填写、时间重叠、越界或乱序；未填写的旧剧本保留原平均分配。新 Fake 多角色时间线遵循批准的开始/结束，实际插入 PCM 静音空档并把时槽纳入 SHA256 缓存，CI 对 60 秒样片逐帧检查多段静音、有声片段、整轨长度和最终 MP4 QA。仍非真实 TTS、毫秒级 lip-sync 或发行授权。详见 [PR10_APPROVED_CUE_TIMING](PR10_APPROVED_CUE_TIMING.md)。
 - [ ] PR-10：AudioProvider（Gemini TTS）；固定角色音色 ID、对白时长和审核
 - [ ] PR-11：Seedance / Kling VideoProvider 对照，真实质量盲测报告
 
