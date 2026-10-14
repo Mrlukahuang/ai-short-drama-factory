@@ -152,7 +152,7 @@ def test_cross_series_invalid_cast_scene_voice_or_missing_reference_fail_closed(
         select(db, draft, "S001", {foreign_actor: foreign_img}, gallery, binding)
     with pytest.raises(LocalShotReferenceError, match="incompatible"):
         select(db, draft, "S001", {voice: valid_img}, gallery, binding)
-    with pytest.raises(LocalShotReferenceError, match="incompatible"):
+    with pytest.raises(LocalShotReferenceError, match="not available"):
         select(db, draft, "S001", {scene: valid_img}, gallery, binding)
     with pytest.raises(LocalShotReferenceError, match="not available"):
         select(db, draft, "S001", {actor: "0" * 64}, gallery, binding)
