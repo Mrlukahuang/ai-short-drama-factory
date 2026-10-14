@@ -125,10 +125,14 @@ def reserve_job_budget(
                   ("provider", row["provider"])]
         policies = [_latest(conn, scope, value) for scope, value in scopes]
         # Consume both unfinished hold values and already documented real charges.
+        # Share one three-scope daily budget across video and TTS; neither
+        # pipeline may ignore the other's held or reconciled provider costs.
         active_rows = conn.execute(
-            """SELECT r.reserved_usd,r.actual_usd,r.status,
-               r.column_id,r.series_id,r.provider
-               FROM job_budget_reservations r WHERE r.day_utc=?""", (day,),
+            """SELECT reserved_usd,actual_usd,status,column_id,series_id,provider
+               FROM job_budget_reservations WHERE day_utc=?
+               UNION ALL
+               SELECT reserved_usd,actual_usd,status,column_id,series_id,provider
+               FROM tts_budget_reservations WHERE day_utc=?""", (day,day),
         ).fetchall()
         for (scope, scope_id), policy in zip(scopes, policies):
             relevant = [
