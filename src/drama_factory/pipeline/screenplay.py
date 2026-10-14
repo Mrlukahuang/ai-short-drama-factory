@@ -13,6 +13,16 @@ SCRIPT_SCHEMA_VERSION = "screenplay.zh.v1"
 class DialogueCue(BaseModel):
     speaker_actor_id: str = Field(min_length=1)
     text: str = Field(min_length=1, max_length=500)
+    start_second: int | None = Field(default=None, ge=0, strict=True)
+    end_second: int | None = Field(default=None, gt=0, strict=True)
+
+    @model_validator(mode="after")
+    def complete_nonzero_slot(self):
+        if (self.start_second is None) != (self.end_second is None):
+            raise ValueError("Dialogue timing requires both onset and offset")
+        if self.start_second is not None and self.start_second >= self.end_second:
+            raise ValueError("Dialogue timing must be positive")
+        return self
 
 
 class ScreenplayShot(BaseModel):
@@ -32,6 +42,15 @@ class ScreenplayShot(BaseModel):
             raise ValueError("Duplicate actor in a shot")
         if any(line.speaker_actor_id not in self.character_ids for line in self.dialogue):
             raise ValueError("All dialogue speakers must be listed in shot character_ids")
+        timed = [line.start_second is not None for line in self.dialogue]
+        if any(timed) and not all(timed):
+            raise ValueError("All dialogue in a shot must be timed or untimed")
+        previous_end = 0
+        if timed and all(timed):
+            for line in self.dialogue:
+                if line.start_second < previous_end or line.end_second > self.duration_seconds:
+                    raise ValueError("Dialogue cue overlaps another or exceeds shot length")
+                previous_end = line.end_second
         return self
 
 
@@ -76,6 +95,8 @@ class Screenplay(BaseModel):
                         ApprovedDialogueCue(
                             speaker_actor_id=line.speaker_actor_id,
                             text=line.text,
+                            start_second=line.start_second,
+                            end_second=line.end_second,
                         ) for line in shot.dialogue
                     ],
                     audio_mode="locked_voice" if shot.dialogue else "silent",
