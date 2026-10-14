@@ -19,8 +19,14 @@ def _post(client, path, body=None):
     return response.json()
 
 
-def build_offline_demo(out: Path, *, source_override: Path | None = None) -> dict:
-    """Exercise real FastAPI schema, review gates, and local FFmpeg, with zero model calls."""
+def build_offline_demo(out: Path, *, source_override: Path | None = None,
+                       duration_seconds: int = 6) -> dict:
+    """Approved-offline full pipeline: 6s smoke or 60s vertical technical sample.
+
+    Both variants use synthetic tones/text placeholders, never paid AI media.
+    """
+    if type(duration_seconds) is not int or duration_seconds not in (6, 60):
+        raise ValueError("Offline technical demo supports only 6s or 60s")
     out = Path(out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     with TestClient(create_app(out / "data")) as client:
@@ -47,14 +53,15 @@ def build_offline_demo(out: Path, *, source_override: Path | None = None) -> dic
                 "layout": "Front door opposite kitchen",
             },
         })["asset_id"]
+        per_shot = duration_seconds // 3
         shots = [
-            ("S001", 2, "The lead hears a knock.", "Who is there?"),
-            ("S002", 2, "The lead walks to the door.", "Please wait."),
-            ("S003", 2, "The door opens into darkness.", "What is this?"),
+            ("S001", per_shot, "The lead hears a knock.", "Who is there?"),
+            ("S002", per_shot, "The lead walks to the door.", "Please wait."),
+            ("S003", per_shot, "The door opens into darkness.", "What is this?"),
         ]
         script = {
             "series_id": series, "story_bible_id": bible, "episode_number": 1,
-            "episode_title": "The Knock", "target_duration_seconds": 6,
+            "episode_title": "The Knock", "target_duration_seconds": duration_seconds,
             "hook": "A knock in the night", "ending_cliffhanger": "Who waits outside?",
             "shots": [{
                 "shot_id": shot_id, "duration_seconds": seconds, "action": action,
@@ -81,7 +88,7 @@ def build_offline_demo(out: Path, *, source_override: Path | None = None) -> dic
             subprocess.run([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
                 "-f", "lavfi", "-i", "testsrc2=size=640x360:rate=24",
-                "-t", "2", "-c:v", "libx264", "-preset", "ultrafast",
+                "-t", str(per_shot), "-c:v", "libx264", "-preset", "ultrafast",
                 "-pix_fmt", "yuv420p", str(test_footage),
             ], capture_output=True, text=True, timeout=90, check=True)
         result = render_approved_preview(
@@ -96,8 +103,10 @@ def build_offline_demo(out: Path, *, source_override: Path | None = None) -> dic
 def main(argv: list[str] | None = None):
     parser = argparse.ArgumentParser(description="Full offline MP4 demo (no AI video)")
     parser.add_argument("--out", type=Path, default=Path("artifacts/offline-demo"))
+    parser.add_argument("--seconds", type=int, choices=(6, 60), default=6,
+                        help="Build a 6-second smoke test or full 60-second vertical sample")
     args = parser.parse_args(argv)
-    manifest = build_offline_demo(args.out)
+    manifest = build_offline_demo(args.out, duration_seconds=args.seconds)
     print(json.dumps({
         "success": True, "preview_file": str(args.out / "demo.mp4"),
         "duration": manifest["media"]["duration_seconds"],
