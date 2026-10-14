@@ -23,7 +23,7 @@ def _post(client, url, body=None):
     return response.json()
 
 
-def create_reviewed_cast(client, *, duplicate_line=False):
+def create_reviewed_cast(client, *, duplicate_line=False, explicit_timing=False):
     series = _post(client, "/api/v1/projects", {
         "title": "Two fictional speakers", "premise": "A scripted conversation",
     })["series_id"]
@@ -53,6 +53,11 @@ def create_reviewed_cast(client, *, duplicate_line=False):
         {"speaker_actor_id": actors[0], "text": "Repeat" if duplicate_line else "Hello"},
         {"speaker_actor_id": actors[1], "text": "Repeat" if duplicate_line else "Welcome"},
     ]
+    if explicit_timing:
+        lines[0]["start_second"] = 1
+        lines[0]["end_second"] = 2
+        lines[1]["start_second"] = 3
+        lines[1]["end_second"] = 4
     shots = [
         {"shot_id": "talk", "duration_seconds": 4, "action": "Two people talking",
          "camera": "medium", "character_ids": actors, "dialogue": lines,
@@ -68,7 +73,11 @@ def create_reviewed_cast(client, *, duplicate_line=False):
     }
     v = _post(client, f"/api/v1/series/{series}/screenplays/validate", script)
     assert v["review_required"] is True
-    assert v["episode_draft"]["shots"][0]["dialogue_cues"] == lines
+    for stored, line in zip(v["episode_draft"]["shots"][0]["dialogue_cues"], lines, strict=True):
+        assert stored["speaker_actor_id"] == line["speaker_actor_id"]
+        assert stored["text"] == line["text"]
+        assert stored.get("start_second") == line.get("start_second")
+        assert stored.get("end_second") == line.get("end_second")
     commit = _post(client, f"/api/v1/series/{series}/screenplays/commit", {
         "screenplay": script, "reviewed_by_operator": True,
     })
