@@ -64,9 +64,11 @@ def test_replaced_embedded_track_is_rejected_even_if_mp4_hash_is_resigned(tmp_pa
         assert "You found me." in genuine
         malicious = genuine.replace("You found me.", "Unreviewed voice transcript")
     else:
+        # Use a nonoverlapping, FFmpeg-preserved 250ms timing shift.
+        # Overlaps may be normalized away when remuxing mov_text.
         malicious = genuine.replace(
             "00:00:01,000 --> 00:00:02,000",
-            "00:00:01,000 --> 00:00:03,000",
+            "00:00:01,250 --> 00:00:02,000",
         )
         assert malicious != genuine
     forged_srt = original.parent / "forged-embedded-only.srt"
