@@ -121,6 +121,7 @@
 - [x] PR-15b（**离线本地对白＋音乐技术混音**）：支持 PCM WAV 对白/背景乐选择、权利自我确认、片源音轨替换或保留、音乐衰减与 AAC 限幅、H.264/字幕轨保留、混音后全片 PR-14 QA 和声音变更时保留已验证镜头缓存；严格标记 `voice_license_independently_verified=false`、`publish_approved=false`、`paid_api_calls=0`。这是本地技术合成，不表示 Gemini TTS/真人声音授权/商业上映/精准口型同步已通过。详见 [PR15_LOCAL_AUDIO_MIX](PR15_LOCAL_AUDIO_MIX.md)。
 - [x] PR-15c（**实际 60 秒本地合成双 stem 混音技术 MP4**）：原审批/分镜/FFmpeg/QA 链路加入 540Hz 合成对白时序占位音和 180Hz 合成背景音乐占位音；真实混音后保留 H264/AAC/mov_text、SHA256 及 `technical_qa`，专用 CI 重新编码、验收并上传单独 7 天 Artifact。音源并非真人配音、TTS 或商业授权音乐，`publish_approved=false`、付费调用 0。详见 [PR15_SYNTHETIC_AUDIO_MINUTE](PR15_SYNTHETIC_AUDIO_MINUTE.md)。
 - [x] PR-15d（**逐句字幕与审核音轨对齐**）：使用已审核 Actor/台词/起止秒生成独立有序 SRT 字幕；对人为停顿不显示整镜对白，旧手工镜头继续兼容。最终 QA 核对逐句起止时间、允许的静音间隔、字幕内容 SHA256 与剧集总长，伪造或错位文字拒绝验收；强制真实 FFmpeg 测试和 60 秒样片复查。没有真实发音、字级口型、商用版权自动批准。详见 [PR15_APPROVED_CUE_SUBTITLES](PR15_APPROVED_CUE_SUBTITLES.md)。
+- [x] PR-15e（**MP4 内嵌字幕文本/时间独立回解核验**）：真实 FFmpeg 从最终 H264/AAC/mov_text 视频中解码 subtitle stream，独立解析每句文本与时间、逐条对比经审核 SRT；避免仅有字幕轨/外部字幕正确但 MP4 内嵌字幕被替换或错位。故障测试重新封装假字幕并重算 MP4 SHA256，QA 必须仍拒绝；强制 6 秒/60 秒 FFmpeg CI 双重验收。继续纯离线、不可称真正 AI/TTS 成片。详见 [PR15_MUXED_SUBTITLE_AUDIT](PR15_MUXED_SUBTITLE_AUDIT.md)。
 - [ ] PR-15：正式镜头的 FFmpeg 音画规范化、双轨混音、字幕、片尾和交付 MP4
 - [ ] PR-16：Remotion 时间线及审片 UI；逐镜头替换而无需整集重做
 
