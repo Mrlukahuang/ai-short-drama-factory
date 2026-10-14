@@ -7,8 +7,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import re
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -57,6 +60,56 @@ def inspect_mp4(path: Path, expected_duration: int | None = None) -> dict:
     return {"duration_seconds": duration, "video_codec": "h264",
             "audio_codec": "aac", "subtitle_codec": "mov_text" if subtitle else None,
             "width": WIDTH, "height": HEIGHT}
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as content:
+        for chunk in iter(lambda: content.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _clip_digest_path(clip: Path) -> Path:
+    return clip.with_name(clip.name + ".sha256")
+
+
+def _cache_has_expected_content(clip: Path) -> bool:
+    """Only reuse a playable clip if our separately recorded content matches.
+
+    This detects accidental edits/replacement, not a malicious attacker who
+    can rewrite both the cache and its local digest. Never claim signatures.
+    Older clips lacking digests are safely re-rendered once.
+    """
+    marker = _clip_digest_path(clip)
+    if clip.is_symlink() or marker.is_symlink() or not marker.is_file():
+        return False
+    try:
+        expected = marker.read_text(encoding="ascii").strip()
+        return bool(re.fullmatch(r"[a-f0-9]{64}", expected)) and _file_sha256(clip) == expected
+    except (OSError, UnicodeError, ValueError):
+        return False
+
+
+def _write_clip_digest(clip: Path, digest: str) -> None:
+    """Atomically publish a bounded hash marker next to a verified clip."""
+    if not re.fullmatch(r"[a-f0-9]{64}", digest):
+        raise PreviewError("Invalid local clip content hash")
+    marker = _clip_digest_path(clip)
+    tmp = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="ascii", dir=clip.parent,
+            prefix=".clip-integrity-", suffix=".tmp", delete=False,
+        ) as handle:
+            tmp = Path(handle.name)
+            handle.write(digest + "\\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        tmp.replace(marker)
+    finally:
+        if tmp is not None:
+            tmp.unlink(missing_ok=True)
 
 
 def _card(path: Path, shot, number: int, total: int) -> None:
@@ -147,12 +200,17 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
         name = f"{index:03d}_{key[:24]}.mp4"
         clip = clips_dir / name
         reused = False
-        if clip.is_file():
+        if clip.is_file() and _cache_has_expected_content(clip):
             try:
                 inspect_mp4(clip, shot.duration_seconds)
                 reused = True
             except (PreviewError, ValueError, KeyError, subprocess.TimeoutExpired):
-                clip.unlink()
+                reused = False
+        if not reused:
+            # A cache without its own verified digest is untrusted even if
+            # ffprobe reports a playable, correctly timed H.264 clip.
+            clip.unlink(missing_ok=True)
+            _clip_digest_path(clip).unlink(missing_ok=True)
         if not reused:
             card = clips_dir / f"{index:03d}_{key[:24]}.png"
             temp_clip = clips_dir / f"{name}.tmp.mp4"
@@ -173,6 +231,7 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
                     ])
                 inspect_mp4(temp_clip, shot.duration_seconds)
                 temp_clip.replace(clip)
+                _write_clip_digest(clip, _file_sha256(clip))
             finally:
                 card.unlink(missing_ok=True)
                 temp_clip.unlink(missing_ok=True)
@@ -186,6 +245,7 @@ def render_approved_preview(db: Database, production_id: str, root: Path, *,
         subtitle_at += shot.duration_seconds
         shot_results.append({"shot_id": shot.shot_id, "fingerprint": key,
                              "cached": reused, "clip_name": name,
+                             "clip_sha256": _file_sha256(clip),
                              "media_source": "provided_local_clip" if media_source else "placeholder",
                              "source_sha256": media_source["sha256"] if media_source else None,
                              "duration_seconds": shot.duration_seconds})
