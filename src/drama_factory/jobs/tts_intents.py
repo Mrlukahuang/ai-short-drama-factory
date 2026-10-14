@@ -7,6 +7,7 @@ but not replay a possibly charged utterance.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import re
@@ -18,6 +19,7 @@ from drama_factory.jobs.budgets import _amount, _latest, _usd, BudgetDenied
 from drama_factory.providers.dialogue_audio import DialogueGenerationSpec
 from drama_factory.providers.gemini_tts_contract import (
     GeminiTtsPreparation, PreparedGeminiSpeech,
+    GeminiTtsContractDenied, inspect_gemini_tts_unary_response,
     InspectedGeminiSpeech, prepare_gemini_tts_request,
 )
 
@@ -240,6 +242,15 @@ def acknowledge_tts_provider_interaction(
         row = conn.execute("SELECT * FROM tts_tasks WHERE id=?", (task_id,)).fetchone()
         if row is None or row["status"] != "submission_intent" or row["interaction_id"]:
             raise TtsLedgerDenied("A single committed TTS request is required")
+        # A provider interaction may only be attached to a single cue, even
+        # when an SDK returns a duplicated or untrusted ID. Surface a fixed
+        # error rather than leaking DB constraint details from the caller.
+        duplicate = conn.execute(
+            "SELECT id FROM tts_tasks WHERE provider=? AND interaction_id=?",
+            (row["provider"], interaction_id),
+        ).fetchone()
+        if duplicate is not None:
+            raise TtsLedgerDenied("Provider interaction is already bound to a cue")
         conn.execute(
             "UPDATE tts_tasks SET status='acknowledged',interaction_id=?,updated_at=? WHERE id=?",
             (interaction_id, timestamp(), task_id),
@@ -284,8 +295,21 @@ def record_offline_verified_tts_wav(
         row = conn.execute("SELECT * FROM tts_tasks WHERE id=?", (task_id,)).fetchone()
         if row is None or row["status"] != "acknowledged" or not row["interaction_id"]:
             raise TtsLedgerDenied("Acknowledged TTS interaction required")
-        if inspected.duration_seconds > row["approved_slot_seconds"] + 0.25:
-            raise TtsLedgerDenied("Validated WAV exceeds approved director slot")
+        # Never trust a dataclass supplied by an external caller as proof
+        # that the underlying WAV was decoded/format-checked. Reinspect the
+        # exact byte payload at the final durable metadata write boundary.
+        try:
+            verified = inspect_gemini_tts_unary_response(
+                base64.b64encode(inspected.wav_bytes).decode("ascii"),
+                row["approved_slot_seconds"],
+            )
+        except (GeminiTtsContractDenied, ValueError, TypeError):
+            raise TtsLedgerDenied("Stored TTS WAV failed independent format validation") from None
+        if (
+            verified.sha256 != inspected.sha256
+            or abs(verified.duration_seconds - inspected.duration_seconds) > 0.00001
+        ):
+            raise TtsLedgerDenied("Stored TTS WAV inspection metadata inconsistent")
         conn.execute(
             """UPDATE tts_tasks SET status='verified',
                output_sha256=?,output_duration_seconds=?,updated_at=? WHERE id=?""",
