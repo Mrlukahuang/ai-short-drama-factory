@@ -221,3 +221,11 @@ def test_delivery_qa_rejects_modified_valid_shot_clip_after_manifest(client, tmp
     assert inspect_mp4(victim, 1)["audio_codec"] == "aac"
     with pytest.raises(OfflineQAError, match="clip no longer matches"):
         inspect_offline_delivery(result, path)
+
+
+@pytest.mark.parametrize("invalid", [0, 2, 30, 59, 61, True, "60"])
+def test_offline_demo_rejects_unsupported_duration_before_any_side_effect(tmp_path, invalid):
+    root = tmp_path / "never-created"
+    with pytest.raises(ValueError, match="supports only 6s or 60s"):
+        build_offline_demo(root, duration_seconds=invalid)
+    assert not root.exists()

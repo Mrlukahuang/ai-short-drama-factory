@@ -117,3 +117,47 @@ jobs:
             artifacts/offline-demo/manifest.json
           retention-days: 7
           if-no-files-found: error
+
+      - name: Render complete 60-second vertical OFFLINE technical sample
+        env:
+          DRAMA_FACTORY_OFFLINE: '1'
+        run: python -m drama_factory.pipeline.offline_demo --seconds 60 --out artifacts/offline-demo-60
+      - name: Enforce 60-second full-chain QA and no paid/provider claims
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("artifacts/offline-demo-60")
+          doc = json.loads((root / "manifest.json").read_text("utf-8"))
+          actual = root / "demo.mp4"
+          assert actual.is_file() and actual.stat().st_size > 1000
+          assert doc["media"]["duration_seconds"] >= 59.4
+          assert doc["media"]["duration_seconds"] <= 60.6
+          assert doc["media"]["width"] == 360 and doc["media"]["height"] == 640
+          assert doc["media"]["video_codec"] == "h264"
+          assert doc["media"]["audio_codec"] == "aac"
+          assert doc["media"]["subtitle_codec"] == "mov_text"
+          assert doc["technical_qa"]["technical_decode_passed"] is True
+          assert doc["technical_qa"]["subtitle_sidecar_timing_passed"] is True
+          assert doc["technical_qa"]["shots_checked"] == 3
+          assert doc["technical_qa"]["operator_review_required"] is True
+          assert doc["technical_qa"]["publish_approved"] is False
+          assert doc["technical_qa"]["production_ready"] is False
+          assert doc["technical_qa"]["genuine_ai_video_verified"] is False
+          assert doc["paid_api_calls"] == 0
+          assert doc["spoken_dialogue_generated"] is False
+          assert doc["supplied_local_clips"] == 1
+          assert len(doc["shots"]) == 3
+          assert sum(s["duration_seconds"] for s in doc["shots"]) == 60
+          PY
+          ffprobe -v error -show_entries format=duration:stream=codec_type,codec_name,width,height -of json artifacts/offline-demo-60/demo.mp4
+      - name: Upload full-minute offline technical delivery (not AI footage)
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-one-minute-technical-mp4
+          path: |
+            artifacts/offline-demo-60/demo.mp4
+            artifacts/offline-demo-60/manifest.json
+          retention-days: 7
+          if-no-files-found: error
