@@ -102,3 +102,74 @@ def validated_draft_still_matches(
         )
     except (ValueError, TypeError, AttributeError):
         return False
+
+
+def apply_visual_storyboard(
+    original: dict, *, episode_number: int, episode_title: str,
+    hook: str, ending_cliffhanger: str, edited_shots: list[dict],
+    allowed_actor_ids: list[str], allowed_scene_ids: list[str],
+) -> dict:
+    """Build exact Screenplay from a visual form; never grant an approval.
+
+    No changed shot may disappear or change identity, order, or silently lose
+    an approved dialogue cue. Both old and newly supplied actor/scene IDs
+    must match the selected series' current asset list. HTTP scope validation
+    remains mandatory before committing the returned draft.
+    """
+    try:
+        base = Screenplay.model_validate(original)
+        if (
+            type(edited_shots) is not list or len(edited_shots) != len(base.shots)
+            or len(edited_shots) > 12 or not edited_shots
+            or type(allowed_actor_ids) is not list
+            or type(allowed_scene_ids) is not list
+            or not all(type(x) is str for x in allowed_actor_ids + allowed_scene_ids)
+        ):
+            raise ValueError("Invalid visual editor shot count or asset inventory")
+        output = base.model_dump(mode="json")
+        output.update({
+            "episode_number": episode_number,
+            "episode_title": episode_title,
+            "hook": hook,
+            "ending_cliffhanger": ending_cliffhanger,
+        })
+        converted = []
+        for current, edit in zip(base.shots, edited_shots):
+            if type(edit) is not dict or edit.get("shot_id") != current.shot_id:
+                raise ValueError("Shot identity/order changed")
+            cast = edit["character_ids"]
+            scene = edit["scene_id"]
+            cues = edit["dialogue"]
+            if (
+                type(cast) is not list or len(cast) > 8
+                or len(cast) != len(set(cast))
+                or any(type(a) is not str or a not in allowed_actor_ids for a in cast)
+                or (scene is not None and
+                    (type(scene) is not str or scene not in allowed_scene_ids))
+                or type(cues) is not list or len(cues) > 20
+                or any(type(cue) is not dict for cue in cues)
+            ):
+                raise ValueError("Unknown actor/scene reference or invalid dialogue rows")
+            # Deliberately include all cues, so invalid/half-specified timing
+            # fails Pydantic instead of losing a line on conversion.
+            changed = current.model_dump(mode="json")
+            changed.update({
+                key: edit[key] for key in (
+                    "duration_seconds", "action", "camera", "character_ids",
+                    "scene_id", "continuity_start", "continuity_end", "dialogue",
+                )
+            })
+            converted.append(changed)
+        output["shots"] = converted
+        output["target_duration_seconds"] = sum(s["duration_seconds"] for s in converted)
+        if (
+            type(episode_number) is not int
+            or type(output["target_duration_seconds"]) is not int
+            or not 1 <= output["target_duration_seconds"] <= 90
+        ):
+            raise ValueError("Local technical preview duration must be 1–90 seconds")
+        return Screenplay.model_validate(output).model_dump(mode="json")
+    except (ValueError, TypeError, KeyError, OverflowError):
+        raise LocalStoryWizardError(
+            "Visual storyboard invalid: correct cast, cue timing and shot lengths"
+        ) from None
