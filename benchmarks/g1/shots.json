@@ -1,0 +1,37 @@
+{
+  "schema": "g1.fixed-shots.v1",
+  "aspect_ratio": "9:16",
+  "shots": [
+    {
+      "shot_id": "G1-S1",
+      "duration_seconds": 5,
+      "prompt": "写实电影镜头，原创虚构男女主在明亮的现代客厅里同框，女主说「你确定要走吗？」男主答「我会回来。」普通话清晰，动作自然，固定光线与服装。",
+      "test_focus": [
+        "two-character-identity",
+        "Chinese-dialogue",
+        "native-audio"
+      ]
+    },
+    {
+      "shot_id": "G1-S2",
+      "duration_seconds": 5,
+      "prompt": "写实电影镜头，原创虚构女主面部特写，控制着情绪说「我其实一直都相信你。」自然普通话口型与悲喜情绪一致，服装与上镜保持。",
+      "test_focus": [
+        "female-identity",
+        "Chinese-long-line",
+        "lip-sync",
+        "emotion"
+      ]
+    },
+    {
+      "shot_id": "G1-S3",
+      "duration_seconds": 5,
+      "prompt": "写实电影镜头，原创虚构男主从沙发站起，走向站在窗边的女主，镜头保持两个人物外貌和服装一致，动作连贯，接续上一镜头结尾，环境静音。",
+      "test_focus": [
+        "male-identity",
+        "action-naturalness",
+        "continuity"
+      ]
+    }
+  ]
+}
