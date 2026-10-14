@@ -113,6 +113,7 @@
 
 - [x] PR-12：本地视频素材导入、逐镜替换/缓存与统一规格编码（支持 MP4/MOV/WEBM/MKV，零 AI 费用）
 - [x] PR-11：离线 Story Bible → 剧本/审核 → 镜头技术卡片 → FFmpeg H.264/AAC/字幕轨 → 可播放 MP4 + QA + 单镜头缓存（无 AI 视频/配音）
+- [x] PR-15a（**60 秒离线竖屏技术样片**）：使用同一审批/剧本/资产/分镜/FFmpeg/PR-14 逐镜哈希缓存与强制技术 QA，提供 `python -m drama_factory.pipeline.offline_demo --seconds 60 --out artifacts/offline-demo-60`；专用 GitHub offline-video CI 实际编码、校验及上传 60 秒 MP4 + manifest，输出明确 `genuine_ai_video_verified=false`、`publish_approved=false` 和零 Provider 收费。完整真人音画、演员一致性和人工审片仍属后续 PR-15 正式范围。详见 [PR15_OFFLINE_MINUTE_DELIVERY](PR15_OFFLINE_MINUTE_DELIVERY.md)。
 - [ ] PR-15：正式镜头的 FFmpeg 音画规范化、双轨混音、字幕、片尾和交付 MP4
 - [ ] PR-16：Remotion 时间线及审片 UI；逐镜头替换而无需整集重做
 
