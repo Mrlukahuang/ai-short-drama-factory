@@ -150,6 +150,38 @@ def inspect_offline_delivery(manifest: dict, media_path: Path, *,
             raise OfflineQAError("Manifest subtitle disclosure inconsistent")
         if manifest.get("paid_api_calls") != 0 or manifest.get("spoken_dialogue_generated") is not False:
             raise OfflineQAError("Offline preview metadata misstates provider or voice")
+        # PR-15b: locally supplied dialogue/music is not verified consent,
+        # actual TTS, or permission to publish. Fail closed on forged flags.
+        dialogue_claim = manifest.get("local_dialogue_audio_supplied", False)
+        music_claim = manifest.get("local_music_audio_supplied", False)
+        if type(dialogue_claim) is not bool or type(music_claim) is not bool:
+            raise OfflineQAError("Local audio disclosure must be boolean")
+        has_stems = dialogue_claim or music_claim
+        details = manifest.get("offline_audio_mix")
+        if manifest.get("voice_license_independently_verified") is not False:
+            raise OfflineQAError("Unverified voice rights cannot be claimed verified")
+        if has_stems:
+            if manifest.get("audio_rights_self_attested") is not True or type(details) is not dict:
+                raise OfflineQAError("Mixed local audio lacks self-attested rights metadata")
+            if (
+                details.get("locally_supplied_dialogue") is not dialogue_claim
+                or details.get("locally_supplied_music") is not music_claim
+                or details.get("real_tts_generated") is not False
+                or details.get("voice_license_independently_verified") is not False
+                or details.get("published") is not False
+                or details.get("paid_provider_calls") != 0
+                or details.get("subtitle_track_preserved") is not True
+                or details.get("output_audio_codec") != "aac"
+            ):
+                raise OfflineQAError("Local audio metadata inconsistent with technical preview")
+            for label, enabled in (
+                ("dialogue_sha256", dialogue_claim), ("music_sha256", music_claim),
+            ):
+                stem_hash = details.get(label)
+                if enabled != (type(stem_hash) is str and _DIGEST.fullmatch(stem_hash) is not None):
+                    raise OfflineQAError("Invalid local stem integrity metadata")
+        elif details is not None or manifest.get("audio_rights_self_attested") not in (False, None):
+            raise OfflineQAError("Unexpected local audio mixing disclosure")
         if require_real_footage:
             # Input clips may also be synthetically rendered; merely swapping
             # all placeholders is not provenance of true AI footage.
