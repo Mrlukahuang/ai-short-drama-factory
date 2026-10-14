@@ -1,4 +1,4 @@
-name: One-use fictional Gemini TTS canary — original short phrase only
+name: TTS CANARY CONSUMED — paid request permanently disabled
 
 on:
   push:
@@ -16,8 +16,10 @@ concurrency:
 
 jobs:
   exactly-one-original-tts:
-    name: Original short synthetic-language TTS canary (at most one API request)
-    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR10-ONE-REAL-TTS-20261014') }}
+    # CONSUMED by real run #38525869818 (WAV 3.56s verified).
+    # Never replay this paid request or authorize a second try.
+    name: CONSUMED paid TTS canary — job cannot run again
+    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR10-ONE-REAL-TTS-20261014') }}
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
