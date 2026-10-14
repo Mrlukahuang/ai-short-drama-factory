@@ -103,7 +103,7 @@ def _write_clip_digest(clip: Path, digest: str) -> None:
             prefix=".clip-integrity-", suffix=".tmp", delete=False,
         ) as handle:
             tmp = Path(handle.name)
-            handle.write(digest + "\\n")
+            handle.write(digest + "\n")
             handle.flush()
             os.fsync(handle.fileno())
         tmp.replace(marker)
