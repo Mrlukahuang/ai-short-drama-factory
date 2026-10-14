@@ -111,10 +111,20 @@ def build_offline_demo(out: Path, *, source_override: Path | None = None,
                 ),
                 "scene_id": scene,
                 "dialogue": (
-                    [{"speaker_actor_id": actor, "text": line},
-                     {"speaker_actor_id": other_actor, "text": "You found me."}]
+                    [
+                        {"speaker_actor_id": actor, "text": line,
+                         "start_second": 1 if seconds >= 4 else 0,
+                         "end_second": seconds // 2},
+                        {"speaker_actor_id": other_actor, "text": "You found me.",
+                         "start_second": seconds // 2 + (1 if seconds >= 4 else 0),
+                         "end_second": seconds - 1 if seconds >= 4 else seconds},
+                    ]
                     if with_fake_cast_timeline and shot_id == "S001"
-                    else [{"speaker_actor_id": other_actor, "text": line}]
+                    else [{
+                        "speaker_actor_id": other_actor, "text": line,
+                        "start_second": 2 if seconds >= 4 else 0,
+                        "end_second": seconds - 1 if seconds >= 4 else 1,
+                    }]
                     if with_fake_cast_timeline and shot_id == "S002"
                     else [] if with_fake_cast_timeline and shot_id == "S003"
                     else [{"speaker_actor_id": actor, "text": line}]
