@@ -4,6 +4,8 @@
 >
 > **当前版本：v0.1 工程骨架 + PR-11 离线端到端 MP4 技术预览（有可播放 MP4，尚无 AI 影视成片）。** 请勿把 Mock 完成状态理解为生成出 MP4。
 
+> 🧭 **Agent / 开发者先读 [AMEND.md](AMEND.md) → [docs/handoff/CURRENT.md](docs/handoff/CURRENT.md) → [docs/STAGES.md](docs/STAGES.md)。** 当前阶段：G1 真实视频 A/B 盲测；Turso/libSQL 存储实验已冻结（AMEND-001）。
+
 ## 1. 我们究竟要做什么？
 
 输入原创故事，或者上传**自有/已获影视改编授权**的小说，依次完成：
