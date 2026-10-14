@@ -78,6 +78,7 @@ def test_ark_disabled_and_human_gate_block_before_submission(tmp_path, monkeypat
     real = SeedanceVideoProvider(client=stub, poll_interval=0)
     destination = tmp_path / "expensive.mp4"
     monkeypatch.delenv("DRAMA_ENABLE_PAID_GENERATION", raising=False)
+    monkeypatch.delenv("ARK_API_KEY", raising=False)
     with pytest.raises(SeedanceVideoDisabled, match="disabled"):
         real.generate_video(_request(operator_approved=True), destination)
     monkeypatch.setenv("DRAMA_ENABLE_PAID_GENERATION", "YES")
@@ -90,7 +91,8 @@ def test_ark_disabled_and_human_gate_block_before_submission(tmp_path, monkeypat
     assert stub.submissions == [] and not destination.exists()
 
 
-def test_reference_payload_uses_official_types_and_inline_local_bytes(tmp_path):
+def test_reference_payload_uses_official_types_and_inline_local_bytes(tmp_path, monkeypatch):
+    monkeypatch.setenv("DRAMA_ENABLE_PAID_GENERATION", "YES")
     img = tmp_path / "drawing.png"
     snd = tmp_path / "original.wav"
     img.write_bytes(b"\x89PNG\r\n" + b"A" * 150)
