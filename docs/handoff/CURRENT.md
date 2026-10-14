@@ -9,9 +9,9 @@
 ## 下一个任务（按顺序，一次只做一个）
 
 1. **R1.1** `providers/seedance_video.py`（Seedance 2.5）+ Fake + 契约测试。
-3. **R1.2** `providers/kling_video.py`（Kling 3.0 Omni，模型 ID 可配置）+ Fake + 契约测试。
-4. **R1.4 / R1.5 / R1.6** 定妆照 + `scripts/ab_benchmark.py` + 手动 workflow（≤ 30 USD 硬上限，需确认词）。
-5. 所有者手动触发 → **R1.7** 盲测打分 → **R1.8** 报告 + ADR-010。
+2. **R1.2** `providers/kling_video.py`（Kling 3.0 Omni，模型 ID 可配置）+ Fake + 契约测试。
+3. **R1.4 / R1.5 / R1.6** 定妆照 + `scripts/ab_benchmark.py` + 手动 workflow（≤ 30 USD 硬上限，需确认词）。
+4. 所有者手动触发 → **R1.7** 盲测打分 → **R1.8** 报告 + ADR-010。
 
 ## 需要所有者决定的事
 
