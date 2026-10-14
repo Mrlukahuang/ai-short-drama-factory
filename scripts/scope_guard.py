@@ -2,8 +2,10 @@
 """Anti-drift scope guard (AMEND-001 / docs/GUARDRAILS.md).
 
 Fails a pull request when it:
-  1. touches frozen paths without the owner-applied ``amend-approved`` label, or
-  2. lacks ``Stage: Gx`` and ``Req: Rx.y`` lines in the PR description.
+  1. touches frozen paths without the owner-applied ``amend-approved`` label,
+  2. touches governance files (AMEND/AGENTS/GUARDRAILS/STAGES/guard itself)
+     without that label, or
+  3. lacks ``Stage: Gx`` and ``Req: Rx.y`` lines in the PR description.
 
 Usage (CI):
     python scripts/scope_guard.py --base origin/main
@@ -38,6 +40,17 @@ FROZEN_GLOBS: tuple[str, ...] = (
     "docs/TURSO_*",
 )
 
+# Governance files: agents may self-merge green PRs (AMEND-004) but never these.
+GOVERNANCE_FILES: tuple[str, ...] = (
+    "AMEND.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/GUARDRAILS.md",
+    "docs/STAGES.md",
+    "scripts/scope_guard.py",
+    ".github/workflows/scope-guard.yml",
+)
+
 OVERRIDE_LABEL = "amend-approved"
 STAGE_RE = re.compile(r"^\s*Stage:\s*G\d+\b", re.MULTILINE)
 REQ_RE = re.compile(r"^\s*Req:\s*R\d+(\.\d+)?\b", re.MULTILINE)
@@ -45,6 +58,10 @@ REQ_RE = re.compile(r"^\s*Req:\s*R\d+(\.\d+)?\b", re.MULTILINE)
 
 def frozen_hits(paths: list[str]) -> list[str]:
     return [p for p in paths if any(fnmatch.fnmatch(p, g) for g in FROZEN_GLOBS)]
+
+
+def governance_hits(paths: list[str]) -> list[str]:
+    return [p for p in paths if p in GOVERNANCE_FILES]
 
 
 def body_problems(body: str) -> list[str]:
@@ -63,6 +80,12 @@ def check(paths: list[str], body: str, labels: set[str]) -> list[str]:
         errors.append(
             "修改了 AMEND-001 冻结路径（需所有者加 `amend-approved` 标签）：\n  - "
             + "\n  - ".join(hits)
+        )
+    gov = governance_hits(paths)
+    if gov and OVERRIDE_LABEL not in labels:
+        errors.append(
+            "修改了治理文件，只有所有者可批准（需 `amend-approved` 标签）：\n  - "
+            + "\n  - ".join(gov)
         )
     if body.strip():
         errors.extend(body_problems(body))

@@ -17,7 +17,7 @@ At the end of every session, update `docs/handoff/CURRENT.md` and append one lin
 ## Non-negotiable
 
 1. **Python owns orchestration.** Use typed schemas and explicit state transitions; Skills/LLMs may propose content, never bypass approvals, rights gates, or cost limits.
-2. Do not change production endpoints, trigger paid API calls, enable public deployment, or publish uploaded copyrighted novels without explicit operator approval.
+2. Do not change production endpoints, enable public deployment, or publish uploaded copyrighted novels without explicit operator approval. Paid API calls follow the budget in **AMEND-004** (single run ≤ 2 USD and ≤ 5 USD per day without asking; above that, ask).
 3. Do not commit secrets, `.env`, `data/`, source books, generated faces/voices, binary video assets, temp files or API responses containing private data.
 4. Every state mutation needs a test. Every new Provider needs Fake counterpart and contract tests without credentials.
 5. Every video request must later carry idempotency key, source asset versions, maximum charge, model identifier, provider task ID, and audit trail. No blind all-episode retry.

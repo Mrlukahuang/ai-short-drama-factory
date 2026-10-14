@@ -31,6 +31,27 @@
 
 Sora 2 API 已于 2026-09-24 关停，不得列为候选。视频候选为 Gemini Omni 1.1 Flash、Seedance 2.5、Kling 3.0 Omni（Kling 4.0 上线后加入）。详见 `docs/MODEL_LANDSCAPE.md`。
 
+## AMEND-004（2026-10-15，Active）自主连续开发模式
+
+**原因**：所有者不希望每个 PR 都停下来等审核。
+
+**决定**：Agent 按 `docs/STAGES.md` 当前阶段的需求顺序**连续开发**，不必等待所有者：
+1. 每个 Req 仍然单独开分支、单独 PR（规则不变）。
+2. PR 的**全部检查为绿**（含 `scope`、`test`）且模板已填写 → Agent **可以自己合并**，然后更新 `docs/handoff/CURRENT.md` 并直接开始下一个 Req。
+3. 付费调用：**单次运行最高费用 ≤ 2 USD 可以自行执行**；当天累计 ≤ 5 USD。执行后在 `docs/handoff/LOG.md` 记录模型、次数、实际费用、Actions run 链接。
+
+**必须停下来叫所有者的情况（只有这些）**：
+- 单次付费运行可能超过 2 USD，或当天累计将超过 5 USD
+- 需要授权：新的 API Key / Secret、账号权限、接受服务条款、OAuth
+- 需要修改冻结路径（AMEND-001）或治理文件（`AMEND.md`、`docs/GUARDRAILS.md`、`docs/STAGES.md`、`AGENTS.md`、`CLAUDE.md`、`scripts/scope_guard.py`、`.github/workflows/scope-guard.yml`）
+- 阶段退出决策：需要所有者人工评分、签字的事项（如 G1 的 R1.7 盲测打分、R1.8 / ADR-010）
+- 同一个检查连续修 2 次仍是红的
+- 删除文件、修改已有数据库表结构
+
+**怎么叫**：在仓库新建一个 Issue，标题以 `[需要所有者]` 开头，写清楚要决定什么、选项、预计费用；然后**跳过这个阻塞项，继续做不依赖它的下一个 Req**；没有可做的就停下。
+
+**撤销条件**：所有者在此处标记 Revoked，或连续发现 2 次跑偏。
+
 ---
 
 ## 修正模板（所有者新增时复制）
