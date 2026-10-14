@@ -16,6 +16,17 @@
 
 
 
+## 后续独立 SELECT-only 诊断成功（2026-10-14）
+
+[Actions #38510686538](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38510686538) 是**另一个新的纯只读 GitHub workflow**，不是原 v5 失败作业的 Re-run，也没有重新执行任何 writer DDL/DML。唯一 Job `115678243955` 最终 `completed/success`，打印脱敏报告：
+
+- `ledger_probes_consistent=true`。分段远端检查 `select_one`、`gate`、`readiness`、`holds`、`intent_audit`、`fence_audit`、`pause_audit`、`foreign_key_check`、`read_snapshot` 都是 `ok`。即：隔离 gate 为 paused/epoch2，两位 Worker 已就绪，**只有一条 held、一条付费意图审计、一条 gate 写入审计、一条 pause 审计**，独立 SELECT 事务和外键检查正常。
+- **唯一失败探针：`query_only_pragma=query_unavailable`**，`prior_query_only_pragma_compatible=false`。这解释了原 Observer 使用 `PRAGMA query_only=ON` 可能被真实远端 libSQL 拒绝的问题；该探针只测试这一条语句，不能凭它排除其他潜在兼容性风险。
+- `additional_remote_writes=0`、`paid_provider_calls=0`、`production_database_touched=false`。独立诊断代码在新的工作流中仅有固定 SELECT、PRAGMA 和只读 BEGIN；因 query_only PRAGMA 不受支持，**并未证明底层 Token 本身具备数据库级只读权限**。正式上线前仍须专门只读 Token/最小权限验收。
+- 独立读回结果可以支持**这一次真实双 Runner 预算竞争最终状态一致**，但原 workflow 仍是红灯，`remote_multi_runner_verified` 代码标志不自升为 true；更大的 PR-31c3（服务端时钟、丢失网络回执、真正生产权限和跨 Runner 操作范围）仍未全部验收。
+
+本诊断使用的独立一次性 Workflow 随安全收尾 PR **`if:false`** 硬锁；之前 v1–v5 远端写入工作流继续全部锁止。后续若需额外远端 SQL，必须使用新的独立实验和相应授权/限额，绝不能重跑已消耗 Job。
+
 ## 授权与成本边界
 
 2026-10-14 用户明确授权自行开展**预计不超过 2 USD 的测试**并持续推进，超过 2 USD 须先申请。预计本实验 GitHub Actions 最多 **5 个标准 Linux Runner × 6 分钟 = 30 Linux 分钟**；参考 GitHub 官方基础单价 USD 0.006/分钟，理论 Actions 用量上限约 USD **0.18**（若免费额度可用则实际可能为零）。远端 Turso 的 6 个 Schema 对象、两笔就绪登记、至多一笔真实合成预算预留、3 笔测试审计、一次 epoch 暂停和有限读回，在 Turso 免费额度内通常几乎无成本，但**无法从 GitHub 连接器读取用户实际扣费、剩余额度或确定绝对现金上限**。因此这是保守用量限制/成本估算，不是账单保证。绝不调用付费图片、视频、TTS Provider，`paid_provider_calls=0`。

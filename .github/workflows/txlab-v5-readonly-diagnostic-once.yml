@@ -1,4 +1,4 @@
-name: TxLab v5 — one SELECT-only diagnostic on existing isolated synthetic tables
+name: TxLab v5 — READONLY DIAG CONSUMED (no more remote access)
 
 on:
   push:
@@ -17,9 +17,10 @@ concurrency:
 jobs:
   only-read-v5:
     name: v5-select-only-diagnostic
-    # Explicit under-$2 blanket testing authorization. This is NOT a retry
-    # of consumed v5 writer workflow and NEVER executes a DML statement.
-    if: ${{ github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR31-V5-READONLY-DIAG-20261014') }}
+    # CONSUMED: read-only diagnostic #38510686538 succeeded, no remote writes.
+    # Remote PRAGMA query_only=ON was unsupported; all fixed SELECT/readback
+    # probes matched. THIS WORKFLOW IS NOW PERMANENTLY HARD LOCKED.
+    if: ${{ false && github.ref == 'refs/heads/main' && github.run_attempt == 1 && contains(github.event.head_commit.message, 'PR31-V5-READONLY-DIAG-20261014') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

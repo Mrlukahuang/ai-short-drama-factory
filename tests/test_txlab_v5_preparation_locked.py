@@ -30,3 +30,14 @@ def test_consumed_v5_is_hard_locked_alongside_old_txlab_versions():
     ):
         other = (ROOT / ".github/workflows" / old).read_text("utf-8")
         assert "if: ${{ false &&" in other
+
+
+def test_v5_readonly_postmortem_once_consumed_and_locked():
+    content = (ROOT / ".github/workflows/txlab-v5-readonly-diagnostic-once.yml").read_text("utf-8")
+    assert "CONSUMED" in content
+    assert "38510686538" in content
+    assert "if: ${{ false && github.ref == 'refs/heads/main'" in content
+    assert "github.run_attempt == 1" in content
+    assert "DRAMA_V5_DIAG_MAX_USD: '2.00'" in content
+    assert "timeout-minutes: 5" in content
+    assert "  workflow_dispatch:" not in content
