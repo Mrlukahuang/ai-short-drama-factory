@@ -66,11 +66,12 @@ def _owned_folder(root: Path, series_id: str, asset_id: str, *,
     return folder
 
 
-def _canonical_png(source: bytes) -> tuple[bytes, int, int]:
+def _canonical_png(source: bytes) -> tuple[bytes, int, int, str]:
     try:
         with Image.open(io.BytesIO(source)) as probe:
             if probe.format not in _ALLOWED_FORMATS:
                 raise ValueError("Unexpected image format")
+            source_format = probe.format
             width, height = probe.size
             if (not 1 <= width <= MAX_SOURCE_SIDE
                     or not 1 <= height <= MAX_SOURCE_SIDE
@@ -91,7 +92,7 @@ def _canonical_png(source: bytes) -> tuple[bytes, int, int]:
             sanitized = out.getvalue()
             if not 100 <= len(sanitized) <= MAX_STORED_BYTES:
                 raise ValueError("Normalized reference outside size bounds")
-            return sanitized, clean.width, clean.height
+            return sanitized, clean.width, clean.height, source_format
     except (UnidentifiedImageError, OSError, ValueError,
             Image.DecompressionBombError):
         raise LocalReferenceError("Invalid or oversized local reference image") from None
@@ -216,9 +217,19 @@ def stage_local_asset_reference(
             or type(content) is not bytes
             or not 100 <= len(content) <= MAX_SOURCE_BYTES):
         raise LocalReferenceError("Unsupported reference type or upload size")
-    cleaned, width, height = _canonical_png(content)
+    cleaned, width, height, source_format = _canonical_png(content)
+    expected_format = {
+        ".png": "PNG", ".jpg": "JPEG", ".jpeg": "JPEG", ".webp": "WEBP",
+    }[Path(filename).suffix.lower()]
+    if source_format != expected_format:
+        raise LocalReferenceError("Image bytes do not match declared extension")
     source_sha = _sha(content)
     image_sha = _sha(cleaned)
+    folder = _owned_folder(root, series_id, asset_id)
+    if folder.exists() and len(list(folder.glob("*.json"))) >= 20:
+        # Re-import of identical original bytes is still idempotent.
+        if not (folder / (source_sha + ".json")).is_file():
+            raise LocalReferenceError("Reference gallery limited to 20 image versions")
     folder = _owned_folder(root, series_id, asset_id, create=True)
     receipt = {
         "source_sha256": source_sha,
