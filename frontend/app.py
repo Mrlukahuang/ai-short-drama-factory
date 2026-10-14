@@ -286,9 +286,16 @@ with script_tab:
                     )
                     if script_payload is not None and not ready_to_commit:
                         st.caption("当前编辑内容尚未验证或在验证后已修改。任何改动都需重新校验。")
+                    # A reviewed checkbox belongs to one validated exact draft.
+                    # Revalidation of edited text MUST produce a fresh checkbox.
+                    review_digest = (
+                        st.session_state["wizard_validated"]["fingerprint"]
+                        if ready_to_commit else "not_validated"
+                    )
                     confirmed = st.checkbox(
                         "我已亲自检查此版分镜、对白、角色/场景归属，并确认提交为不可原地覆盖的 Episode。",
-                        key=f"wizard_manual_review_{chosen_series}_{chosen_bible}",
+                        key=f"wizard_manual_review_{chosen_series}_{chosen_bible}_{review_digest}",
+                        disabled=not ready_to_commit,
                     )
                     if st.button(
                         "② 人工确认并提交 Episode", disabled=not ready_to_commit or not confirmed,
