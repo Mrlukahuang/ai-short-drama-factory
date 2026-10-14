@@ -302,7 +302,6 @@ with script_tab:
                         )
                         if committed:
                             st.session_state.pop("wizard_validated", None)
-                            st.session_state[f"wizard_manual_review_{chosen_series}_{chosen_bible}"] = False
                             st.success(f'Episode 已创建：{committed["episode_id"]}。')
                             st.rerun()
             st.markdown("#### 3 · 创建 Production 并逐级人工审批")
