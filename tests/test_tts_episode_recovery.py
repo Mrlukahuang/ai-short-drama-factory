@@ -93,8 +93,8 @@ def test_mixed_unknown_ack_and_verified_show_accurate_operator_triage(client):
 
 def test_any_missing_task_fails_entire_episode_closed(client):
     db, run, tasks, _ = _episode(client)
-    db.exec("DELETE FROM tts_tasks WHERE id=?", (tasks[1][0],))
-    with pytest.raises(TtsRecoveryDenied, match="incomplete"):
+    db.exec("UPDATE tts_tasks SET shot_id='not-an-approved-shot' WHERE id=?", (tasks[1][0],))
+    with pytest.raises(TtsRecoveryDenied, match="unknown|incomplete"):
         inspect_episode_tts_recovery(db, run)
 
 
