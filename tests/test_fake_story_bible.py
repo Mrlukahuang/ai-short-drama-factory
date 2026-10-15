@@ -102,7 +102,7 @@ def test_output_symlink_and_invalid_parent_refused(tmp_path):
     linked.symlink_to(target)
     with pytest.raises(FakeSynopsisError):
         write_fake_story_bible(result, linked)
-    with pytest.raises(FakeSynopsisError, match="existing"):
+    with pytest.raises(FakeSynopsisError, match="non-linked"):
         write_fake_story_bible(result, target)
     with pytest.raises(FakeSynopsisError, match="directory"):
         write_fake_story_bible(result, tmp_path / "missing-dir" / "bible.json")
