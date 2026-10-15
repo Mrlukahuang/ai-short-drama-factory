@@ -85,7 +85,7 @@ def test_six_real_ffmpeg_fake_clips_and_asset_version_digest_manifest(client, tm
     second = build_fake_shot_manifest(db, series, pid, media)
     assert second["shots_cached"] == 6
     assert second["shots"] == first["shots"]
-    mp4 = media / series / pid / "episode.mp4"
+    mp4 = media / series / pid / "preview.mp4"
     assert mp4.is_file()
     assert inspect_mp4(mp4, 60)["subtitle_codec"] == "mov_text"
 
