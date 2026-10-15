@@ -12,3 +12,4 @@
 - 2026-10-16 | GPT-6 | P/P1 [STAGES R4.1 Fake] | 本地 UTF-8 梗概→可验证原有 StoryBible schema 的确定性 Fake JSON，SHA256 输入溯源、无覆盖 CLI、拒绝危险文件；0 模型/US$0 | P1 PR
 - 2026-10-16 | GPT-6 | P/P2 [STAGES R4.1/R3.1 Fake] | FakeTextProvider→结构合法六镜中文对白Screenplay，临时资产ID不属于数据库且不自动审核/提交；0模型/US$0，P3处理正式绑定 | P2 PR
 - 2026-10-16 | GPT-6 | P/P3 [STAGES R2.1/R2.3 Fake] | P2临时角色/场景绑定本机SQLite现有Series/Bible/5项v1 Fake演员音色场景资产；单事务幂等、跨剧/冲突拒绝；零真实模型/US$0 | P3 PR
+- 2026-10-16 | GPT-6 | P/P4 [STAGES R3.2 Fake] | 复用已审批Production的现成Fake worker/FFmpeg镜头，逐镜input/media/资产v1 SHA256 manifest，零收费调用、镜头缓存可重用 | P4 PR
