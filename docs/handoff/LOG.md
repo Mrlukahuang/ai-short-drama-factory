@@ -8,3 +8,4 @@
 - 2026-10-15 | GPT-6 | G1/R1.2 | Kling 3.0 Omni 可配置 Provider+Fake+离线合同与 FFmpeg，0 次真实请求/US$0；新 Key 见 Issue #116 | PR #118
 - 2026-10-15 | GPT-6 | G1/R1.5 | 固定3镜×3模型×1 PLAN-ONLY；手动确认+≤$30计划上限，实际付费0次/US$0，真实运行需预算Issue #120 | PR #121
 - 2026-10-16 | GPT-6 | G1/R1.6 | 按所有者暂停所有真实测试；Mock 中文CER+合成媒体ffprobe QA、九任务pending results.json；0真实模型/US$0，完整真实验收延期 | PR #122
+- 2026-10-16 | GPT-6 | P/P0 (AMEND-005) | 仅文档：全11步仓库复用矩阵、ViMax MIT/Jellyfish Apache-2.0 源码定位、P1–P6/P-final 与 STAGES Req 映射；G1真测及Issues #116/#119/#120挂起，0调用/$0 | P0 PR
