@@ -14,7 +14,7 @@
 
 ## 下一个任务（按顺序，一次只做一个）
 
-1. **R1.6（当前）** 中文 CER + FFprobe 媒体 QA + 结果 JSON：离线接口与独立测试已提交 [PR #待填写](https://github.com/Mrlukahuang/ai-short-drama-factory/pulls)。完成后不自动执行真实 Gemini Transcribe。
+1. **R1.6（当前离线部分）** 中文 CER + FFprobe 媒体 QA + 结果 JSON：[PR #122](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/122)。完整真实转写与镜头测试待用户回来。完成后不自动执行真实 Gemini Transcribe。
 2. **R1.4（真实素材/人工审核阻塞）** Nano Banana 2.1 六张定妆照：等所有者回来统一实测、批准资产，[Issue #119](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/119)。
 3. **R1.5（真实执行阻塞）** 九镜三模型真实 A/B：此前 #121 仅 PLAN-ONLY；硬预算与授权在 [Issue #120](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/120)。
 4. **R1.7 / R1.8（人工评分/阶段退出阻塞）** 等真实测试结束后再评分、ADR-010 签字；不得伪造 G1 退出。
