@@ -14,12 +14,11 @@
 
 ## 下一个任务（按顺序，一次只做一个）
 
-1. **P2（当前 PR）/ STAGES R4.1、R3.1（Fake）**：从 P1 Bible 生成 `FakeTextProvider` ScriptOutline 与符合 `screenplay.zh.v1` 的六镜60–90秒 Fake 中文对白剧本；临时角色/场景 ID 明确 `provisional_asset_ids=true`、`scope_validated_against_database=false`；不提交 Episode、不人工自动批准。
-2. **P3 / R2.1、R2.3（Fake）**：将 P2 临时人物/场景关联到现有 SQLite Series 的正式 Fake 资产 ID/版本并查 scope，独立 PR。
-3. **P4 / R3.2（Fake）**：逐镜 Fake 调度与媒体哈希/版本 JSON，独立 PR。
-4. **P5 / R3.3（Fake）**：Fake 对白音轨、字幕、合成配乐接线，独立 PR。
-5. **P6 / R4.4（Fake）**：一命令 CLI、每步 JSON、单步重跑和完整本机 FFmpeg/QA，独立 PR。
-6. **P-final / R4.4（Fake E2E）**：60–90秒可播带 Fake 标记 MP4 + 可访问 CI artifact；此 PR 合并后才新建一次 `[需要所有者]` Issue 提议 Omni 360p 全链路真测（预计 ≤ US$3，须主人批准）。
+1. **P3（当前 PR）/ STAGES R2.1、R2.3（Fake）**：将 P2 临时人物/场景/声音引用写入已有本机 SQLite Series/Bible/资产版本，保持事务幂等、范围校验和零真人授权，不修改表结构。
+2. **P4 / R3.2（Fake）**：调用已有逐镜 Fake worker，按镜头登记状态、资产版本哈希与技术媒体数据。
+3. **P5 / R3.3（Fake）**：连接虚构对白提示音、字幕与本机合成配乐。
+4. **P6 / R4.4（Fake）**：一命令 CLI、每步 JSON、单步重跑和完整本机 FFmpeg/QA。
+5. **P-final / R4.4（Fake E2E）**：实产可播放带 Fake 标记的60–90秒 MP4 + 可访问 CI artifact；合并后才建一次 `[需要所有者]` Issue 提议 Omni 360p 单次全链路真测（预计 ≤US$3，须主人批准）。
 
 
 ## 需要所有者决定的事（已挂起，到整体真实测试时处理）
@@ -30,13 +29,12 @@
 
 ## 最近一次交接
 
-- 日期：2026-10-16；Agent：GPT-6；**Stage: P / Req: P2**（STAGES 映射 R4.1 Fake/R3.1 Fake）。
-- 合并基线：P0 [#124](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/124) 与 P1 [#125](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/125) 已全绿合并；P1 main SHA `6f2e7036e3571ce1ace22a50ca04270bba6d9b91`。
-- 本 Req 实现：`pipeline/fake_episode_screenplay.py` 使用已有 `FakeTextProvider` 从 P1 `StoryBible` 构造确定性单集 outline、六镜 60–90s 中文 Fake 对白 `Screenplay`，经 `Screenplay.model_validate` 与 `to_episode_draft` 纯结构校验；`tests/test_fake_episode_screenplay.py` 覆盖时间线、角色归属、来源变更及禁止伪造审核。
-- **未做**：没有 Series/Bible/演员的真实数据库归属；合成 provisional ID 只能作待 P3 替换的占位，不得用来调用 `/commit`、真实 Provider 或跳过任何审核门禁。无外部模型、无付费。
-- CI：本 P2 独立 PR scope + 4 离线 CI 以实际终态为准；不改治理文件/AMEND-001 冻结路径。
-- Issue #116、#119、#120 保持挂起，不处理。G1 真人盲测仍暂停。
-- 下一步：P2 通过后按 AMEND-005 自主合并，再处理 **P3** 资产引用与 DB 归属映射；P-final 真实 Omni 建议 Issue 要等完整 Fake MP4 artifact 实际存在后才开。
+- 日期：2026-10-16；Agent：GPT-6；**Stage: P / Req: P3**；STAGES 映射 **R2.1/R2.3 的纯 Fake 部分**。
+- 合并基线：P0 [#124](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/124)、P1 [#125](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/125)、P2 [#126](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/126) 均全绿 squash 合并；P2 main SHA `2ccd7ca1aff270435e43b17f5e924d301397377b`。
+- 交付：新增 `pipeline/fake_cast_assets.py`，完全复用现有 SQLite `projects` / `story_bibles` / `series_assets` 表、`ActorBible/VoiceBible/SceneBible` 和 `check_screenplay_scope`；将经重新计算验证的 P1/P2 Fake 输入绑定成 2 演员+2 虚构声线+1 场景的确定性 v1 资产，单事务且重复调用幂等。新增 `tests/test_fake_cast_assets.py` 验证版本、跨剧隔离、冲突拒绝和不自动生成 Episode/Production。
+- 权利边界：只有 `fake_only` 模拟资产，未生成人脸/声音，`approval_granted=false` / `approved_for_real_model=false`；这只是本机 SQLite 归属，不是人工审核或商业使用授权。0 外部模型、0 费用、无既有表迁移。
+- 本次 PR 需 scope + Python 3.11/3.13 + native libSQL + FFmpeg 全绿才自合并；之后执行 P4（独立 Req/PR）。
+- G1 真测和 Issues #116/#119/#120 均继续暂停、不处理。P-final 真测提议 Issue 仅在 Fake MP4 artifact 可查且已合并后创建。
 
 
 ## 异议栏（Agent 对方向有不同意见时写这里，等所有者裁决）
