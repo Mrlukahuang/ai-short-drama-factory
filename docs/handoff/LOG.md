@@ -10,3 +10,4 @@
 - 2026-10-16 | GPT-6 | G1/R1.6 | 按所有者暂停所有真实测试；Mock 中文CER+合成媒体ffprobe QA、九任务pending results.json；0真实模型/US$0，完整真实验收延期 | PR #122
 - 2026-10-16 | GPT-6 | P/P0 (AMEND-005) | 仅文档：全11步仓库复用矩阵、ViMax MIT/Jellyfish Apache-2.0 源码定位、P1–P6/P-final 与 STAGES Req 映射；G1真测及Issues #116/#119/#120挂起，0调用/$0 | P0 PR
 - 2026-10-16 | GPT-6 | P/P1 [STAGES R4.1 Fake] | 本地 UTF-8 梗概→可验证原有 StoryBible schema 的确定性 Fake JSON，SHA256 输入溯源、无覆盖 CLI、拒绝危险文件；0 模型/US$0 | P1 PR
+- 2026-10-16 | GPT-6 | P/P2 [STAGES R4.1/R3.1 Fake] | FakeTextProvider→结构合法六镜中文对白Screenplay，临时资产ID不属于数据库且不自动审核/提交；0模型/US$0，P3处理正式绑定 | P2 PR
