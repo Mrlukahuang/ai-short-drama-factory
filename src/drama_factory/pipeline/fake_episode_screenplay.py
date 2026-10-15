@@ -47,7 +47,7 @@ def build_fake_episode_screenplay(
         raise FakeScreenplayError("Invalid Fake episode number")
     if (type(target_duration_seconds) is not int
             or not 60 <= target_duration_seconds <= 90):
-        raise FakeScreenplayError("Fake six-shot episode must last 60–90 seconds")
+        raise FakeScreenplayError("Fake six-shot episode duration must be 60–90 seconds")
     try:
         bible = StoryBible.model_validate(fake_bible["story_bible"])
     except (KeyError, ValueError, TypeError):
