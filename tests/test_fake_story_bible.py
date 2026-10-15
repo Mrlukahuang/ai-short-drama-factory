@@ -72,7 +72,7 @@ def test_different_source_bytes_have_different_provenance(tmp_path):
     b"\x00" + "两个朋友决定寻找真相。".encode(),
     b"a" * (MAX_BRIEF_BYTES + 1),
     b"\n \n",
-    b"too short",
+    b"short",
 ])
 def test_invalid_inputs_are_rejected_before_output(tmp_path, payload):
     file = tmp_path / "test.txt"
