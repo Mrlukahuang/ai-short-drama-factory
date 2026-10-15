@@ -7,3 +7,4 @@
 - 2026-10-15 | GPT-6 | G1/R1.1 | 火山方舟 Seedance 2.5 Provider+Fake+无密钥契约测试；零真实调用/零费用；需新 Key/平台决定 Issue #116 | PR #117
 - 2026-10-15 | GPT-6 | G1/R1.2 | Kling 3.0 Omni 可配置 Provider+Fake+离线合同与 FFmpeg，0 次真实请求/US$0；新 Key 见 Issue #116 | PR #118
 - 2026-10-15 | GPT-6 | G1/R1.5 | 固定3镜×3模型×1 PLAN-ONLY；手动确认+≤$30计划上限，实际付费0次/US$0，真实运行需预算Issue #120 | PR #121
+- 2026-10-16 | GPT-6 | G1/R1.6 | 按所有者暂停所有真实测试；Mock 中文CER+合成媒体ffprobe QA、九任务pending results.json；0真实模型/US$0，完整真实验收延期 | PR #122
