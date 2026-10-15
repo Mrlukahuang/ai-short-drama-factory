@@ -1,0 +1,247 @@
+{
+  "schema": "g1.benchmark-results.v1",
+  "execution_mode": "offline_contract_only",
+  "real_provider_calls": 0,
+  "paid_provider_spend_usd": "0",
+  "real_model_benchmark_complete": false,
+  "transcriber_model": "gemini-3.5-transcribe",
+  "real_transcription_calls": 0,
+  "artifacts_included": false,
+  "total_trials": 9,
+  "results": [
+    {
+      "shot_id": "G1-S1",
+      "provider_model": "gemini-omni-1.1-flash",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "waiting_for_real_transcription",
+        "expected_characters": 10,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    },
+    {
+      "shot_id": "G1-S1",
+      "provider_model": "doubao-seedance-2-5-260628",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "waiting_for_real_transcription",
+        "expected_characters": 10,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    },
+    {
+      "shot_id": "G1-S1",
+      "provider_model": "kling-v3-omni",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "waiting_for_real_transcription",
+        "expected_characters": 10,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    },
+    {
+      "shot_id": "G1-S2",
+      "provider_model": "gemini-omni-1.1-flash",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "waiting_for_real_transcription",
+        "expected_characters": 9,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    },
+    {
+      "shot_id": "G1-S2",
+      "provider_model": "doubao-seedance-2-5-260628",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "waiting_for_real_transcription",
+        "expected_characters": 9,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    },
+    {
+      "shot_id": "G1-S2",
+      "provider_model": "kling-v3-omni",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "waiting_for_real_transcription",
+        "expected_characters": 9,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    },
+    {
+      "shot_id": "G1-S3",
+      "provider_model": "gemini-omni-1.1-flash",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "not_applicable_silent_shot",
+        "expected_characters": 0,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    },
+    {
+      "shot_id": "G1-S3",
+      "provider_model": "doubao-seedance-2-5-260628",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "not_applicable_silent_shot",
+        "expected_characters": 0,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    },
+    {
+      "shot_id": "G1-S3",
+      "provider_model": "kling-v3-omni",
+      "attempt": 1,
+      "real_video_status": "not_generated",
+      "video_sha256": null,
+      "technical_qa": {
+        "status": "not_run",
+        "video_codec": null,
+        "audio_codec": null,
+        "duration_seconds": null,
+        "width": null,
+        "height": null
+      },
+      "speech": {
+        "status": "not_applicable_silent_shot",
+        "expected_characters": 0,
+        "transcribed_characters": null,
+        "character_error_rate": null,
+        "character_accuracy": null,
+        "model": null
+      },
+      "actual_fee_usd": null,
+      "task_id": null,
+      "human_approved": false
+    }
+  ]
+}
