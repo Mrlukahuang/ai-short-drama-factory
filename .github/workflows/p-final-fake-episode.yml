@@ -1,0 +1,78 @@
+name: P-final Fake Synopsis-to-MP4 Artifact (offline, $0)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  fake-episode-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DRAMA_FACTORY_OFFLINE: '1'
+      DRAMA_ENABLE_PAID_GENERATION: 'NO'
+      GEMINI_API_KEY: ''
+      ARK_API_KEY: ''
+      KLING_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline project dependencies
+        run: python -m pip install -e '.[test]'
+      - name: Prepare same hash-pinned FFmpeg/ffprobe tools as offline-video CI
+        shell: bash
+        run: |
+          echo 'ffprobe-binaries-only==0.1.2 --hash=sha256:15b8d28d2ee159145b131450f018bf708b4910dff13a21bfa9b8e13c9309715c' > /tmp/fake-ffmpeg-requirements.txt
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r /tmp/fake-ffmpeg-requirements.txt
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from importlib.metadata import distribution
+          dist = distribution("ffprobe-binaries-only")
+          target = Path("/tmp/shortdrama-fake-ffmpeg")
+          target.mkdir(exist_ok=True)
+          for name in ("ffmpeg", "ffprobe"):
+              matches = [Path(dist.locate_file(p)).resolve() for p in dist.files or [] if Path(str(p)).name == name]
+              matches = [p for p in matches if p.is_file()]
+              assert len(matches) == 1, (name, matches)
+              binary = matches[0]
+              binary.chmod(binary.stat().st_mode | 0o111)
+              (target / name).symlink_to(binary)
+          with open(os.environ["GITHUB_PATH"], "a", encoding="utf-8") as f:
+              print(target, file=f)
+          PY
+      - name: Execute one all-Fake 60-second pipeline and verify resumable result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/p-final/stages
+          python scripts/fake_episode.py tests/fixtures/p_final_synopsis.txt --output-dir artifacts/p-final/work --duration 60 --acknowledge-fake-approvals
+          source_mp4="$(find artifacts/p-final/work -name episode.fake.mp4 -type f -print -quit)"
+          test -n "$source_mp4"
+          cp "$source_mp4" artifacts/p-final/episode.fake.mp4
+          run_dir="$(dirname "$source_mp4")"
+          cp "$run_dir"/*.json artifacts/p-final/stages/
+          (
+            cd artifacts/p-final
+            sha256sum episode.fake.mp4 > episode.sha256
+          )
+          python scripts/verify_fake_pipeline_artifact.py artifacts/p-final
+          python scripts/fake_episode.py tests/fixtures/p_final_synopsis.txt --output-dir artifacts/p-final/work --duration 60 --acknowledge-fake-approvals
+          cmp "$source_mp4" artifacts/p-final/episode.fake.mp4
+          python scripts/verify_fake_pipeline_artifact.py artifacts/p-final
+      - name: Upload human-downloadable Fake MP4, stages and hashes
+        uses: actions/upload-artifact@v4
+        with:
+          name: p-final-fake-full-episode-mp4
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            artifacts/p-final/episode.fake.mp4
+            artifacts/p-final/episode.sha256
+            artifacts/p-final/stages/*.json
