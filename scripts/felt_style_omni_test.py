@@ -29,6 +29,7 @@ SHOTS = [
     {
         "id": "s1_street",
         "seconds": 6,
+        "cast": ["male_lead"],
         "action": "Wide establishing shot. Slow push-in down the felt street toward a "
                   "corner coffee shop with a green awning. A-Jie walks along the "
                   "pavement carrying a small felt coffee cup.",
@@ -37,6 +38,7 @@ SHOTS = [
     {
         "id": "s2_meet",
         "seconds": 8,
+        "cast": ["male_lead", "female_lead"],
         "action": "Medium two-shot in front of the coffee shop. Xiao-Yu steps out of "
                   "the door and bumps gently into A-Jie; both stop and look at each "
                   "other, a little embarrassed. Warm window light behind them.",
@@ -46,6 +48,7 @@ SHOTS = [
     {
         "id": "s3_smile",
         "seconds": 6,
+        "cast": ["female_lead"],
         "action": "Close-up on Xiao-Yu, slight slow orbit. She smiles and tucks her "
                   "red scarf; the Sky Tower glows softly out of focus behind her.",
         "dialogue": "Xiao-Yu says in Mandarin Chinese: “那……明天还在这里见？”",
@@ -58,19 +61,66 @@ def load_preset(path: Path = PRESET_PATH) -> dict:
 
 
 def build_prompt(preset: dict, shot: dict) -> str:
+    """Only the actually visible cast; identity descriptions copied verbatim."""
     chars = preset["characters"]
+    cast = shot.get("cast")
+    if (not isinstance(cast, list) or not cast
+            or len(set(cast)) != len(cast)
+            or any(name not in chars for name in cast)):
+        raise ValueError("Specify the unique cast on camera")
+    if not 3 <= shot["seconds"] <= 10:
+        raise ValueError("Omni clip duration out of bounds")
+    if shot.get("complex_action") and shot["seconds"] > 6:
+        raise ValueError("Complex action must be broken into <=6s shots")
     parts = [
         f"One continuous shot, about {shot['seconds']} seconds, vertical 9:16 portrait.",
         preset["style_prompt"],
         preset["setting"],
-        f"Male lead: {chars['male_lead']}",
-        f"Female lead: {chars['female_lead']}",
-        preset["consistency_rule"],
+        *[f"{name}: {chars[name]}" for name in cast],
+        "Preserve exactly the preset hair, round face, bead eyes, clothing, "
+        "colors and wool toy proportions. Never add unlisted characters.",
         f"Action: {shot['action']}",
         f"Dialogue: {shot['dialogue']}" if shot["dialogue"] else
         "No dialogue; soft ambient street sound and gentle music only.",
     ]
     return "\n".join(parts)
+
+
+# Separate close physical contact and reaction; each action beat <=6 seconds.
+FULL_EPISODE_SHOTS = [
+    {"id": "f01_street", "seconds": 10, "cast": ["male_lead"],
+     "action": "Slow push-in along the miniature Auckland felt street. A-Jie "
+               "walks toward the green-awning coffee shop with a felt cup.",
+     "dialogue": None},
+    {"id": "f02_shop", "seconds": 10, "cast": ["female_lead"],
+     "action": "Gentle orbit inside the felt shop. Xiao-Yu notices the street "
+               "and approaches the door.",
+     "dialogue": None},
+    {"id": "f03_contact", "seconds": 6, "cast": ["male_lead", "female_lead"],
+     "complex_action": True,
+     "action": "Single simple movement: felt shoulders brush at the door. "
+               "Both take one tiny step back. No other actions or cuts.",
+     "dialogue": None},
+    {"id": "f04_reaction", "seconds": 6, "cast": ["male_lead", "female_lead"],
+     "complex_action": True,
+     "action": "Medium two-shot. They stop and exchange a shy look; "
+               "A-Jie steadies the little felt cup.",
+     "dialogue": "Xiao-Yu speaks Mandarin: “对不起，我没看路。” "
+                 "A-Jie replies in Mandarin: “没关系，咖啡还在。”"},
+    {"id": "f05_scarf", "seconds": 10, "cast": ["female_lead"],
+     "action": "Close-up Xiao-Yu adjusts her red scarf; out-of-focus Sky "
+               "Tower behind her, slight slow orbit.",
+     "dialogue": "Xiao-Yu speaks Mandarin: “那……明天还在这里见？”"},
+    {"id": "f06_reply", "seconds": 10, "cast": ["male_lead"],
+     "action": "Close-up on A-Jie under warm amber light; he smiles as "
+               "the camera slowly pushes in.",
+     "dialogue": "A-Jie speaks Mandarin: “好，明天见。”"},
+]
+
+
+def full_episode_prompts(preset: dict) -> list[dict]:
+    return [{**shot, "prompt": build_prompt(preset, shot)}
+            for shot in FULL_EPISODE_SHOTS]
 
 
 def estimate_shot_usd() -> Decimal:
