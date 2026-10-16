@@ -96,8 +96,9 @@ def test_f3_manual_workflow_runs_preflight_before_secret_or_generate():
     assert "scripts/f3_one_time_claim.py" in y
     assert "--owner-approved-f3-137" in y
     assert "inputs.reported_spend_today_usd" in y
-    assert y.index("--preflight") < y.index("scripts/f3_one_time_claim.py")
-    assert y.index("scripts/f3_one_time_claim.py") < y.index("secrets.GEMINI_API_KEY")
+    assert y.index("--preflight") < y.index("secrets.GEMINI_API_KEY")
+    assert y.index("secrets.GEMINI_API_KEY") < y.index("scripts/f3_one_time_claim.py")
+    assert y.index("scripts/f3_one_time_claim.py") < y.index("Generate exactly six")
     assert y.index("--preflight") < y.index("secrets.GEMINI_API_KEY")
     assert "ffprobe-binaries-only==0.1.2 --hash=sha256:" in y
     assert "--require-hashes --no-deps --only-binary=:all:" in y
