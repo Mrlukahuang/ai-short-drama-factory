@@ -14,11 +14,8 @@
 
 ## 下一个任务（按顺序，一次只做一个）
 
-1. **P4（当前 PR）/ STAGES R3.2（Fake）**：从已审核的本机 Fake Production 调用现有 `jobs/offline_worker.py`，校验逐镜 task/input/媒体 SHA256、资产版本，输出 `05_shots` Fake manifest；真实 Provider 不调用。
-2. **P5 / R3.3（Fake）**：复用 `providers/dialogue_audio.py`、字幕和 `offline_audio.py`，接通非人声提示音/合成配乐。
-3. **P6 / R4.4（Fake）**：一命令 CLI、每步 JSON、可单步重跑、完整离线合成和 QA。
-4. **P-final / R4.4（Fake E2E）**：从原创梗概 CLI 实产带 Fake 标签的 60–90s MP4 + GitHub 可访问 artifact；全绿合并**之后**建一次 `[需要所有者]` Issue 提议 Omni 360p 单次真测（预估 ≤US$3，需明确批准，不自动运行）。
-
+1. **P6 / STAGES R4.4（Fake）**：一个 `scripts/fake_episode.py` CLI 从原创梗概文件依次接 P1–P5；写每步 JSON、输入哈希与可单步重跑的本机 MP4/QA 结果；绝不发真实 Provider。
+2. **P-final / STAGES R4.4（Fake E2E）**：用原创合成梗概运行单命令，产出60–90秒明确 Fake 的 MP4 和可下载 CI artifact，重复跑验证幂等；绿灯合并后创建一次「[需要所有者]」Issue，提议 Omni 360p 真测（预计≤US$3，需先批准）。
 
 ## 需要所有者决定的事（已挂起，到整体真实测试时处理）
 
@@ -28,13 +25,11 @@
 
 ## 最近一次交接
 
-- 日期：2026-10-16；Agent：GPT-6；**Stage: P / Req: P4**（STAGES R3.2 Fake 切面）。
-- 合并基线：P0 #124 → P1 #125 → P2 #126 → P3 [#127](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/127) 已全绿合并；P3 main SHA `8660a08fdd81a724ca2015447c189965cbadffbc`。
-- 交付：新增 `pipeline/fake_shot_manifest.py` 通过**既有已通过双人工审批的 Production** 调用 `run_offline_production`、`jobs/shots.py`；已登记每镜 Fake job、输入哈希、媒体 SHA256、演员/场景具体版本规格哈希；强制`generation_intent_recorded=0`且`actual_vendor_charge_usd=null`，不发任何真实收费请求。复用现有缓存重跑而不自建任务调度。
-- 测试：`tests/test_fake_shot_manifest.py` 用程序化生成的假角色和真实 FFmpeg 验证六镜60秒、缓存重读、无付费、跨剧和审批门禁。不增加新的审核入口；Fake 测试才通过现有 API 显式执行审批。
-- 尚未实现：P5 的独立 Fake 音轨/字幕/配乐接线；P6 的一个 CLI 和 JSON 连续恢复；P-final 的 CI Fake MP4 artifact。现有 worker 虽合成技术预览，但不宣称是真实 AI 视频。
-- Issue #116/#119/#120 仍挂起不处理，G1 实测不启动。此 P4 独立 PR 需 scope 与四项 CI 完全全绿才能自合并，下一项仅 P5。
-
+- 日期：2026-10-16；Agent：GPT-6；**Stage: P / Req: P5**；STAGES 映射 R3.3（Fake）及 R2.1 假声线引用。
+- 已完成 P0 #124、P1 #125、P2 #126、P3 #127、P4 #128；P4 scope + 四项 CI 绿灯合并，main SHA `110a504556d99de8ea5150c9c3628eb8dbb384d5`。
+- P5 交付：`pipeline/fake_episode_audio.py` 从已完成 P4 Fake Production/预览哈希和已批准 Cue 时间槽生成 **06_dialogue 非语音 WAV**、**07_subtitles 原 SRT 时间表+哈希**、**08_music 纯合成 WAV+已存在混音器产出 MP4**。调用原 ffprobe、`offline_audio.mix_local_stems`、字幕 QA，不修改 TTS/Voice 权限；Fake 声线没有真实来源同意，不伪造授权。
+- 测试 `tests/test_fake_episode_audio.py`：实际本机合成媒体、音轨和字幕，篡改/跨剧拒绝。0 外部模型、0 USD、没有真实说话、真人肖像或出版批准。此 PR 必须 scope + 四项 CI 完全成功才能自合并。
+- 下一步仅 **P6**：接 P1–P5，CLI + JSON 哈希缓存/单步重跑/全片 QA。P-final artifact 后才发 Omni 真测提议 Issue。#116/#119/#120 保持挂起。
 
 ## 异议栏（Agent 对方向有不同意见时写这里，等所有者裁决）
 
