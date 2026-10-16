@@ -14,8 +14,7 @@
 
 ## 下一个任务（按顺序，一次只做一个）
 
-1. **P6 / STAGES R4.4（Fake）**：一个 `scripts/fake_episode.py` CLI 从原创梗概文件依次接 P1–P5；写每步 JSON、输入哈希与可单步重跑的本机 MP4/QA 结果；绝不发真实 Provider。
-2. **P-final / STAGES R4.4（Fake E2E）**：用原创合成梗概运行单命令，产出60–90秒明确 Fake 的 MP4 和可下载 CI artifact，重复跑验证幂等；绿灯合并后创建一次「[需要所有者]」Issue，提议 Omni 360p 真测（预计≤US$3，需先批准）。
+1. **P-final / STAGES R4.4 Fake E2E**：全合成梗概、单 CLI 60–90秒 MP4；CI 上传可验证 artifact，复跑 hash 相等；scope 和四 CI 全绿自动合并，只有 artifact 可访问后才建一次 [需要所有者] Omni 360p 真实全链路测试提议 Issue（估算≤US$3、严禁自动执行）。
 
 ## 需要所有者决定的事（已挂起，到整体真实测试时处理）
 
@@ -25,11 +24,12 @@
 
 ## 最近一次交接
 
-- 日期：2026-10-16；Agent：GPT-6；**Stage: P / Req: P5**；STAGES 映射 R3.3（Fake）及 R2.1 假声线引用。
-- 已完成 P0 #124、P1 #125、P2 #126、P3 #127、P4 #128；P4 scope + 四项 CI 绿灯合并，main SHA `110a504556d99de8ea5150c9c3628eb8dbb384d5`。
-- P5 交付：`pipeline/fake_episode_audio.py` 从已完成 P4 Fake Production/预览哈希和已批准 Cue 时间槽生成 **06_dialogue 非语音 WAV**、**07_subtitles 原 SRT 时间表+哈希**、**08_music 纯合成 WAV+已存在混音器产出 MP4**。调用原 ffprobe、`offline_audio.mix_local_stems`、字幕 QA，不修改 TTS/Voice 权限；Fake 声线没有真实来源同意，不伪造授权。
-- 测试 `tests/test_fake_episode_audio.py`：实际本机合成媒体、音轨和字幕，篡改/跨剧拒绝。0 外部模型、0 USD、没有真实说话、真人肖像或出版批准。此 PR 必须 scope + 四项 CI 完全成功才能自合并。
-- 下一步仅 **P6**：接 P1–P5，CLI + JSON 哈希缓存/单步重跑/全片 QA。P-final artifact 后才发 Omni 真测提议 Issue。#116/#119/#120 保持挂起。
+- 2026-10-16，GPT-6，**Stage: P / Req: P6**，STAGES R4.4（纯 Fake）。
+- P0 #124、P1 #125、P2 #126、P3 #127、P4 #128、P5 #129 已合并；P5 main SHA `ab9845e8714d250c223c399e8ed062f9e02058ad`。
+- P6 交付：`scripts/fake_episode.py` 的单命令，将本地原创 UTF-8 梗概接 P1/P2/P3、复用现有 FastAPI **两级审批 API（仅在明确 --acknowledge-fake-approvals 开关下对程序合成记录操作）**、P4 Fake Worker、P5 非人声/字幕/合成音乐、FFmpeg 全片技术 QA。
+- 本机分工作目录的 00–10 JSON 每步包含源/依赖 SHA256、payload SHA256、fake_only；按哈希重读或单步指定 --rerun-from，受污染的 P4/P5 重新生成，绝不重提付费 Provider；输出 `episode.fake.mp4`。
+- P6 合同测试只使用纯合成无版权文本与音轨；0 真实视频模型、0 真实 TTS、0付费，所有发行/真人许可保持 false。CI 尚待检查，四项与 scope 全绿才自合并。
+- 下一步仅 **P-final** 真实运行 **Fake** CLI，产出可下载 CI artifact，合并后才开一个 Omni 360p 提议 Issue。#116/#119/#120 保持 OPEN 挂起不处理。
 
 ## 异议栏（Agent 对方向有不同意见时写这里，等所有者裁决）
 
