@@ -1,0 +1,14 @@
+{
+  "id": "felt_diorama",
+  "version": 1,
+  "status": "style_test_only",
+  "note": "Owner-requested style test (2026-10-16). Not yet adopted; CHARTER still says live-action first until an AMEND changes it.",
+  "style_prompt": "Handmade needle-felted miniature diorama, stop-motion feel. Visible wool fibers on every surface, rounded toy proportions, soft warm lighting, shallow depth of field, tilt-shift miniature look, tabletop-scale set. Palette: cream, forest green, warm amber window light. Slow gentle camera push-in or slight orbit, no fast cuts, no text overlays, no brand logos.",
+  "setting": "A miniature felt version of Auckland, New Zealand: the Sky Tower in the background, low-rise corner shops with green awnings, small round felt trees, a quiet street at golden hour.",
+  "characters": {
+    "male_lead": "Felt doll young man named A-Jie: short black wool hair, round face, small black bead eyes, mustard-yellow knit sweater, dark-blue felt trousers, brown felt shoes, about one head taller than the female lead.",
+    "female_lead": "Felt doll young woman named Xiao-Yu: shoulder-length chestnut-brown wool hair with straight bangs, round face, small black bead eyes, rosy felt cheeks, cream-white felt coat over a sage-green dress, red felt scarf."
+  },
+  "consistency_rule": "Both characters must look exactly as described in every shot: same hair, same clothes, same colors, same proportions.",
+  "output": {"aspect_ratio": "9:16", "resolution": "360p", "orientation": "portrait"}
+}
