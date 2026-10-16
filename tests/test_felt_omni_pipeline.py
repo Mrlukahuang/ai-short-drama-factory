@@ -57,10 +57,28 @@ def test_f2_refuses_non_authorized_style_and_live_over_budget(tmp_path):
             _fixture(), tmp_path / "out", provider=fake,
             style="other", acknowledge_fake_approvals=True,
         )
-    with pytest.raises(bridge.FeltOmniPipelineError, match="USD 2"):
+    with pytest.raises(bridge.FeltOmniPipelineError, match="budget preflight denied"):
         bridge.run_felt_omni_episode(
             _fixture(), tmp_path / "out", provider=fake, paid=True,
             acknowledge_fake_approvals=True,
+        )
+    # A temporary owner exception must be explicit, not inferred from a
+    # conveniently larger arbitrary number.
+    from decimal import Decimal
+    with pytest.raises(bridge.FeltOmniPipelineError, match="Unauthorized"):
+        bridge.run_felt_omni_episode(
+            _fixture(), tmp_path / "out", provider=fake,
+            paid=True, acknowledge_fake_approvals=True,
+            budget_limit_usd=Decimal("2.50"),
+            reported_spend_today_usd=Decimal("0"),
+        )
+    with pytest.raises(bridge.FeltOmniPipelineError, match="budget preflight denied"):
+        bridge.run_felt_omni_episode(
+            _fixture(), tmp_path / "out", provider=fake,
+            paid=True, acknowledge_fake_approvals=True,
+            budget_limit_usd=Decimal("2.50"),
+            owner_f3_137_exception=True,
+            reported_spend_today_usd=Decimal("2.60"),
         )
     assert fake.calls == []
     assert not (tmp_path / "out").exists()
