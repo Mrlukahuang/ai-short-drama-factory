@@ -12,7 +12,7 @@ python scripts/fake_episode.py tests/fixtures/p_final_synopsis.txt \
   --duration 60 --acknowledge-fake-approvals
 ```
 
-上面的明确开关只授权**程序生成的 Fake 角色和测试剧本**通过仓库原有两道本机审批 API，**不是**对真实演员、版权或上线的审批。程序读取本地 UTF-8 原创梗概，走 P1 Bible、P2 screenplay、P3 SQLite Fake 资产、P4 单镜 Fake 媒体、P5 非人声 WAV/中文字幕/合成背景音，最后导出带持续可见 `FAKE ONLY - OFFLINE TECHNICAL PREVIEW` 标记的 H.264/AAC/mov_text MP4。
+上面的明确开关只授权**程序生成的 Fake 角色和测试剧本**通过仓库原有两道本机审批 API，**不是**对真实演员、版权或上线的审批。程序读取本地 UTF-8 原创梗概，走 P1 Bible、P2 screenplay、P3 SQLite Fake 资产、P4 单镜 Fake 媒体、P5 非人声 WAV/中文字幕/合成背景音，最后导出带持续可见 `FAKE ONLY - NOT AI VIDEO` 标记的 H.264/AAC/mov_text MP4。
 
 每个运行目录下保存 `00_input.json` 至 `10_qa.json`；每份 JSON 的来源及输入 SHA256、payload SHA256 可重新验证。再次执行相同命令应复用已经检查哈希的 P4/P5 媒体及完整 MP4；可以用 `--rerun-from 06_dialogue` 指定从某步及下游重跑。没有删除/重建既有数据库表、向云端发送视频/语音或申请密钥。
 
