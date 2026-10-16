@@ -355,11 +355,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--style", choices=("felt_diorama",), default=None)
     parser.add_argument("--paid", action="store_true",
                         help="Explicitly authorize a charge-gated real Omni attempt")
+    parser.add_argument("--owner-approved-f3-137", action="store_true",
+                        help="One-time USD2.50 exception ONLY for Issue #137 F3")
+    parser.add_argument("--reported-spend-today-usd", default=None,
+                        help="Operator-confirmed same-day existing Google spend in USD")
     args = parser.parse_args(argv)
     try:
         if args.provider == "fake":
-            if args.paid:
-                raise FakePipelineError("Fake mode rejects --paid")
+            if args.paid or args.owner_approved_f3_137 or args.reported_spend_today_usd is not None:
+                raise FakePipelineError("Fake mode rejects paid-only F3 flags")
             result = run_fake_episode(
                 args.synopsis, args.output_dir, target_seconds=args.duration,
                 acknowledge_fake_approvals=args.acknowledge_fake_approvals,
@@ -374,12 +378,24 @@ def main(argv: list[str] | None = None) -> int:
                 raise FakePipelineError(
                     "Real Omni generation requires --paid; no implicit provider calls"
                 )
+            from decimal import Decimal, InvalidOperation
+            try:
+                daily_spend = (
+                    Decimal(args.reported_spend_today_usd)
+                    if args.reported_spend_today_usd is not None else None
+                )
+            except InvalidOperation:
+                raise FakePipelineError("Invalid same-day spend declaration")
+            budget = Decimal("2.50") if args.owner_approved_f3_137 else Decimal("2.00")
             result = run_felt_omni_episode(
                 args.synopsis, args.output_dir,
                 provider=GoogleOmniVideoProvider(),
                 style=args.style, paid=True,
                 acknowledge_fake_approvals=args.acknowledge_fake_approvals,
                 rerun_from=args.rerun_from,
+                budget_limit_usd=budget,
+                owner_f3_137_exception=args.owner_approved_f3_137,
+                reported_spend_today_usd=daily_spend,
             )
     except (FakePipelineError, ValueError, OSError, subprocess.SubprocessError) as e:
         parser.exit(2, f"FAKE pipeline stopped: {type(e).__name__}\n")
