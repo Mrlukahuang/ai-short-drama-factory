@@ -351,13 +351,36 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--acknowledge-fake-approvals", action="store_true",
                         help="Use existing API review transitions for synthetic Fake demo only")
     parser.add_argument("--rerun-from", choices=STEPS, default=None)
+    parser.add_argument("--provider", choices=("fake", "omni"), default="fake")
+    parser.add_argument("--style", choices=("felt_diorama",), default=None)
+    parser.add_argument("--paid", action="store_true",
+                        help="Explicitly authorize a charge-gated real Omni attempt")
     args = parser.parse_args(argv)
     try:
-        result = run_fake_episode(
-            args.synopsis, args.output_dir, target_seconds=args.duration,
-            acknowledge_fake_approvals=args.acknowledge_fake_approvals,
-            rerun_from=args.rerun_from,
-        )
+        if args.provider == "fake":
+            if args.paid:
+                raise FakePipelineError("Fake mode rejects --paid")
+            result = run_fake_episode(
+                args.synopsis, args.output_dir, target_seconds=args.duration,
+                acknowledge_fake_approvals=args.acknowledge_fake_approvals,
+                rerun_from=args.rerun_from,
+            )
+        else:
+            if args.style != "felt_diorama":
+                raise FakePipelineError("Omni requires --style felt_diorama")
+            from felt_omni_episode import run_felt_omni_episode
+            from drama_factory.providers.google_omni_video import GoogleOmniVideoProvider
+            if not args.paid:
+                raise FakePipelineError(
+                    "Real Omni generation requires --paid; no implicit provider calls"
+                )
+            result = run_felt_omni_episode(
+                args.synopsis, args.output_dir,
+                provider=GoogleOmniVideoProvider(),
+                style=args.style, paid=True,
+                acknowledge_fake_approvals=args.acknowledge_fake_approvals,
+                rerun_from=args.rerun_from,
+            )
     except (FakePipelineError, ValueError, OSError, subprocess.SubprocessError) as e:
         parser.exit(2, f"FAKE pipeline stopped: {type(e).__name__}\n")
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
