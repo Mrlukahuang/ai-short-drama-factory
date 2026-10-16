@@ -55,8 +55,8 @@ def build_delivery_manifest(run_dir: Path) -> dict:
         raise ValueError("Expected safe Omni output directory")
     qa = json.loads((run_dir / "10_qa.json").read_text("utf-8"))
     shots = json.loads((run_dir / "05_shots.json").read_text("utf-8"))
-    if (qa["provider"] if "provider" in qa else qa.get("fake_only")) is False:
-        pass
+    if qa.get("fake_only") is not False or qa.get("model_calls") != SIX_SHOTS:
+        raise ValueError("Real six-shot QA manifest required")
     if shots.get("fake_only") is not False:
         raise ValueError("A stub/fake run is not a real F3 result")
     receipts = shots["payload"]["shots"]
