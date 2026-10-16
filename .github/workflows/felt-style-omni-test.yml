@@ -1,0 +1,58 @@
+name: Felt-style Omni 3-shot test (manual, real cost ≤ 3 USD)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type RUN_FELT_STYLE_TEST to make 3 real Omni 360p calls (~1 USD est., hard stop 3 USD)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: felt-style-omni-test
+  cancel-in-progress: false
+
+jobs:
+  felt-style:
+    if: ${{ inputs.confirmation == 'RUN_FELT_STYLE_TEST' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure FFmpeg
+        run: |
+          if ! command -v ffmpeg || ! command -v ffprobe; then
+            sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+          fi
+      - name: Install
+        run: python -m pip install -e '.[test,google-video]'
+      - name: Check secret (never printed)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: test -n "${GEMINI_API_KEY}" || { echo "::error::GEMINI_API_KEY missing"; exit 1; }
+      - name: Generate 3 shots and assemble
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DRAMA_ENABLE_PAID_GENERATION: 'YES'
+        run: python scripts/felt_style_omni_test.py --paid --out artifacts/felt-style-test
+      - name: Summary
+        if: always()
+        run: |
+          test -f artifacts/felt-style-test/manifest.json && cat artifacts/felt-style-test/manifest.json >> "$GITHUB_STEP_SUMMARY" || echo "no manifest" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: felt-style-omni-3shot
+          path: |
+            artifacts/felt-style-test/*.mp4
+            artifacts/felt-style-test/manifest.json
+            artifacts/felt-style-test/*.recovery.json
+          retention-days: 14
+          if-no-files-found: warn
