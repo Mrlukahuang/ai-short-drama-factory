@@ -274,10 +274,25 @@ def run_fake_episode(source: Path, output_root: Path, *,
             or _sha(final) != previous.get("mp4_sha256")):
         if final.is_symlink():
             raise FakePipelineError("Unsafe output MP4 link")
-        shutil.copyfile(audio_dir / m["mixed_mp4_name"], final)
+        # P-final: bake a persistent, high-contrast disclosure into EVERY
+        # video frame. A filename or JSON flag alone is not visible to viewers.
+        # Reuse the existing audio+subtitle muxed file; no new AI/render model.
+        subprocess.run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin",
+            "-y", "-i", str(audio_dir / m["mixed_mp4_name"]),
+            "-filter:v",
+            "drawtext=text=FAKE ONLY - OFFLINE TECHNICAL PREVIEW:"
+            "fontcolor=white:fontsize=20:box=1:boxcolor=black@0.72:"
+            "boxborderw=10:x=10:y=h-th-16",
+            "-map", "0:v:0", "-map", "0:a:0", "-map", "0:s:0",
+            "-c:v", "libx264", "-preset", "ultrafast",
+            "-pix_fmt", "yuv420p", "-c:a", "copy", "-c:s", "copy",
+            "-movflags", "+faststart", str(final),
+        ], check=True, capture_output=True, timeout=180)
         previous = {
             "step": "09_render", "fake_only": True, "video_source": "offline_placeholder_not_ai",
             "mp4_name": final.name, "mp4_sha256": _sha(final),
+            "persistent_fake_watermark": "FAKE ONLY - OFFLINE TECHNICAL PREVIEW",
             "source_audio_sha256": m["mixed_mp4_sha256"],
             "duration_seconds": target_seconds,
             "paid_provider_calls": 0, "publish_approved": False,
@@ -305,6 +320,7 @@ def run_fake_episode(source: Path, output_root: Path, *,
         "mp4_sha256": _sha(final), "run_id": run_id,
         "paid_provider_calls": 0, "actual_fee_usd": None,
         "real_ai_video_verified": False, "real_speech_generated": False,
+        "persistent_fake_watermark": previous["persistent_fake_watermark"],
         "human_review_required": True, "publish_approved": False,
     }
     _save_stage(folder, "10_qa", source_sha,
