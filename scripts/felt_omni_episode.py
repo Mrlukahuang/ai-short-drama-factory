@@ -81,7 +81,7 @@ def run_felt_omni_episode(source: Path, output_root: Path, *,
         raise FeltOmniPipelineError("Unknown stage")
     if paid and budget_limit_usd > MAX_RUN_USD:
         raise FeltOmniPipelineError("Cannot expand AMEND-004 single run limit")
-    if paid and source != Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "felt_episode_synopsis.txt":
+    if paid and Path(source).resolve() != Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "felt_episode_synopsis.txt":
         raise FeltOmniPipelineError("Live test restricted to approved synthetic felt fixture")
     style_mod = _style_script()
     preset = style_mod.load_preset()
