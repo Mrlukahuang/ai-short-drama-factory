@@ -53,5 +53,9 @@ def test_f3_manual_workflow_runs_preflight_before_secret_or_generate():
     assert "--provider omni --style felt_diorama --paid" in y
     assert "--preflight" in y
     assert y.index("--preflight") < y.index("secrets.GEMINI_API_KEY")
+    assert "ffprobe-binaries-only==0.1.2 --hash=sha256:" in y
+    assert "--require-hashes --no-deps --only-binary=:all:" in y
+    assert "command -v ffmpeg" in y and "command -v ffprobe" in y
+    assert y.index("Install hash-pinned FFmpeg") < y.index("--preflight")
     assert "actions/upload-artifact@v4" in y
     assert "if-no-files-found: error" in y
