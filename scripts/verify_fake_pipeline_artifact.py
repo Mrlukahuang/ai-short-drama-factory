@@ -67,11 +67,11 @@ def verify_artifact(folder: Path) -> dict:
     qa = documents["10_qa"]
     if (output.get("mp4_sha256") != digest
             or output.get("persistent_fake_watermark")
-            != "FAKE ONLY - OFFLINE TECHNICAL PREVIEW"
+            != "FAKE ONLY - NOT AI VIDEO"
             or output.get("publish_approved") is not False
             or qa.get("mp4_sha256") != digest
             or qa.get("persistent_fake_watermark")
-            != "FAKE ONLY - OFFLINE TECHNICAL PREVIEW"
+            != "FAKE ONLY - NOT AI VIDEO"
             or qa.get("full_decode_passed") is not True
             or qa.get("subtitle_track_verified") is not True
             or qa.get("real_ai_video_verified") is not False
