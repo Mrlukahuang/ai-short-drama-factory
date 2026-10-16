@@ -19,6 +19,7 @@ from drama_factory.providers.google_omni_video import OmniVideoSpec
 GOOGLE_360P_PER_SECOND = Decimal("0.0337925")
 WORST_OMNI_DURATION = 10
 MAX_RUN_USD = Decimal("2.00")
+OWNER_F3_137_USD = Decimal("2.50")
 
 
 class FeltOmniPipelineError(ValueError):
@@ -59,7 +60,9 @@ def run_felt_omni_episode(source: Path, output_root: Path, *,
                           paid: bool = False,
                           acknowledge_fake_approvals: bool = False,
                           rerun_from: str | None = None,
-                          budget_limit_usd: Decimal = MAX_RUN_USD) -> dict:
+                          budget_limit_usd: Decimal = MAX_RUN_USD,
+                          owner_f3_137_exception: bool = False,
+                          reported_spend_today_usd: Decimal | None = None) -> dict:
     """Process 6 provider clips, using the P-final 11-stage JSON interfaces.
 
     Fake-only injected providers are allowed in offline CI. No paid call may
@@ -79,18 +82,39 @@ def run_felt_omni_episode(source: Path, output_root: Path, *,
         raise FeltOmniPipelineError("Explicit approval of synthetic storyboard required")
     if rerun_from not in (None, *original.STEPS):
         raise FeltOmniPipelineError("Unknown stage")
-    if paid and budget_limit_usd > MAX_RUN_USD:
-        raise FeltOmniPipelineError("Cannot expand AMEND-004 single run limit")
+    # A one-time Issue #137 exception must be opted into explicitly. It
+    # must never silently increase the normal AMEND-004 USD2 limit.
+    allowed_limit = OWNER_F3_137_USD if owner_f3_137_exception else MAX_RUN_USD
+    if paid and (budget_limit_usd > allowed_limit or budget_limit_usd <= 0):
+        raise FeltOmniPipelineError("Unauthorized one-time F3 budget")
+    if paid and owner_f3_137_exception and budget_limit_usd != OWNER_F3_137_USD:
+        raise FeltOmniPipelineError("F3 #137 exception is exactly USD2.50")
     if paid and Path(source).resolve() != Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "felt_episode_synopsis.txt":
         raise FeltOmniPipelineError("Live test restricted to approved synthetic felt fixture")
     style_mod = _style_script()
     preset = style_mod.load_preset()
     plan = style_mod.full_episode_prompts(preset)
     worst = GOOGLE_360P_PER_SECOND * WORST_OMNI_DURATION * len(plan)
-    if paid and worst > budget_limit_usd:
-        raise FeltOmniPipelineError(
-            "Six Omni calls cannot be bounded below USD 2 with a 10s output ceiling"
+    if paid:
+        script = Path(__file__).resolve().with_name("f3_omni_report.py")
+        spec = importlib.util.spec_from_file_location("f3_budget_for_omni", script)
+        if spec is None or spec.loader is None:
+            raise FeltOmniPipelineError("F3 budget verifier missing")
+        verifier = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(verifier)
+        total_utf8_bytes = sum(len(s["prompt"].encode("utf-8")) for s in plan)
+        verdict = verifier.preflight(
+            owner_137_exception=owner_f3_137_exception,
+            reported_spend_today_usd=reported_spend_today_usd,
+            prompt_input_bytes=total_utf8_bytes,
         )
+        if (not verdict["all_checks_satisfied"]
+                or Decimal(verdict["single_run_limit_usd"]) != budget_limit_usd):
+            raise FeltOmniPipelineError(
+                "Live six-shot budget preflight denied (Issue #137)"
+            )
+        if worst > budget_limit_usd:
+            raise FeltOmniPipelineError("Six-shot possible output exceeds budget")
     if provider is None:
         raise FeltOmniPipelineError("Explicit Provider instance required")
     src = Path(source)
@@ -155,7 +179,7 @@ def run_felt_omni_episode(source: Path, output_root: Path, *,
             spec = OmniVideoSpec(
                 prompt=shot["prompt"], resolution="360p",
                 aspect_ratio="9:16", min_duration_seconds=3,
-                maximum_acknowledged_spend_usd=MAX_RUN_USD,
+                maximum_acknowledged_spend_usd=budget_limit_usd,
                 operator_approved=paid,
             )
             response = provider.generate(spec, target)

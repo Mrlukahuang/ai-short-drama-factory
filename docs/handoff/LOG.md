@@ -20,3 +20,4 @@
 - 2026-10-16 | GPT-6 | F/F2 (R4.4 Omni) | CLI provider=omni/style=felt_diorama，沿用十一阶段JSON与本机合成故事；原生音频、六镜Stub、哈希断点续跑与最坏10s费用守卫；真实模型调用0次 | PR #136
 - 2026-10-16 | GPT-6 | F/F3 (R4.4 Omni) | 六镜360p手动工作流/真实费用与ffprobe报告、实际授权前硬挡USD2超支(见[需要所有者]#137)；真实API调用0、真实六镜未执行 | PR #138
 - 2026-10-17 | GPT-6 | F3/R4.4 CI fix | Run #38922439695 ffmpeg缺失127，预算/Secret/付费镜头步骤全部跳过，收费0次；复用现有SHA256锁定FFmpeg工具，等待离线CI | PR #140
+- 2026-10-17 | GPT-6 | F3/R4.4 budget fix | 仅#137单次USD2.50临时额度 + 日额USD5申报、一次性Issue占位阻止重复收费；估算非Google硬限额，尚未发送收费请求 | PR #141

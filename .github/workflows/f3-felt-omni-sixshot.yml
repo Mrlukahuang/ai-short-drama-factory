@@ -6,9 +6,14 @@ on:
         description: "Type RUN_F3_FELT_OMNI_6 (budget preflight runs before any API request)"
         required: true
         type: string
+      reported_spend_today_usd:
+        description: "Google billing USD already spent TODAY; verify first, do not guess"
+        required: true
+        type: string
 
 permissions:
   contents: read
+  issues: write
 concurrency:
   group: owner-f3-felt-six-shot
   cancel-in-progress: false
@@ -62,22 +67,32 @@ jobs:
           command -v ffprobe
           ffmpeg -version > /dev/null
           ffprobe -version > /dev/null
-      - name: Enforce owner budget boundary BEFORE secrets or requests
+      - name: Enforce one-time owner USD2.50 + daily USD5 envelope BEFORE secret
+        env:
+          SPEND_TODAY_USD: ${{ inputs.reported_spend_today_usd }}
         run: |
-          python scripts/f3_omni_report.py --preflight --out artifacts/f3/preflight.json
+          python scripts/f3_omni_report.py --preflight --owner-approved-f3-137 \
+            --reported-spend-today-usd "$SPEND_TODAY_USD" \
+            --out artifacts/f3/preflight.json
       - name: Require existing Gemini API secret, but do not print it
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: test -n "$GEMINI_API_KEY"
+      - name: Reserve F3 paid run on Issue #137 to prevent all later duplicate calls
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/f3_one_time_claim.py
       - name: Generate exactly six 360p portrait clips with native audio
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DRAMA_ENABLE_PAID_GENERATION: 'YES'
+          SPEND_TODAY_USD: ${{ inputs.reported_spend_today_usd }}
         run: |
           python scripts/fake_episode.py tests/fixtures/felt_episode_synopsis.txt \
             --output-dir artifacts/f3/work --duration 60 \
             --acknowledge-fake-approvals \
-            --provider omni --style felt_diorama --paid
+            --provider omni --style felt_diorama --paid \
+            --owner-approved-f3-137 --reported-spend-today-usd "$SPEND_TODAY_USD"
       - name: Validate each shot and the final real MP4
         run: |
           run_dir="$(find artifacts/f3/work -name episode.omni.mp4 -type f -printf '%h\n' -quit)"
@@ -96,4 +111,15 @@ jobs:
             artifacts/f3/work/omni-*/[0-1][0-9]_*.json
             artifacts/f3/work/omni-*/manifest.json
           if-no-files-found: error
+          retention-days: 14
+      - name: Preserve incomplete receipts for owner inspection after failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f3-felt-omni-interrupted-diagnostics
+          path: |
+            artifacts/f3/preflight.json
+            artifacts/f3/work/omni-*/*.task.json
+            artifacts/f3/work/omni-*/[0-1][0-9]_*.json
+          if-no-files-found: warn
           retention-days: 14
