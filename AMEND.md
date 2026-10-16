@@ -70,6 +70,22 @@ Sora 2 API 已于 2026-09-24 关停，不得列为候选。视频候选为 Gemin
 
 **撤销条件**：所有者确定模型与方向后，标记 Revoked 并恢复 G1 关卡。
 
+## AMEND-006（2026-10-16，Active）第一版方向：毛毡微缩风格 + Gemini Omni
+
+**原因**：Issue #132 真实测试（PR #133，Actions「Felt-style Omni 3-shot test」#1）：3 镜头 Omni 360p 全部竖屏通过；风格接近所有者参考片；两位毛毡主角在 3 个镜头中发型、服装、配色、脸型一致；中文对白所有者试听通过；估算费用约 0.70 USD。所有者确认采用。
+
+**决定**：
+1. **视觉方向**：第一版改为 **毛毡微缩（needle-felted miniature diorama）风格**，风格预设 `config/style_presets/felt_diorama.json`。CHARTER 中“真人风格男女主”改为“毛毡玩偶风格男女主”；真人路线暂停（不删除代码）。
+2. **主视频模型**：`gemini-omni-1.1-flash`，**音频路线 A（模型原生音频 + 中文对白）**。ADR-010 定为 Accepted。Seedance / Kling（#116）、九镜 A/B（#120）降级为备选，不再阻塞。
+3. **定妆照（#119）**：毛毡风格下暂不需要；等 Omni adapter 支持参考图后再评估。
+4. **下一步顺序（一个 Req 一个 PR，可按 AMEND-004 绿灯自合并）**：
+   - **F1 提示词修正**：只描述当前镜头中出现的角色；复杂动作（如“撞到”）拆成 ≤ 6 秒的短镜头；角色外观描述保持逐字一致。
+   - **F2 接入真实 Omni 到 P-final CLI**：`scripts/fake_episode.py` 增加 `--provider omni --style felt_diorama`，复用现有 11 步 JSON 和单步重跑；Fake 仍为默认。
+   - **F3 真实整集**：用 F2 跑一集 6 镜头约 60 秒（360p，估算 ≤ 2 USD），手动 workflow 触发，成片作为 artifact，在新 Issue 中交所有者看片。
+5. **付费额度**：本方向的 Omni 360p 调用按 AMEND-004 执行（单次 ≤ 2 USD、当天累计 ≤ 5 USD）；720p 或超额度需所有者批准。AMEND-005 的“禁止真实调用”在本条范围内解除。
+
+**撤销条件**：整集测试中角色一致性或中文对白明显失败，所有者标记 Revoked。
+
 ---
 
 ## 修正模板（所有者新增时复制）

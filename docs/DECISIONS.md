@@ -37,6 +37,6 @@
 
 **状态：Accepted**。见 `AMEND.md` AMEND-001/002。生产继续使用 SQLite 至 G5；Turso/libSQL txlab、TTS 恢复链冻结（只修 bug）。新增原则「先验证、后加固」：环节未用真实模型跑通前，不写恢复/对账/迁移代码。阶段计划改由 `docs/STAGES.md` 管理，`docs/ROADMAP.md` 转为历史记录。冻结由 `scripts/scope_guard.py` 在 CI 强制。
 
-## ADR-010 主视频模型与音频路线（待定）
+## ADR-010 主视频模型与音频路线（2026-10-16）
 
-**状态：Pending — 由 G1 盲测报告 `docs/G1_BENCHMARK_REPORT.md` 决定。** 候选：Gemini Omni 1.1 Flash、Seedance 2.5、Kling 3.0 Omni（Kling 4.0 上线后加入）。音频路线 A（原生音频 + 音色参考）vs B（Gemini TTS + 口型同步）。
+**状态：Accepted**（AMEND-006）。主视频模型 `gemini-omni-1.1-flash`，360p 草稿 / 720p 成片；音频路线 A：模型原生音频 + 中文对白。视觉风格：毛毡微缩（`config/style_presets/felt_diorama.json`）。依据：Issue #132 / PR #133 真实 3 镜头测试，竖屏、风格、角色一致性、中文对白均通过，估算约 0.70 USD。Seedance / Kling 保留为备选 Provider。
