@@ -112,3 +112,14 @@ jobs:
             artifacts/f3/work/omni-*/manifest.json
           if-no-files-found: error
           retention-days: 14
+      - name: Preserve incomplete receipts for owner inspection after failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f3-felt-omni-interrupted-diagnostics
+          path: |
+            artifacts/f3/preflight.json
+            artifacts/f3/work/omni-*/*.task.json
+            artifacts/f3/work/omni-*/[0-1][0-9]_*.json
+          if-no-files-found: warn
+          retention-days: 14
