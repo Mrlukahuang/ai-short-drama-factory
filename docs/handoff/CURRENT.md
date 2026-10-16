@@ -24,6 +24,9 @@
 
 ## 最近一次交接
 
+- 2026-10-17，GPT-6，F3 CI 环境修复 PR #140：所有者手动触发的 Run #38922439695 在 `ffmpeg: command not found` (exit 127) 停止；**预算检查、读取 Gemini Secret、全部真实生成均 skipped，因此该 run 0 次付费调用**。PR #140 使用仓库现有 SHA256 锁定 FFmpeg/ffprobe 包配置 GitHub Runner，离线 CI 通过前不得合并。
+- 已收到所有者聊天授权本次限额 USD2.50、日限额 USD5；**但目前 F3 代码仍使用单次 USD2.00 门禁，真实六镜仍不可执行**，需先核对可验证费用上限，不因环境修复重复手动触发。#137 先保留，#116/#119/#120 保持不变。
+
 - 2026-10-16，GPT-6，**Stage: F / Req: F3**，对应 G4/R4.4；F1 #135 已合并、F2 #136 已 CI 全绿合并 SHA `e47a2489d0f477a15a2059298bfc4661f339e89b`。
 - **F3 [PR #138](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/138)**：手动六镜 Omni 360p + 原生音频 workflow；读取 Gemini Secret/供应商收费请求前必须先进行严格单次费用预检；实际六镜视频音频 + task ID + 时长宽高和真假费用分别记录、如真实成功才上传 Artifact。该 PR 只交付可检查的代码/离线测试，不宣称已经有六镜真实成片。
 - **[需要所有者] Issue #137** 是 AMEND-004 合法阻塞：Google 官方36/60? 视频360p输出为1931 tokens/秒、US$17.50/百万 token；六镜若各10s就是 US$2.02755，未含 prompt；目前 Interactions API Omni 旧适配器不提供经核验的严格时长或账单硬限额。52s的提示词总时长只是期望值（约US$1.75721输出），不能取代最高费用保证。**F3 没有发出任何真实调用，实际收费 US$0。**
