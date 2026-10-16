@@ -161,7 +161,7 @@ def build_fake_episode_audio(
         raise FakeAudioStageError("P4 SRT does not match approved cue timing")
     from drama_factory.pipeline.offline_qa import inspect_offline_delivery
     qa = inspect_offline_delivery(render, mp4)
-    if qa.get("technical_qa_passed") is not True:
+    if qa.get("technical_decode_passed") is not True:
         raise FakeAudioStageError("P4 subtitle or MP4 QA failed")
 
     output = Path(output_root)
