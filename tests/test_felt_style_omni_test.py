@@ -14,13 +14,34 @@ fs = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(fs)
 
 
-def test_prompts_include_style_and_both_characters():
+def test_prompts_include_style_but_only_onscreen_characters():
     preset = fs.load_preset()
     for shot in fs.SHOTS:
-        p = fs.build_prompt(preset, shot)
-        assert "needle-felted" in p and "9:16" in p
-        assert "A-Jie" in p and "Xiao-Yu" in p
-        assert preset["consistency_rule"] in p
+        prompt = fs.build_prompt(preset, shot)
+        assert "needle-felted" in prompt and "9:16" in prompt
+        for key, description in preset["characters"].items():
+            assert (description in prompt) == (key in shot["cast"])
+    street = fs.build_prompt(preset, fs.SHOTS[0])
+    assert preset["characters"]["female_lead"] not in street
+    assert "unlisted characters" in street
+
+
+def test_six_shot_felt_plan_consistency_and_split_action():
+    preset = fs.load_preset()
+    plan = fs.full_episode_prompts(preset)
+    assert len(plan) == 6
+    assert len({x["id"] for x in plan}) == 6
+    assert sum(s["seconds"] for s in plan) == 52
+    assert len([x for x in plan if x.get("complex_action")]) == 2
+    assert all(x["seconds"] <= 6 for x in plan if x.get("complex_action"))
+    for row in plan:
+        assert row["prompt"] == fs.build_prompt(preset, row)
+        for key, description in preset["characters"].items():
+            assert (description in row["prompt"]) == (key in row["cast"])
+    with pytest.raises(ValueError, match="<=6s"):
+        fs.build_prompt(preset, {**plan[2], "seconds": 8})
+    with pytest.raises(ValueError, match="unique"):
+        fs.build_prompt(preset, {**plan[0], "cast": ["male_lead", "male_lead"]})
 
 
 def test_budget_within_limits():
