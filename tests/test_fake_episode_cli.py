@@ -8,7 +8,19 @@ import shutil
 
 import pytest
 
-from scripts.fake_episode import FakePipelineError, STEPS, run_fake_episode
+import importlib.util
+
+# scripts/ is an entrypoint directory, not an installed Python package.
+SPEC = importlib.util.spec_from_file_location(
+    "fake_episode_script",
+    Path(__file__).resolve().parents[1] / "scripts" / "fake_episode.py",
+)
+assert SPEC is not None and SPEC.loader is not None
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
+FakePipelineError = MODULE.FakePipelineError
+STEPS = MODULE.STEPS
+run_fake_episode = MODULE.run_fake_episode
 
 needs_ffmpeg = pytest.mark.skipif(
     not (shutil.which("ffmpeg") and shutil.which("ffprobe")),
