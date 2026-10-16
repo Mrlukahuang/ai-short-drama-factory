@@ -44,5 +44,5 @@ def test_p_final_workflow_is_offline_and_uploads_real_stage_artifacts():
         assert required in yaml
     script = (Path(__file__).resolve().parents[1]
               / "scripts/fake_episode.py").read_text("utf-8")
-    assert "FAKE ONLY - OFFLINE TECHNICAL PREVIEW" in script
-    assert "drawtext=" in script
+    assert "FAKE ONLY - NOT AI VIDEO" in script
+    assert "overlay=0:0" in script
