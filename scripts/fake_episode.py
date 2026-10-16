@@ -12,6 +12,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from PIL import Image, ImageDraw, ImageFont
+
 from fastapi.testclient import TestClient
 
 from drama_factory.api import create_app
@@ -274,25 +276,38 @@ def run_fake_episode(source: Path, output_root: Path, *,
             or _sha(final) != previous.get("mp4_sha256")):
         if final.is_symlink():
             raise FakePipelineError("Unsafe output MP4 link")
-        # P-final: bake a persistent, high-contrast disclosure into EVERY
-        # video frame. A filename or JSON flag alone is not visible to viewers.
-        # Reuse the existing audio+subtitle muxed file; no new AI/render model.
-        subprocess.run([
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin",
-            "-y", "-i", str(audio_dir / m["mixed_mp4_name"]),
-            "-filter:v",
-            "drawtext=text=FAKE ONLY - OFFLINE TECHNICAL PREVIEW:"
-            "fontcolor=white:fontsize=20:box=1:boxcolor=black@0.72:"
-            "boxborderw=10:x=10:y=h-th-16",
-            "-map", "0:v:0", "-map", "0:a:0", "-map", "0:s:0",
-            "-c:v", "libx264", "-preset", "ultrafast",
-            "-pix_fmt", "yuv420p", "-c:a", "copy", "-c:s", "copy",
-            "-movflags", "+faststart", str(final),
-        ], check=True, capture_output=True, timeout=180)
+        # P-final: a persistent on-frame label using Pillow bitmap overlay.
+        # Use the installed Pillow instead of ffmpeg's optional drawtext
+        # font filter; never fetch font assets or remote data.
+        overlay = folder / ".fake-overlay.png"
+        label = Image.new("RGBA", (360, 640), (0, 0, 0, 0))
+        pen = ImageDraw.Draw(label)
+        pen.rectangle((0, 588, 360, 640), fill=(0, 0, 0, 230))
+        try:
+            font = ImageFont.truetype("DejaVuSans.ttf", 19)
+        except OSError:
+            font = ImageFont.load_default()
+        pen.text((10, 603), "FAKE ONLY - NOT AI VIDEO",
+                 font=font, fill=(255, 255, 255, 255))
+        label.save(overlay, format="PNG")
+        try:
+            subprocess.run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin",
+                "-y", "-i", str(audio_dir / m["mixed_mp4_name"]),
+                "-loop", "1", "-i", str(overlay),
+                "-filter_complex",
+                "[0:v:0][1:v:0]overlay=0:0:shortest=1,format=yuv420p[v]",
+                "-map", "[v]", "-map", "0:a:0", "-map", "0:s:0",
+                "-c:v", "libx264", "-preset", "ultrafast",
+                "-pix_fmt", "yuv420p", "-c:a", "copy", "-c:s", "copy",
+                "-movflags", "+faststart", str(final),
+            ], check=True, capture_output=True, timeout=180)
+        finally:
+            overlay.unlink(missing_ok=True)
         previous = {
             "step": "09_render", "fake_only": True, "video_source": "offline_placeholder_not_ai",
             "mp4_name": final.name, "mp4_sha256": _sha(final),
-            "persistent_fake_watermark": "FAKE ONLY - OFFLINE TECHNICAL PREVIEW",
+            "persistent_fake_watermark": "FAKE ONLY - NOT AI VIDEO",
             "source_audio_sha256": m["mixed_mp4_sha256"],
             "duration_seconds": target_seconds,
             "paid_provider_calls": 0, "publish_approved": False,
