@@ -66,7 +66,13 @@ def run_felt_omni_episode(source: Path, output_root: Path, *,
     start unless the pessimistic six-call estimate fits the strict budget.
     An interrupted/unknown task is NEVER resubmitted automatically.
     """
-    import fake_episode as original
+    # scripts/ is not an installed package when run under pytest.
+    path = Path(__file__).resolve().with_name("fake_episode.py")
+    spec = importlib.util.spec_from_file_location("fake_episode_for_omni", path)
+    if spec is None or spec.loader is None:
+        raise FeltOmniPipelineError("Original 11-stage Fake CLI unavailable")
+    original = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(original)
     if style != "felt_diorama":
         raise FeltOmniPipelineError("Only owner-adopted felt_diorama style supported")
     if acknowledge_fake_approvals is not True:
@@ -75,6 +81,8 @@ def run_felt_omni_episode(source: Path, output_root: Path, *,
         raise FeltOmniPipelineError("Unknown stage")
     if paid and budget_limit_usd > MAX_RUN_USD:
         raise FeltOmniPipelineError("Cannot expand AMEND-004 single run limit")
+    if paid and source != Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "felt_episode_synopsis.txt":
+        raise FeltOmniPipelineError("Live test restricted to approved synthetic felt fixture")
     style_mod = _style_script()
     preset = style_mod.load_preset()
     plan = style_mod.full_episode_prompts(preset)
