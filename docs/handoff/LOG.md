@@ -17,3 +17,4 @@
 - 2026-10-16 | GPT-6 | P/P6 (R4.4 Fake) | 一条CLI串P1–P5、11步JSON哈希缓存/指定重跑与合成MP4/QA，真实Provider0/US$0 | PR #130
 - 2026-10-16 | GPT-6 | P/P-final (R4.4 Fake E2E) | 全帧Fake水印、原始合成梗概60秒CLI、11阶段验码、CI上传MP4工件；真实AI0/US$0，工件状态待CI确认 | PR #131
 - 2026-10-16 | GPT-6 | F/F1 (R3.1 Omni) | 按 AMEND-006 固定毛毡玩偶出场角色描述、双复杂动作拆≤6秒，离线 Fake 合同测试；0 模型/US$0 | PR #135
+- 2026-10-16 | GPT-6 | F/F2 (R4.4 Omni) | CLI provider=omni/style=felt_diorama，沿用十一阶段JSON与本机合成故事；原生音频、六镜Stub、哈希断点续跑与最坏10s费用守卫；真实模型调用0次 | PR #136
