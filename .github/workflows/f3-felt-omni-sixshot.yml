@@ -1,0 +1,67 @@
+name: F3 Felt Omni 6-shot full episode (manual, owner gated)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type RUN_F3_FELT_OMNI_6 (budget preflight runs before any API request)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+concurrency:
+  group: owner-f3-felt-six-shot
+  cancel-in-progress: false
+
+jobs:
+  felt-omni-six:
+    if: ${{ inputs.confirmation == 'RUN_F3_FELT_OMNI_6' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DRAMA_FACTORY_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline app and codecs
+        run: |
+          python -m pip install -e '.[test,google-video]'
+          ffmpeg -version >/dev/null
+          ffprobe -version >/dev/null
+      - name: Enforce owner budget boundary BEFORE secrets or requests
+        run: |
+          python scripts/f3_omni_report.py --preflight --out artifacts/f3/preflight.json
+      - name: Require existing Gemini API secret, but do not print it
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: test -n "$GEMINI_API_KEY"
+      - name: Generate exactly six 360p portrait clips with native audio
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DRAMA_ENABLE_PAID_GENERATION: 'YES'
+        run: |
+          python scripts/fake_episode.py tests/fixtures/felt_episode_synopsis.txt \
+            --output-dir artifacts/f3/work --duration 60 \
+            --acknowledge-fake-approvals \
+            --provider omni --style felt_diorama --paid
+      - name: Validate each shot and the final real MP4
+        run: |
+          run_dir="$(find artifacts/f3/work -name episode.omni.mp4 -type f -printf '%h\n' -quit)"
+          test -n "$run_dir"
+          python scripts/f3_omni_report.py --run-dir "$run_dir" \
+            --out "$run_dir/manifest.json"
+          ffprobe -v error -show_entries format=duration:stream=codec_type,width,height \
+            -of json "$run_dir/episode.omni.mp4" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload only a verified genuine clip bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: f3-felt-omni-sixshot-real-mp4
+          path: |
+            artifacts/f3/work/omni-*/episode.omni.mp4
+            artifacts/f3/work/omni-*/*.task.json
+            artifacts/f3/work/omni-*/[0-1][0-9]_*.json
+            artifacts/f3/work/omni-*/manifest.json
+          if-no-files-found: error
+          retention-days: 14
