@@ -37,7 +37,7 @@ class SyntheticOmni:
         subprocess.run([
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin",
             "-y", "-f", "lavfi", "-i",
-            "color=c=forestgreen:s=360x640:r=15:d=3",
+            "color=c=green:s=360x640:r=15:d=3",
             "-f", "lavfi", "-i", "sine=frequency=450:duration=3",
             "-shortest", "-c:v", "libx264", "-pix_fmt", "yuv420p",
             "-c:a", "aac", str(destination),
@@ -90,7 +90,7 @@ def test_f2_six_stub_clips_native_audio_and_eleven_stages(tmp_path):
     render = json.loads(
         (Path(result["run_dir"]) / "09_render.json").read_text("utf-8")
     )
-    assert render["width"] == 360 if "width" in render else render["payload"]["width"] == 360
+    assert render["width"] == 360
     second = bridge.run_felt_omni_episode(
         _fixture(), output, provider=stub,
         acknowledge_fake_approvals=True,
