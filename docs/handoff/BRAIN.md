@@ -101,6 +101,7 @@
 | 大脑下载不了 Actions artifact/日志 | 会话代理禁止访问 blob 存储 | 所有者下载 zip 发到聊天 |
 | Omni 只能文字 prompt，不能参考图 | adapter 未实现参考图 | 毛毡风格靠固定文字描述已能保持一致（#132 验证） |
 | F3 被 2 USD 上限挡住 | Omni 不能强制时长，最坏 60s ≈ 2.03 USD；上限写死在 `scripts/f3_omni_report.py` | 所有者在 #137 批准后，执行层改该脚本上限 |
+| **所有 CI 红，日志写 “recent account payments have failed or your spending limit needs to be increased”** | GitHub Actions 额度/付款问题（私有仓库免费分钟用完或扣款失败），任务根本没启动，**不是代码错** | 所有者去 GitHub Settings → Billing & plans 处理；处理前不合并任何 PR、不触发付费 workflow |
 | 本地 git 报 “unpushed / no remote branch” | 浅克隆只跟踪 main | 补 fetch refspec + `git branch -u`，属误报 |
 
 ---
@@ -109,7 +110,8 @@
 
 - **方向（AMEND-006 + ADR-010）**：毛毡微缩奥克兰风格（`config/style_presets/felt_diorama.json`）+ `gemini-omni-1.1-flash` 360p，原生音频中文对白。真人路线暂停。
 - **已完成**：G0 治理体系；P0–P-final 全 Fake 链路（一条命令梗概 → 60 秒 Fake MP4，`scripts/fake_episode.py`）；#132/#133 真实 3 镜风格测试（全部竖屏、角色一致、中文通过、估算约 0.70 USD）；F1 提示词修正（#135）；F2 Omni 接入 CLI（#136）；F3 六镜 workflow 代码（#138）。
-- **卡住**：**Issue #137** — F3 六镜真实运行最坏 2.03 USD > 2 USD 上限。待所有者批准（建议：本次上限 3 USD），执行层改 `scripts/f3_omni_report.py` 后，所有者手动运行 Actions「F3 Felt Omni 6-shot」，输入 `RUN_F3_FELT_OMNI_6`。
+- **卡住 ①（2026-10-17 发现）**：**GitHub Actions 因账单问题停止运行**（所有 job “not started… payments have failed or spending limit”）。CI 和 F3 workflow 都跑不了，所有者需先在 Billing & plans 处理。
+- **卡住 ②**：**Issue #137** — F3 六镜真实运行最坏 2.03 USD > 2 USD 上限。待所有者批准（建议：本次上限 3 USD），执行层改 `scripts/f3_omni_report.py` 后，所有者手动运行 Actions「F3 Felt Omni 6-shot」，输入 `RUN_F3_FELT_OMNI_6`。
 - **备选挂起（不阻塞）**：#116 Seedance/Kling 平台与 Key（建议 fal.ai，一个 `FAL_KEY`）；#119 定妆照；#120 九镜 A/B。
 - **Active AMEND**：001 冻结存储/TTS 恢复实验；002 原 G1 优先（已被 005/006 覆盖大部分）；003 模型清单；004 自主模式与预算；005 链路优先（真实调用禁令已被 006 在毛毡方向内解除）；006 毛毡 + Omni。
 - **已知成本参考**：Omni 360p ≈ 0.034 USD/秒，720p ≈ 0.10 USD/秒；Seedance 2.5（fal）≈ 0.47 USD/秒；Kling 3.0 Standard ≈ 0.22 USD/秒。市场 AI 短剧报价已跌到每分钟几百元人民币。
