@@ -14,9 +14,8 @@
 
 ## 下一个任务（按顺序，一次只做一个）
 
-1. **F1（本 PR）**：单镜仅包含出场角色的逐字固定描述；将物理碰撞和反应拆为≤6秒短镜；维护离线 Fake 契约测试。
-2. **F2（F1 CI 全绿合并后）**：`scripts/fake_episode.py` 增加 `--provider omni --style felt_diorama`，保持 Fake 默认、11步 JSON、按镜断点续跑及 ffprobe/原生音频。
-3. **F3（F2 CI 全绿合并后）**：手动 Actions 工作流以360p跑6镜，预估总计≤US$2、当天累计≤US$5；真实合并 MP4 + 每镜元数据 Artifact，开 `[需要所有者]` Issue 交所有者看片。仅在安全额度、费用记录和密钥条件满足时执行，否则发 Issue 阻断并保留 F3 离线代码。
+1. **F2（本 PR）**：`scripts/fake_episode.py --provider omni --style felt_diorama`；Fake 默认不变；沿用 P-final 11步 JSON、纯合成前四步、六镜原生音轨、逐镜哈希+拒绝未知付费任务自动重试。
+2. **F3（F2 CI 全绿合并后）**：手动 Actions 工作流以360p跑6镜，预估总计≤US$2、当天累计≤US$5；真实合并 MP4 + 每镜元数据 Artifact，开 `[需要所有者]` Issue 交所有者看片。仅在安全额度、费用记录和密钥条件满足时执行，否则发 Issue 阻断并保留 F3 离线代码。
 
 ## 需要所有者决定的事（现状）
 
@@ -25,9 +24,10 @@
 
 ## 最近一次交接
 
-- 2026-10-16，GPT-6，**Stage: F / Req: F1**；开工时 main `f6ce334de79b441f6e180a41b0150479776e7abc`，PR #133 已合并且无开放 PR。
-- 本分支修改仅涉及 F1 提示词拆分、角色作用域及离线测试。六镜预案为 10+10+6+6+10+10=52 秒；两段复杂动作均≤6秒，角色描述逐字复用风格预设，无付费调用。
-- F2/F3 未开始执行，F3 费用和 Google 帐单仍待核对。下一项仅 F2。
+- 2026-10-16，GPT-6，**Stage: F / Req: F2**；F1 PR #135 CI 全绿，合并 SHA `826fe66fdf6421679d03a0936c1ce72c155b6794`。
+- F2：`scripts/fake_episode.py` 新增 `--provider omni --style felt_diorama --paid`；Fake 默认保留；`scripts/felt_omni_episode.py` 串既有 P-final 的 00–04 Fake 合成剧本，真实/注入 Stub 的 05–10 六镜、原生音轨、竖屏技术检查与阶段 JSON。收费任务在发出前有硬预算预检，每镜有 started/complete 收据，绝不自动重投。
+- **费用阻断事实**：Google 官方 360p 视频输出 1931 tokens/秒×US$17.50/百万≈US$0.0337925/秒。当前 Omni 旧适配器无法强制实际输出 6秒、最大可能 10秒，六镜最坏仅视频输出约 US$2.02755，已超过 AMEND-004 US$2/次（输入另计）。F2 不发真实请求，F3 必须先验证能严格封顶，否则按 AMEND-004 新建 [需要所有者] Issue。禁止使用累计估算代替真实账单。
+- F3 仍待办；原生中文对白的音轨可通过 ffprobe 证明存在，但语音内容/字幕正确性仍需人工审片和转写。下一项仅 F3。
 
 ## 异议栏（Agent 对方向有不同意见时写这里，等所有者裁决）
 
