@@ -24,6 +24,10 @@
 
 ## 最近一次交接
 
+- 2026-10-17，GPT-6，F3 临时预算接线修复：所有者在 ChatGPT 明确批准 **仅本次 Issue #137** 单次最高 **US$2.50**、当天累计 **US$5.00**；默认 AMEND-004 **US$2.00 不变**。此分支在 `scripts/f3_omni_report.py`、`scripts/felt_omni_episode.py` 与 `scripts/fake_episode.py` 显式串接临时额度、每日已花费声明、六镜总输出10秒上界 + 保守输入/文本余量预估；**这只是费用估计，不是 Google 供应商硬限价**，真实账单仍须复核。
+- 手动 F3 工作流新增 `reported_spend_today_usd` 必填参数；预算预检与 Secret 有效性检查通过后，**先在 #137 写入一次性 Actions 运行标记，再允许首次付费请求**；新运行或 rerun 会在提交 API 前停止。失败时仅上传任务收据供人工核对，不得盲目重新执行。尚未执行任何新模型生成；整集 MP4 / 看片 Issue 尚无。
+- 已知限制：当前 GitHub 连接器能改 PR/读 CI，但**没有 workflow_dispatch 操作**；即使 PR CI 全绿合并也不能从本对话直接触发手动收费工作流。需要本人在 Actions 填入真实当日 Google 账单已花费金额并执行一次，不能猜测为零；只在对费用上界有合理把握时执行。此前失败的 Run #38922439695 0付费，FFmpeg 已通过 PR #140 修复。
+
 - 2026-10-17，GPT-6，F3 CI 环境修复 PR #140：所有者手动触发的 Run #38922439695 在 `ffmpeg: command not found` (exit 127) 停止；**预算检查、读取 Gemini Secret、全部真实生成均 skipped，因此该 run 0 次付费调用**。PR #140 使用仓库现有 SHA256 锁定 FFmpeg/ffprobe 包配置 GitHub Runner，离线 CI 通过前不得合并。
 - 已收到所有者聊天授权本次限额 USD2.50、日限额 USD5；**但目前 F3 代码仍使用单次 USD2.00 门禁，真实六镜仍不可执行**，需先核对可验证费用上限，不因环境修复重复手动触发。#137 先保留，#116/#119/#120 保持不变。
 
