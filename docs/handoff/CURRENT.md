@@ -6,6 +6,14 @@
 
 **AMEND-006：F3 六镜真实样片已完成且所有者接受作为第一版视觉方向基线；继续 G4 MVP（未进入 G5）**。F3 [Run #38931439653](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/38931439653) 真实6镜 360×640，约52.07秒；Artifact #12058982177。2026-10-17 所有者表示「直接先往下走，问题不大」，[Issue #142](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/142) 已记录「不为轻微连续性问题返工」并按原型验收结束。**这不是商用发行验收**：中文对白真实性/字幕转写对齐仍需另验，Google [#137](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/137) 实际账单仍未取得（只有视频输出 US$1.75896721 估算）。F3 的一次性付费权限已消费，禁止重跑。
 
+### 最新运行诊断（2026-10-18 NZT）
+
+- 首批Run39034195802在OpenAI输入计数预检HTTP400停止；artifact12101851150记录生成尝试0、claim=false。
+- Issue146无首批claim；未进入真实剧本生成，账单未独立核实。
+- 已发现并修复计数请求误带store/stream/service_tier/max_output_tokens；保留完整Schema与reasoning。
+- 补回归测试，本地部分检出79项相关测试通过。供应商400具体code/param旧报告未保留，账号/模型访问尚不能排除。
+- 修复合并后需新建manual Run（不是旧任务Re-run）；不自动重试、不扩大US$2原额度。
+
 ### 当前 Req
 
 **Stage: G4 / Req: R4.1 / 交付物：所有者已授权的首批3次文本兼容性手动工作流。**

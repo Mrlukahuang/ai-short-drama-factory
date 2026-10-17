@@ -36,8 +36,10 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 class SafeTransportError(RuntimeError):
-    def __init__(self, status):
+    def __init__(self, status, *, code=None, param=None):
         self.http_status = status
+        self.provider_code = code
+        self.provider_param = param
         super().__init__(f"HTTP {status}; no automatic retry")
 
 
@@ -54,8 +56,30 @@ def request_json(url: str, key: str, body: dict | None, *, google=False):
             raise RuntimeError("Response too large; do not retry")
         return json.loads(raw)
     except HTTPError as exc:
-        # Do not expose error bodies that may echo requests or headers.
-        raise SafeTransportError(exc.code) from None
+        # Read only allowlisted diagnostic identifiers, never message/body text.
+        code = param = None
+        try:
+            error = json.loads(exc.read(16384)).get("error", {})
+            if error.get("code") in {"unknown_parameter", "unsupported_parameter",
+                    "invalid_request_error", "model_not_found", "invalid_api_key", "insufficient_quota"}:
+                code = error["code"]
+            if error.get("param") in {"max_output_tokens", "service_tier", "store", "stream",
+                                     "model", "text", "input", "reasoning"}:
+                param = error["param"]
+        except (ValueError, TypeError, AttributeError):
+            pass
+        raise SafeTransportError(exc.code, code=code, param=param) from None
+
+
+def input_count_payload(prepared) -> dict:
+    """Project all input-bearing fields, not generation-only runtime options.
+
+    Official InputTokenCountParams accepts model/input/reasoning/text. It does
+    NOT accept store, stream, service_tier or max_output_tokens. Keep the full
+    JSON schema and reasoning configuration; never count only the plain prompt.
+    """
+    body = json.loads(prepared.payload_json)
+    return {key: body[key] for key in ("model", "input", "reasoning", "text")}
 
 
 def pilot_budget(counts: dict, spend_today: str, on) -> dict:
@@ -139,7 +163,10 @@ def run_live(out: Path, spend_today: str, *, env, post=request_json) -> dict:
     try:
         counts = {}
         for req in prepared[:2]:
-            body = json.loads(req.payload_json)
+            body = input_count_payload(req)
+            report["stage"] = "count_input_tokens"
+            report["current_model"] = req.model
+            write_json(out / "report.json", report)
             counted = post(COUNT_URL, keys["openai"], body)
             if counted.get("object") != "response.input_tokens":
                 raise RuntimeError("Unrecognized OpenAI token count receipt")
@@ -147,11 +174,14 @@ def run_live(out: Path, spend_today: str, *, env, post=request_json) -> dict:
         report["budget"] = pilot_budget(counts, spend_today, on)
         report["openai_full_request_counts"] = counts
         write_json(out / "report.json", report)
+        report["stage"] = "claim_once"
         claim_once(keys["github"], env["GITHUB_RUN_ID"], post)
         report["paid_reservation_claimed"] = True
         for req in prepared:
             report["generation_attempts"] += 1
             report["status"] = "request_in_flight"
+            report["stage"] = "generate_screenplay"
+            report["current_model"] = req.model
             write_json(out / "report.json", report)  # Preserve uncertain timeout attempt.
             response = post(req.endpoint, keys["google"] if req.model.startswith("gemini-")
                             else keys["openai"], json.loads(req.payload_json),
@@ -177,6 +207,8 @@ def run_live(out: Path, spend_today: str, *, env, post=request_json) -> dict:
         report["error_category"] = type(exc).__name__
         if isinstance(exc, SafeTransportError):
             report["http_status"] = exc.http_status
+            report["provider_code"] = exc.provider_code
+            report["provider_param"] = exc.provider_param
         # Never print exception messages from network libraries or provider JSON.
         raise RuntimeError("Pilot halted; inspect private report/artifact, do not rerun") from None
     finally:

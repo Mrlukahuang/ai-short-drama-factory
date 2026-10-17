@@ -52,3 +52,21 @@ report区分generation_attempts、validated_draft、halted、unknown usage、目
 - https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash （输入上限1048576）
 - https://ai.google.dev/gemini-api/docs/thinking.md （输出cap含思考且硬截断）
 
+
+## 首次运行诊断与修复（2026-10-18 NZT）
+
+Run https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39034195802
+在OpenAI输入计数预检HTTP400停止。Artifact12101851150/report.json记录：generation_attempts=0、
+paid_reservation_claimed=false、http_status=400；Issue146没有首批claim，未进入剧本生成。
+旧诊断未保存供应商error.code/param，因此不能声称已经排除账号/模型访问等其他400原因。
+
+已核对官方SDK InputTokenCountParams（blob a0f0963444b428124f2a1462218d43b9628f2245）：
+https://github.com/openai/openai-python/blob/main/src/openai/types/responses/input_token_count_params.py
+计数请求接受model/input/reasoning/text，不接受原代码附带的store/stream/service_tier/max_output_tokens。
+修复只移除计数请求的运行选项，保留完整输入、Schema及reasoning；真正的生成请求不变。
+补参数白名单、计数400在claim之前停止、诊断不复制私密报错文本的回归测试。
+新报告仅记录白名单error.code/param、失败stage和model，不输出error.message/密钥/任意响应正文。
+
+本地部分检出79项相关测试通过；真实修复效果仍需新一次workflow_dispatch验证。
+不要点旧Run的Re-run：attempt2会被拒绝。修复合并后新点Run workflow，仍用原确认词及已核实当日花费。
+本次没有重发计数/生成请求，没有清除或更换占位，没有扩大额度或自动重试权限。

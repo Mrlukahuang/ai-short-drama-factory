@@ -2,6 +2,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 import importlib.util
+import io
 import json
 from pathlib import Path
 import sys
@@ -46,6 +47,10 @@ def fake_transport(calls, *, bad=None, claimed=False):
     def post(url, key, body, **kwargs):
         calls.append(url)
         if url == pilot.COUNT_URL:
+            # Wire-level contract: reject generation-only parameters just as
+            # the real count endpoint does (old mock accepted everything).
+            assert set(body) == {"model", "input", "reasoning", "text"}
+            assert body["text"]["format"]["type"] == "json_schema"
             return {"object": "response.input_tokens", "input_tokens": 5000}
         if url.startswith(pilot.COMMENTS):
             if body is None:
@@ -124,3 +129,43 @@ def test_budget_uses_google_entire_input_ceiling_and_rejects_bad_counts():
         pilot.pilot_budget(counts, "4.99", date(2026, 10, 18))
     with pytest.raises(ValueError):
         pilot.pilot_budget(counts, "0", date(2026, 11, 1))
+
+
+def test_count_payload_preserves_all_semantic_input_and_drops_runtime_fields():
+    req = wire.prepared()
+    original = json.loads(req.payload_json)
+    counted = pilot.input_count_payload(req)
+    assert counted == {k: original[k] for k in ("model", "input", "reasoning", "text")}
+    assert not {"store", "stream", "service_tier", "max_output_tokens"} & counted.keys()
+    assert original["store"] is False  # Generation payload was not changed.
+
+
+def test_count_http400_stops_before_claim_or_generation(tmp_path):
+    calls = []
+    def fail_count(url, key, body, **kwargs):
+        calls.append(url)
+        raise pilot.SafeTransportError(400, code="unknown_parameter", param="stream")
+    out = tmp_path / "count400"
+    with pytest.raises(RuntimeError):
+        pilot.run_live(out, "0", env=env(), post=fail_count)
+    report = json.loads((out / "report.json").read_text())
+    assert calls == [pilot.COUNT_URL]
+    assert report["generation_attempts"] == 0 and report["paid_reservation_claimed"] is False
+    assert report["stage"] == "count_input_tokens"
+    assert report["http_status"] == 400 and report["provider_param"] == "stream"
+
+
+def test_http_error_diagnostics_never_copy_private_message_or_unknown_fields(monkeypatch):
+    from urllib.error import HTTPError
+    class FailingOpener:
+        def open(self, req, timeout):
+            error = {"error": {"code": "unknown_parameter", "param": "stream",
+                               "message": "PRIVATE_SYNTHETIC_DO_NOT_COPY"}}
+            raise HTTPError(req.full_url, 400, "bad", {}, io.BytesIO(json.dumps(error).encode()))
+    monkeypatch.setattr(pilot, "build_opener", lambda *args: FailingOpener())
+    with pytest.raises(pilot.SafeTransportError) as caught:
+        pilot.request_json(pilot.COUNT_URL, "synthetic-key", {})
+    assert caught.value.provider_param == "stream"
+    assert caught.value.provider_code == "unknown_parameter"
+    assert "PRIVATE_SYNTHETIC" not in str(caught.value)
+    assert "synthetic-key" not in str(caught.value)
