@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 
 from drama_factory.pipeline.screenplay import Screenplay
+from drama_factory.pipeline.writer_execution_prep import prepare_request
 from drama_factory.pipeline.text import (
     DRAMA_PROMPT_VERSION, ScriptContext, ScriptPlanRequest, build_drama_writer_prompt,
 )
@@ -120,9 +121,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--candidate-json", type=Path)
     parser.add_argument("--case", choices=[key for key, _ in CASES])
+    parser.add_argument("--wire-requests", action="store_true",
+                        help="Export offline vendor payloads; never sends requests")
     args = parser.parse_args(argv)
     if bool(args.candidate_json) != bool(args.case):
         parser.error("--candidate-json and --case are required together")
+    if args.wire_requests and args.candidate_json:
+        parser.error("--wire-requests cannot be combined with candidate validation")
     if args.candidate_json:
         source = args.candidate_json
         if source.is_symlink() or not source.is_file() or source.stat().st_size > 1048576:
@@ -131,6 +136,18 @@ def main(argv: list[str] | None = None) -> int:
         result = check_candidate(args.case, raw)
     else:
         result = prepare_packet()
+        if args.wire_requests:
+            result["wire_requests"] = []
+            for job in result["jobs"]:
+                prepared = prepare_request(job["model"], *case_inputs(job["case_id"]))
+                result["wire_requests"].append({
+                    "job_id": f'{job["case_id"]}/{job["model"]}/{job["replicate"]}',
+                    "endpoint": prepared.endpoint, "payload": json.loads(prepared.payload_json),
+                    "request_sha256": prepared.fingerprint,
+                    "budget_bound_status": "missing_verified_evidence",
+                })
+            result["execution_authorized"] = False
+            result["transport_available"] = False
     fd = os.open(args.out, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as stream:
         json.dump(result, stream, ensure_ascii=False, indent=2)
