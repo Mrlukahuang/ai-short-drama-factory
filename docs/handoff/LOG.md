@@ -22,4 +22,4 @@
 - 2026-10-17 | GPT-6 | F3/R4.4 CI fix | Run #38922439695 ffmpeg缺失127，预算/Secret/付费镜头步骤全部跳过，收费0次；复用现有SHA256锁定FFmpeg工具，等待离线CI | PR #140
 - 2026-10-17 | GPT-6 | F3/R4.4 budget fix | 仅#137单次USD2.50临时额度 + 日额USD5申报、一次性Issue占位阻止重复收费；估算非Google硬限额，尚未发送收费请求 | PR #141
 - 2026-10-17 | GPT-6 | F3/R4.4 REAL | Omni 1.1 Flash真实6次调用，Actions #38931439653绿灯，六镜360×640/AAC、52.073秒整集Artifact #12058982177；视频输出费估USD1.75896721，**Google实际账单待核**；所有者审片Issue #142，预算Issue #137，禁重复付费 | doc PR #143
-- 2026-10-17 | Codex | G4/R4.4 CI maintenance | Python CI 与 P-final Fake 工作流取消同一 PR 的过时运行，保留 main 每次提交检查；无真实模型调用/US$0 | PR #144
+- 2026-10-17 | GPT-6 | G4/R4.2 | 所有者接受F3初版，不为#142轻微问题付费返工；沿用现有typed编剧请求添加中文分层钩子/冲突/反转/悬念 Prompt 版本、离线预览和 SHA 测试；0真实请求/US$0；G4退出及#137账单仍待核 | PR #145
