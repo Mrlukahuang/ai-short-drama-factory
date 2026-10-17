@@ -39,3 +39,5 @@
 - 2026-10-18 | GPT | G4/R4.1 | Run39035812309两份GPT校验通过、Flash400停；补Google白名单status/fieldViolations诊断，86离线测试通过，不重跑/不清claim；缓存写入补算总估算USD0.0540418非账单，真实400根因仍未知 | Google diagnostics PR
 
 - 2026-10-18 | GPT | G4/R4.1 | 所有者选择基于GPT推进；Sol临时开发基线，导入既有OpenAI响应→资产scope校验→待审Screenplay/EpisodeDraft→既有人工commit；96离线测试，真实两份GPT仅离线回放，新调用0；正式选型未定 | GPT review integration PR
+
+- 2026-10-18 | GPT | G4/R4.1 | GPT剧本→逐镜Omni请求纯离线准备，替代误用F3硬编码旧故事；109离线测试；真实Sol12镜/首3镜计划已准备，输出快照估算4.0551/1.013775(10秒/镜)，非总预算；新调用0、视频0 | video plan PR
