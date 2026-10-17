@@ -1,5 +1,18 @@
 # 当前交接状态（2026-10-18 NZT）
 
+## 最新：三镜视频手动入口已准备，等待明确风险接受
+
+- G4/R4.1，基线main1585fe3（#154已合并，六项CI全绿）。Sol临时开发基线，正式主备选型未改。
+- 新manual workflow GPT screenplay first3 video test：只读取Run39035812309的Sol原响应且校验固定hash，只生成s01/s02/s03；默认CLI离线。
+- 预估USD1.42391275 =10.1秒×3视频输出1.02391275 +输入预留0.15 +思考预留0.25。360p换算、输入及思考均非已证实上界；不是账单封顶，actual_fee=null。
+- 必须owner在main手动attempt1、输入RUN_GPT_VIDEO3_ESTIMATE_USD2且单独勾选accept_estimate_not_cap；声明当日API支出+USD2≤USD5。不可把普通继续解释为接受未知超额风险，不自主调用。
+- 新Issue146一次性claim在生成前记录；F3/文本旧claim不改不清。SDK显式attempts=1禁自动重试；每次请求前保存in-flight报告；失败停，保留原片/恢复记录。
+- 129相关本地离线测试+compileall通过。仅模拟供应商及媒体响应，未生成新视频或新剧本，未新增/输出密钥。当前连接器无dispatch，需要owner确认参数后点击一次。
+- 三个原片保持真实时长、不裁对白不改速；原生音轨存在不是中文对白内容已验收。外观是comparison Bible测试锚点，不是正式生产资产版本。
+- 详见docs/GPT_VIDEO_THREE.md；下一步owner明确风险决定及手动运行，之后检查真实artifact，不重跑。
+
+## 已有GPT接线和视频计划证据
+
 ## 当前阶段与方向
 
 G4 MVP / R4.1，未进入G5。所有者本轮明确「基于 GPT」推进；Sol作为临时开发基线，正式主备选型未定。Gemini HTTP400单独排查，不阻塞GPT主线。本轮零新增收费调用、零视频生成、未新增密钥。

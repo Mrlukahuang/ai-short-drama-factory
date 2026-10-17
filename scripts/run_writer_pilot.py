@@ -142,21 +142,22 @@ def pilot_budget(counts: dict, spend_today: str, on) -> dict:
             "actual_invoice_verified": False, "remaining_15_authorized_by_this_runner": False}
 
 
-def claim_once(token: str, run_id: str, post=request_json) -> None:
+def claim_once(token: str, run_id: str, post=request_json, *, marker=MARKER,
+               scope="first3 text") -> None:
     # Workflow serial concurrency protects read-then-claim; paginate to avoid
     # missing the persistent marker. A consumed claim is never auto-released.
     for page in range(1, 11):
         comments = post(f"{COMMENTS}?per_page=100&page={page}", token, None)
         if not isinstance(comments, list):
             raise RuntimeError("Invalid claim history")
-        if any(MARKER in str(c.get("body", "")) for c in comments):
+        if any(marker in str(c.get("body", "")) for c in comments):
             raise RuntimeError("Pilot already claimed; no repeat charges")
         if len(comments) < 100:
             break
     else:
         raise RuntimeError("Claim history too long; fail closed")
-    receipt = post(COMMENTS, token, {"body": f"{MARKER}\n"
-        f"Owner-authorized first3, USD2 total / USD5 daily. Run {run_id}: "
+    receipt = post(COMMENTS, token, {"body": f"{marker}\n"
+        f"Owner-authorized {scope}, USD2 acknowledged / USD5 daily. Run {run_id}: "
         f"https://github.com/{REPO}/actions/runs/{run_id}\n"
         "Claim precedes generation, not proof of charges. No reruns after ambiguity."})
     if type(receipt.get("id")) is not int:
