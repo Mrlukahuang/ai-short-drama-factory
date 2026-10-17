@@ -31,3 +31,5 @@
 
 
 - 2026-10-18 | GPT | G4/R4.1 | 所有者授权合并#148至635754c；补查官方Thinking指南确认Google max_output_tokens含思考并硬截断，更正旧阻断；输入上界/真实兼容性/凭据/收费授权仍待，0调用/US$0 | evidence correction PR
+
+- 2026-10-18 | GPT | G4/R4.1 | 所有者授权首批3次文本测试US$2/不重试，新增隔离CLI+main手动workflow、完整输入计数/保守Google预留、Issue146一次性claim；76项相关测试通过，真实0次/US$0，待手动dispatch | writer-first3 PR
