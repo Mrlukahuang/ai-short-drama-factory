@@ -35,3 +35,5 @@
 - 2026-10-18 | GPT | G4/R4.1 | 所有者授权首批3次文本测试US$2/不重试，新增隔离CLI+main手动workflow、完整输入计数/保守Google预留、Issue146一次性claim；76项相关测试通过，真实0次/US$0，待手动dispatch | writer-first3 PR
 
 - 2026-10-18 | GPT | G4/R4.1 | Run39034195802计数预检HTTP400，report生成0/claim=false；修计数请求运行参数误传，补白名单/安全诊断/预检失败回归，79项相关测试通过；未重跑、未扩大额度 | count400 fix PR
+
+- 2026-10-18 | GPT | G4/R4.1 | Run39035812309两份GPT校验通过、Flash400停；补Google白名单status/fieldViolations诊断，86离线测试通过，不重跑/不清claim；缓存写入补算总估算USD0.0540418非账单，真实400根因仍未知 | Google diagnostics PR

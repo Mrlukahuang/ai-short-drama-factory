@@ -1,3 +1,18 @@
+# 当前交接状态（每次结束更新）
+
+## G4/R4.1：Google HTTP400诊断（2026-10-18 NZT）
+
+- main基线9e94f8f；真实Run39035812309（attempt1）已发起3次生成尝试，Sol与Luna各1份剧本结构校验通过；Flash HTTP400停止，未获得剧本。产物12102675304保留两份GPT结果。
+- 两份OpenAI原始usage含cache_write_tokens=1064。按缓存写入1.25倍输入价补算合计估算USD0.0540418，非实际账单；旧report估算USD0.0534832未包含缓存写入差额。计费模块缓存细分尚待修正，不把旧数作为准确账单。
+- 一次性claim已消耗：不清除、不重跑整批、不重复生成GPT；余下15任务未放行。本次修复未调用任何收费API。
+- 已核对既有视频Provider同样使用interactions.create；官方REST端点与当前/v1beta/interactions一致。视频成功不能证明Flash+严格schema成功；目前没有端点写错证据，也没有证据认定key无效。
+- 本次仅修复诊断：保留Google白名单status和google.rpc.BadRequest精确白名单字段路径；不保存message/description/未知路径/凭据。新增模拟Google400、保留两份成功稿且不重试的回归；86项相关离线测试通过。
+- 限制：旧400响应正文未保存，无法从现有artifact恢复根因；若Google只返回message，安全字段仍可能为空。本修复不等于已修复400，也未验证真实兼容性。
+- 下一步：审查诊断PR；另行准备明确授权、预算约束下的Gemini单任务方案，保留现有claim。当前没有新增收费调用或自动续跑入口，正式主备选型未定。
+- TokenUpperBound.verified仍是外部可信证据断言，不是模块自行验证或账单封顶。Google max_output_tokens含思考上界依据官方文档，不是实测账单保证；完整18任务须另做执行前检查。
+
+## 前次交接（历史，不代表最新真实调用状态）
+
 # 当前交接状态（每个 Agent 结束工作时必须更新）
 
 > 只保留**最新**状态。历史交接追加到 `docs/handoff/LOG.md` 末尾（每条 ≤ 10 行）。
