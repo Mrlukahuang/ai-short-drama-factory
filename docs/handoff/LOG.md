@@ -41,3 +41,5 @@
 - 2026-10-18 | GPT | G4/R4.1 | 所有者选择基于GPT推进；Sol临时开发基线，导入既有OpenAI响应→资产scope校验→待审Screenplay/EpisodeDraft→既有人工commit；96离线测试，真实两份GPT仅离线回放，新调用0；正式选型未定 | GPT review integration PR
 
 - 2026-10-18 | GPT | G4/R4.1 | GPT剧本→逐镜Omni请求纯离线准备，替代误用F3硬编码旧故事；109离线测试；真实Sol12镜/首3镜计划已准备，输出快照估算4.0551/1.013775(10秒/镜)，非总预算；新调用0、视频0 | video plan PR
+
+- 2026-10-18 | GPT | G4/R4.1 | 准备固定Sol原稿s01-s03手动视频入口，129离线测试+compileall，SDK禁止重试，新claim不复用旧授权；估算USD1.42391275非上界，须owner单独接受风险和声明当日支出；本次真实调用0/视频0 | GPT video3 runner PR
