@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+# Preserve the latest PR artifact run while retaining runs for every main commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   fake-episode-artifact:
     runs-on: ubuntu-latest
