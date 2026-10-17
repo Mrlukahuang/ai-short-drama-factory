@@ -36,10 +36,12 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 class SafeTransportError(RuntimeError):
-    def __init__(self, status, *, code=None, param=None):
+    def __init__(self, status, *, code=None, param=None, provider_status=None, fields=()):
         self.http_status = status
         self.provider_code = code
         self.provider_param = param
+        self.provider_status = provider_status
+        self.provider_fields = tuple(fields)
         super().__init__(f"HTTP {status}; no automatic retry")
 
 
@@ -57,9 +59,32 @@ def request_json(url: str, key: str, body: dict | None, *, google=False):
         return json.loads(raw)
     except HTTPError as exc:
         # Read only allowlisted diagnostic identifiers, never message/body text.
-        code = param = None
+        code = param = provider_status = None
+        fields = set()
         try:
             error = json.loads(exc.read(16384)).get("error", {})
+            if error.get("status") in {
+                    "INVALID_ARGUMENT", "UNAUTHENTICATED", "PERMISSION_DENIED", "NOT_FOUND",
+                    "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "INTERNAL", "UNAVAILABLE"}:
+                provider_status = error["status"]
+            # Exact known paths only: never copy messages, descriptions or arbitrary paths.
+            allowed_fields = {"model", "input", "store", "stream", "service_tier",
+                "generation_config", "generation_config.thinking_level",
+                "generation_config.max_output_tokens", "response_format",
+                "response_format.type", "response_format.mime_type", "response_format.schema"}
+            details = error.get("details", [])
+            if isinstance(details, list):
+                for detail in details:
+                    if not isinstance(detail, dict):
+                        continue
+                    if detail.get("@type") != "type.googleapis.com/google.rpc.BadRequest":
+                        continue
+                    violations = detail.get("fieldViolations", [])
+                    if not isinstance(violations, list):
+                        continue
+                    for violation in violations:
+                        if isinstance(violation, dict) and violation.get("field") in allowed_fields:
+                            fields.add(violation["field"])
             if error.get("code") in {"unknown_parameter", "unsupported_parameter",
                     "invalid_request_error", "model_not_found", "invalid_api_key", "insufficient_quota"}:
                 code = error["code"]
@@ -68,7 +93,8 @@ def request_json(url: str, key: str, body: dict | None, *, google=False):
                 param = error["param"]
         except (ValueError, TypeError, AttributeError):
             pass
-        raise SafeTransportError(exc.code, code=code, param=param) from None
+        raise SafeTransportError(exc.code, code=code, param=param,
+                                 provider_status=provider_status, fields=sorted(fields)) from None
 
 
 def input_count_payload(prepared) -> dict:
@@ -209,6 +235,8 @@ def run_live(out: Path, spend_today: str, *, env, post=request_json) -> dict:
             report["http_status"] = exc.http_status
             report["provider_code"] = exc.provider_code
             report["provider_param"] = exc.provider_param
+            report["provider_status"] = exc.provider_status
+            report["provider_fields"] = list(exc.provider_fields)
         # Never print exception messages from network libraries or provider JSON.
         raise RuntimeError("Pilot halted; inspect private report/artifact, do not rerun") from None
     finally:

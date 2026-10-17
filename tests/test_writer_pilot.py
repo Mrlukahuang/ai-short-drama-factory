@@ -169,3 +169,49 @@ def test_http_error_diagnostics_never_copy_private_message_or_unknown_fields(mon
     assert caught.value.provider_code == "unknown_parameter"
     assert "PRIVATE_SYNTHETIC" not in str(caught.value)
     assert "synthetic-key" not in str(caught.value)
+
+
+@pytest.mark.parametrize("details,expected", [
+    (None, ()), ({}, ()), ("private", ()), ([None, "private"], ()),
+    ([{"@type": "type.googleapis.com/google.rpc.BadRequest", "fieldViolations": "private"}], ()),
+    ([{"@type": "type.googleapis.com/google.rpc.BadRequest", "fieldViolations": [
+        {"field": "response_format.schema", "description": "PRIVATE_PROMPT"},
+        {"field": "PRIVATE_KEY"}, {"field": "generation_config.thinking_level"},
+        {"field": "response_format.schema"}]}],
+     ("generation_config.thinking_level", "response_format.schema")),
+])
+def test_google_http_error_keeps_only_known_identifiers(monkeypatch, details, expected):
+    from urllib.error import HTTPError
+    class FailingOpener:
+        def open(self, req, timeout):
+            error = {"error": {"code": 400, "status": "INVALID_ARGUMENT",
+                "message": "PRIVATE_MESSAGE", "details": details}}
+            raise HTTPError(req.full_url, 400, "bad", {}, io.BytesIO(json.dumps(error).encode()))
+    monkeypatch.setattr(pilot, "build_opener", lambda *args: FailingOpener())
+    with pytest.raises(pilot.SafeTransportError) as caught:
+        pilot.request_json("https://example.invalid", "PRIVATE_KEY", {}, google=True)
+    assert caught.value.provider_status == "INVALID_ARGUMENT"
+    assert caught.value.provider_fields == expected
+    assert caught.value.provider_code is None
+    assert "PRIVATE" not in json.dumps(vars(caught.value))
+
+
+def test_google_failure_keeps_two_successes_without_retry(tmp_path):
+    calls = []
+    transport = fake_transport(calls)
+    def fail_google(url, key, body, **kwargs):
+        if kwargs.get("google"):
+            raise pilot.SafeTransportError(400, provider_status="INVALID_ARGUMENT",
+                                           fields=("response_format.schema",))
+        return transport(url, key, body, **kwargs)
+    out = tmp_path / "google400"
+    with pytest.raises(RuntimeError):
+        pilot.run_live(out, "0", env=env(), post=fail_google)
+    report = json.loads((out / "report.json").read_text())
+    assert report["generation_attempts"] == 3 and report["paid_reservation_claimed"] is True
+    assert report["status"] == "halted_no_retry"
+    assert report["provider_status"] == "INVALID_ARGUMENT"
+    assert report["provider_fields"] == ["response_format.schema"]
+    assert len(report["results"]) == 2
+    for model in pilot.MODELS[:2]:
+        assert (out / f"{model}.screenplay.json").exists()
