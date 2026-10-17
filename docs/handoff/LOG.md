@@ -26,3 +26,6 @@
 
 - 2026-10-17 | GPT | G4/R4.1 | 3题×Sol/Luna/Flash×2离线题包、公共Prompt/Schema哈希与本地结构校验；22项相关测试通过，真实模型0/US$0，正式选型/凭据/文本预算待#146 | writer-comparison PR
 
+
+- 2026-10-17 | GPT | G4/R4.1 | 两家纯wire适配/Screenplay/拒绝截断/思考用量收据/18任务USD2预检；62项相关离线测试通过，真实0次/US$0，Google全思考上界待核；按要求PR不合并 | execution-prep PR
+
