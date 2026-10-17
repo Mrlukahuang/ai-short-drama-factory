@@ -55,11 +55,19 @@ TokenUpperBound默认verified=False；输入上界须包含完整Prompt/Schema/�
 可信断言，不是本模块自行测出的token数。测试中仅使用明确标为SIMULATED的证据。
 不把字符数/最终JSON长度/平均token当作可信上界。
 
-重要的未解限制：Google Interactions官方max_output_tokens说明只写
-“The maximum number of tokens to include in the response”，并单列thought用量。
-本轮资料没有证明此参数能封住全部计费thought。因此本次**不生成真实已验证Google上界**；
-在真实执行前需官方可复核的上界或其他供应商硬限额，否则该批必须保持阻断。
-OpenAI文档说明max_output_tokens涵盖生成过程中达到的限制，且可能只思考就耗尽额度。
+2026-10-18补充核查：此前未找到完整文档而把Google思考上界列为未解，现更正。
+Google官方Thinking指南“Token limits and max_output_tokens”明确：该参数限制
+思考与最终输出的合计token，由基础设施执行硬截断；达到限制时可返回incomplete。
+因此请求的max_output_tokens可作为**官方声明的输出上界依据**，无需继续把
+“Google是否包含思考”本身作为文档阻断。该声明不是本项目的真实API/账单实测。
+
+来源：https://ai.google.dev/gemini-api/docs/thinking.md#token-limits-and-max_output_tokens
+核查日期2026-10-18 NZT；页面标记最后更新2026-10-14 UTC。
+OpenAI文档同样说明max_output_tokens涵盖生成限制，可能只思考就耗尽额度。
+
+仍未完成：完整请求的可信输入token上界、实际账号计费条件、端点/Schema兼容。
+TokenUpperBound.verified仍是外部证据断言，不是模块验证，更不是账单封顶。
+本次只更正文档；不把任何模拟bound改为verified，不提供真实发送入口，也不放行18任务。
 
 reconcile_usage遇到缺用量或实际超上界时标记halt_required并保留全部预留，不因失败假定免费，
 不自动退回预算或重试。它是纯审计数据转换，不是新建持久化/事务/恢复系统。

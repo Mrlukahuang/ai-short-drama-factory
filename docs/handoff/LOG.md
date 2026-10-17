@@ -29,3 +29,5 @@
 
 - 2026-10-17 | GPT | G4/R4.1 | 两家纯wire适配/Screenplay/拒绝截断/思考用量收据/18任务USD2预检；62项相关离线测试通过，真实0次/US$0，Google全思考上界待核；按要求PR不合并 | execution-prep PR
 
+
+- 2026-10-18 | GPT | G4/R4.1 | 所有者授权合并#148至635754c；补查官方Thinking指南确认Google max_output_tokens含思考并硬截断，更正旧阻断；输入上界/真实兼容性/凭据/收费授权仍待，0调用/US$0 | evidence correction PR
