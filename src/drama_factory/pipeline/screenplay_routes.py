@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sqlite3
+import json
 
 from fastapi import APIRouter, HTTPException, Request
 
@@ -9,6 +10,9 @@ from ..db import new_id, timestamp
 from .screenplay import (
     ReviewedScreenplay, Screenplay, ScreenplayReferenceError, check_screenplay_scope,
 )
+
+from .gpt_screenplay_review import GPTScreenplayImport, prepare_gpt_review
+from .text import ScriptContext
 
 router = APIRouter(prefix="/api/v1/series/{series_id}/screenplays", tags=["screenplays"])
 
@@ -62,3 +66,28 @@ def commit_reviewed_screenplay(series_id: str, body: ReviewedScreenplay, request
         "production_created": False,
         "paid_api_calls": 0,
     }
+
+
+@router.post("/from-openai-response/validate")
+def validate_gpt_response(series_id: str, body: GPTScreenplayImport, request: Request):
+    """Offline import only. Existing /commit remains the explicit human gate."""
+    db = request.app.state.db
+    if db.one("SELECT id FROM projects WHERE id=?", (series_id,)) is None:
+        raise HTTPException(404, "Unknown series")
+    bible = db.one("SELECT id,body_json FROM story_bibles WHERE id=? AND series_id=?",
+                   (body.request.story_bible_id, series_id))
+    if bible is None:
+        raise HTTPException(422, "Story Bible does not belong to this series")
+    context = ScriptContext(
+        series_id=series_id, story_bible_id=bible["id"],
+        story_bible_json=json.loads(bible["body_json"]),
+        allowed_actor_ids=body.request.actor_asset_ids,
+        allowed_scene_id=body.request.scene_asset_id,
+    )
+    try:
+        result = prepare_gpt_review(body, context)
+    except ValueError:
+        # Provider errors and supplied fiction must not leak into error details.
+        raise HTTPException(422, "GPT response does not satisfy screenplay/context contract") from None
+    validate(db, series_id, Screenplay.model_validate(result["screenplay"]))
+    return result
