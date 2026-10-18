@@ -64,6 +64,13 @@ def main(argv=None):
                                   version="original", expected_mp4_sha256=args.original_sha)
         fake = load_w3_bundle(args.fake_dir, artifact_id=args.fake_artifact_id,
                               version="w1_fake", expected_mp4_sha256=args.fake_sha, parent=original)
+        # Independent SHA pins from W3's standard handoff, not user-provided
+        # rehashed receipts. Prevent plausible-looking forged shot manifests.
+        if (original["render_receipt_sha256"] !=
+                "364016304d078e11730b858956002eb7236cdf5282bc92dfa5f80a99cdada1ad"
+                or fake["render_receipt_sha256"] !=
+                "3296b63bf88f154a43efba6a8ad895243331de22a8633a7474f68b178677ecf4"):
+            raise ContentReviewError("W3 render receipts differ from frozen handoff")
         reviews = _read_reviews(args.reviews_json)
         outputs = {
             "original": assess_bundle(original, reviews["original"], reviewer_keys=keys),
