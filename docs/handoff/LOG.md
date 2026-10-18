@@ -45,3 +45,5 @@
 - 2026-10-18 | GPT | G4/R4.1 | 准备固定Sol原稿s01-s03手动视频入口，129离线测试+compileall，SDK禁止重试，新claim不复用旧授权；估算USD1.42391275非上界，须owner单独接受风险和声明当日支出；本次真实调用0/视频0 | GPT video3 runner PR
 
 - 2026-10-19 | GPT | G4/R4.4 | 复用成功3镜真实视频离线合成+QA15.060333s；134相关测试（新增5真实FFmpeg）；重复Run39126187434确认0生成；新调用0/费用0，原账单未知，60秒整集未完成 | GPT offline delivery PR
+
+- 2026-10-19 | GPT | G4/R4.4 | 整集remaining9手动入口+固定原3镜hash复用+12镜合成QA；140本地离线测试/真实原3镜dry-run0调用；新9镜估算USD4.27173825需owner单次USD5风险例外，尚未收费执行，阶段未退出 | remaining9 completion PR
