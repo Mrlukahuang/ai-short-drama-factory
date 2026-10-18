@@ -95,3 +95,16 @@ native audio passthrough and **no separate music**: a stage receipt is not a
 claim that optional music was generated. Real ASR, content acceptance and
 production audio refinement are independent later work, not a reason to
 rerun costly existing videos.
+
+### Automatic offline replay on real artifacts
+
+`.github/workflows/gpt-episode-postprocess-offline.yml` runs once on the
+main-branch merge that introduces the postprocessor, or manually via
+`workflow_dispatch`. It does **not** have any provider API secret, paid
+command, generation retry, publishing action or third-party upload. It
+downloads the previously successful writer artifact from Run39035812309 and
+the full twelve-shot episode artifact from Run39130058487, checks original
+hashes and performs the offline postproduction above. Its new artifact
+name begins `gpt-real-12shot-caption-DRAFT-` and contains the separate
+draft MP4, SRT, and explicit pending-QA stage reports. Do not interpret
+that artifact as publication approval or a verified spoken transcript.
