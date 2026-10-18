@@ -1,3 +1,14 @@
+# G4 / R4.3 — W4 内容 QA 本轮交接（2026-10-19 NZT）
+
+**当前唯一工作包：W4（M4）。** 已从 `main@c5ed3314714523ced3c9c5391a4652289766ee8e` 创建 [W4 PR #176](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/176)，新增独立只读内容 QA 模块、12 镜及 W1-FAKE 父版本严格来源锁定、人工审片验签/UNKNOWN 门禁、离线运行脚本、测试和 W5 标准交接 [W4_EVIDENCE_20261019.md](W4_EVIDENCE_20261019.md)。**PR 最终 CI/合并回执以 Issue #175 的最终标准交接评论为准；不能在检查完成前认为已合并。**
+
+- 已从 [Run 39141517448](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39141517448) 实际下载原版 Artifact 12142320238 / W1-FAKE Artifact 12141772943，独立核对两套 MP4+SRT+09/10 SHA、12 镜实测 60.156s、60.177333s 视频、H264/AAC/mov_text 并分别完整解码成功。原版 / Fake 成片 SHA 前缀分别 `d4208ccb7b43` / `de6d623523d8`。新视频生成与新增收费模型调用0。
+- 审片内容审查保守：原版 s03/s09 年龄外貌漂移、s07 三格分屏保留历史负面证据；Fake s07 是旧 s04 模拟，不能继承原版缺陷或任何通过结论。两版各3镜已有需修建议、其余9镜 unknown；**此处可用镜头已验收数量=0，不代表真实可用比例为0**，因为未做覆盖全片的真人试听签字。原生中文音频存在≠对白/声线正确；16 条 DRAFT 非 ASR；W2 生产资产 manifest SHA=null。
+- 三门禁明确分开：technical pass（W3 来源/媒体）/ content fail（已有负面观察，其他 unknown）/ release blocked。R4.3 Gemini 相邻镜头真实预检、可靠ASR均 `not_run`；R4.3 完整验收 `pending`，`publish_approved=false`，G4 尚未退出，G5 禁止。
+- **唯一后续工作包：W5（G4 集成/退出验收）**，前提为 W4 PR 全绿合并与标准交接完结；核对真实合格镜头≥50%、真实历史供应商账单≤USD30/合格分钟、人工≤2h 与所有者签字。不把 W4 新API费用USD0 当历史模型账单。W1/W2/W3 源码、旧媒体、Provider、冻结区、治理未改。
+
+---
+
 # 当前交接状态（2026-10-19 NZT）
 
 ## 最新权威状态：W3 真实后期来源验收成功 → W4 内容 QA（2026-10-19 NZT）
