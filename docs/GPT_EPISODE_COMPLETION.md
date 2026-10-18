@@ -63,3 +63,35 @@ approve a shot, validate spoken Chinese, create accurate subtitles, or
 authorize publication. Any new paid video call needs a separate authorization
 and the unchanged single-use financial protections. The fake eleven-stage
 pipeline is still not identical to this real-video path.
+
+## G4: real-video, no-charge post-production bridge (draft subtitles only)
+
+The already-successful Sol/GPT writer response, completed twelve clips and
+delivery can now be passed through `06_dialogue` through `10_qa` **without**
+any new provider call:
+
+```bash
+python scripts/postprocess_gpt_episode_offline.py \
+  --writer-dir /path/to/original-writer-artifact \
+  --episode-dir /path/to/original/episode \
+  --delivery-dir /path/to/original/delivery \
+  --output-dir /path/to/new-unique-caption-preview
+```
+
+It authenticates the fixed original writer response hash, revalidates the
+completed source report, all twelve original clip hashes/durations and the
+original delivery MP4. It renders separate `06_dialogue.json`,
+`07_subtitles.json`, `08_music.json`, `09_render.json`, and `10_qa.json`.
+The new `gpt-episode-caption-draft.mp4` has an **optional mov_text subtitle
+track** from the screenplay; original video and native AAC audio are stream-
+copied, with FFmpeg decode and embedded SRT comparison. It neither alters the
+prior MP4 nor creates synthetic voices or music.
+
+**Caption times are estimates scaled to real clip durations, not recognized
+speech times.** Even where the subtitle track is technically validated,
+`dialogue_content_verified` and `subtitle_alignment_verified` stay false,
+and publication remains prohibited. Stage `08_music` explicitly records
+native audio passthrough and **no separate music**: a stage receipt is not a
+claim that optional music was generated. Real ASR, content acceptance and
+production audio refinement are independent later work, not a reason to
+rerun costly existing videos.
