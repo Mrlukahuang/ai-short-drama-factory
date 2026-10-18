@@ -1,5 +1,12 @@
 # 当前交接状态（2026-10-19 NZT）
 
+## 持久开发 Bible（2026-10-19，G4/R4.4 技术实施指南）
+
+- [开发 Bible 总入口](../DEVELOPMENT_BIBLE.md)：架构、正式 G0–G7 与可交付 W0–W8 的边界、现有真实代码/Artifact 复用原则。
+- [成熟开源复用](../development_bible/OPEN_SOURCE_REUSE.md)：OpenMontage/HyperFrames/ViMax/Jellyfish 固定 commit、源码路径、许可与最小移植检查表。
+- [阶段交付与验收](../development_bible/STAGE_DELIVERABLES.md)、[多模型无损交接](../development_bible/MODEL_HANDOFF.md)：不同模型换聊天前必须使用统一证据包与明确文件 Owner。
+- **本段仅指向技术实施规范，不重排本文件现有“单一下一任务”，不授权 G5/付费模型/冻结区或治理变更。**
+
 ## Stage / Req / 当前交付
 
 Stage: G4 / Req: R4.4。真实 12 镜链路已成功生成+拼接，但用户审片认为人物与配音不合格。**不得把技术通过视为内容通过或 G4 退出。** 仍在 G4，不启动 G5。
