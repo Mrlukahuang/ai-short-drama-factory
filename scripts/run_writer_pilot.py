@@ -143,7 +143,7 @@ def pilot_budget(counts: dict, spend_today: str, on) -> dict:
 
 
 def claim_once(token: str, run_id: str, post=request_json, *, marker=MARKER,
-               scope="first3 text") -> None:
+               scope="first3 text", acknowledged_usd="2") -> None:
     # Workflow serial concurrency protects read-then-claim; paginate to avoid
     # missing the persistent marker. A consumed claim is never auto-released.
     for page in range(1, 11):
@@ -157,7 +157,7 @@ def claim_once(token: str, run_id: str, post=request_json, *, marker=MARKER,
     else:
         raise RuntimeError("Claim history too long; fail closed")
     receipt = post(COMMENTS, token, {"body": f"{marker}\n"
-        f"Owner-authorized {scope}, USD2 acknowledged / USD5 daily. Run {run_id}: "
+        f"Owner-authorized {scope}, USD{acknowledged_usd} acknowledged / USD5 daily. Run {run_id}: "
         f"https://github.com/{REPO}/actions/runs/{run_id}\n"
         "Claim precedes generation, not proof of charges. No reruns after ambiguity."})
     if type(receipt.get("id")) is not int:
