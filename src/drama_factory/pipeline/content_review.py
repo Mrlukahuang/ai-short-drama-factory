@@ -258,6 +258,9 @@ def assess_bundle(bundle: dict, reviews: list[dict], *,
         disposition = ("needs_repair" if reasons else
                        "usable" if entry and all(v == "pass" for v in values.values()) else "unknown")
         rows.append({
+            "artifact_id": bundle["artifact_id"], "version": bundle["version"],
+            "final_mp4_sha256": bundle["final_mp4_sha256"],
+            "parent_final_mp4_sha256": bundle["parent_final_mp4_sha256"],
             "shot_id": sid, "shot_video_sha256": shot["clip_sha256"],
             "start_ms": shot["start_ms"], "end_ms": shot["end_ms"],
             "disposition": disposition, "checks": values,
@@ -265,6 +268,10 @@ def assess_bundle(bundle: dict, reviews: list[dict], *,
             "human_review_attested": entry is not None,
             "reviewer": entry["reviewer"] if entry else None,
             "reviewed_at": entry["reviewed_at"] if entry else None,
+            "review_mode": entry["review_mode"] if entry else None,
+            "review_source": entry["review_source"] if entry else None,
+            "review_evidence": entry["evidence"] if entry else None,
+            "review_record_sha256": hashlib.sha256(_canonical(entry)).hexdigest() if entry else None,
         })
     failures = [row for row in rows if row["disposition"] == "needs_repair"]
     usable = sum(row["disposition"] == "usable" for row in rows)
