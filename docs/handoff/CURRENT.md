@@ -7,6 +7,18 @@
 - [阶段交付与验收](../development_bible/STAGE_DELIVERABLES.md)、[多模型无损交接](../development_bible/MODEL_HANDOFF.md)：不同模型换聊天前必须使用统一证据包与明确文件 Owner。
 - **本段仅指向技术实施规范，不重排本文件现有“单一下一任务”，不授权 G5/付费模型/冻结区或治理变更。**
 
+## 当前权威状态：W1 零费用端到端验收通过（2026-10-19 NZT）
+
+**Stage: G4 / Req: R4.4 / W1**。开发 Bible `main@ac28e5d` 后实现 W1，#166 与 #167 已合并；核实后的代码主干为 `1792fb387ac907d3da808348128eddce5924f793`。**W1 的 0-call/Fake 部分已用真实旧12镜素材通过，独立付费单镜生成仍禁用且尚未验收。G4 未退出，G5 禁止。**
+
+- [Run39137352545](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39137352545) 全部步骤 success；W1-FAKE Artifact ID `12140422056`，字幕 DRAFT Artifact ID `12140556405`。使用已存在真实 `s04` **仅模拟**替换失败 `s07`，其余11镜 SHA 不变，旧整集 MP4 SHA `f76daf3065796ef847500041648f5dadb1cffa98898c466f11ac3471be9e8887` 不变；新回填+后期 MP4 SHA `de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f`。
+- 自治 Scope/Tests 全绿；媒体技术 QA 通过，内容/声线/对白/字幕实际对齐及发布均未通过；**新供应商视频调用0、新 API 费用USD0**。先前一次 USD5 claim 不可再用、真实账单未知。
+- W1 标准机器可读 handoff 与下一包输入输出见 [W1_EVIDENCE_20261019.md](W1_EVIDENCE_20261019.md)。
+- **下一唯一开发包：W2**（仍 G4/R4.4），按 Bible 开发人物/场景/说话者逐镜资产版本与 Prompt 锚定的离线契约；其输入为 W1 的原视频/剧本 SHA、per-shot repair plan、source receipts 与11镜 SHA，不触碰 W1/后期/合成所有权范围；输出必须确定性、冲突 ID/版本 fail-closed，模型参考图/音频不能谎称已经支持。
+- W1 真正单镜有偿请求继续作为**阻塞的后续独立审批任务**：须可证实供应商成本保护、当日支出、新的一次性授权/任务接收回执；本次 W1 Fake 成功不等于收费分支获准。
+
+## 早期施工记录（历史，非当前下一任务）
+
 ## 新 Development Bible / W1 当前施工（2026-10-19）
 
 - main 起点 `ac28e5dff9c9ff7035881a4ef2e07f231cc35abf`，PR #165 已合并；Stage **G4** / Req **R4.4** / W1，按 `docs/development_bible/STAGE_DELIVERABLES.md` 的单镜定向修复零付费合同优先。
