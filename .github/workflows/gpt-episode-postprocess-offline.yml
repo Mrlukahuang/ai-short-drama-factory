@@ -3,7 +3,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "scripts/postprocess_gpt_episode_offline.py"\n      - "scripts/w1_single_shot_repair.py"\n      - "scripts/repair_gpt_episode_offline.py"
+      - "scripts/postprocess_gpt_episode_offline.py"
+      - "scripts/w1_single_shot_repair.py"
+      - "scripts/repair_gpt_episode_offline.py"
       - ".github/workflows/gpt-episode-postprocess-offline.yml"
   workflow_dispatch:
 
