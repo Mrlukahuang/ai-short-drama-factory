@@ -1,3 +1,11 @@
+# 最新权威状态：W5 已完成零费用真实媒体 CLI 集成审计 — G4 NOT_READY（2026-10-19 NZT）
+
+**Stage: G4 / Req: R4.4 / W5**。唯一验收清单 [G4_ACCEPTANCE_20261019.md](G4_ACCEPTANCE_20261019.md) + [机器 JSON](G4_ACCEPTANCE_20261019.json)，正式 Issue #179。开工 main 2cc91f54a030ba2bc1e7e679c3f409126e912ee8。W5 从 GitHub Run39141517448 两份真实 Artifact 下载并亲自运行 Git-blob 验证的 W4 CLI，原版/W1-FAKE 技术各 PASS、内容 FAIL、发布 BLOCKED；两份报告 SHA 与 W4 已记录离线基线一致；跨版本混用 fail-closed。真人签字仍 0，已证实合格镜头0/历史3需修/其余9未知，Gemini视觉打分和ASR not_run，旧供应商账单及人工工时 unknown。**NOT_READY = W5 工程审计结论，不是 G4 退出。**
+
+**下一唯一行动：Owner 对 Issue #177 的 Gemini/ASR/权利/费用做明确授权或延期决定，并组织真人审片与供应商账单/人工计时补证；缺独立 G4 工单才允许另行安排受控修镜/完整真实流水线核验。** W1–W4 源码不改；未授权新付费API调用0/USD0；不可 G5/W6、不可发布。W5 文档 PR 必须 CI 6/6 绿后才自治合并，最终合并回执存 Issue #179。
+
+---
+
 # 最新权威状态：W4 离线内容 QA 工程交付完成 → W5（2026-10-19 NZT）
 
 **Stage: G4 / Req: R4.3 / W4.1 + W4.2 已完成零费用工程验收。下一个唯一工作包：W5（仍 G4）。** [PR #176](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/176) 6/6 CI 全绿（scope、Python 3.11/3.13 各897 passed/176 skipped、offline-video、Fake、libSQL），已合并 main `40aedd50306919ea2b7451fc734030cbb9eb92e9`。正式 [W4 标准交接](W4_EVIDENCE_20261019.md) 与 [Issue #175 最终评论](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/175) 是输入权威。上一阶段 W1/W2/W3 工程已完成、不重复开发。
