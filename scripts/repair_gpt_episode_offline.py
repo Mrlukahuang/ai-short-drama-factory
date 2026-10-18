@@ -81,6 +81,10 @@ def replace_completed_shot(source: Path, shot_id: str, replacement: Path,
     if output_root.is_symlink() or output_root.exists() or output == base or base in output.parents:
         raise ValueError("A new output directory outside the original episode is required")
 
+    history = report.get("offline_replacements", [])
+    if type(history) is not list or any(type(item) is not dict for item in history):
+        raise ValueError("Invalid previous replacement history")
+
     output_root.mkdir(parents=True, exist_ok=False)
     staged = output_root / "episode"
     staged.mkdir()
@@ -88,9 +92,6 @@ def replace_completed_shot(source: Path, shot_id: str, replacement: Path,
         shutil.copyfile(replacement if name == shot_id else source / (name + ".mp4"),
                         staged / (name + ".mp4"))
 
-    history = report.get("offline_replacements", [])
-    if type(history) is not list:
-        raise ValueError("Invalid previous replacement history")
     old_hash = original_hashes[shot_id]
     new_records = [dict(s) for s in records]
     target = new_records[SHOT_IDS.index(shot_id)]
