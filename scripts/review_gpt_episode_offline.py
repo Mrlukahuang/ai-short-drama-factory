@@ -51,6 +51,14 @@ def main(argv=None):
         if len(raw_key) < 32 or len(raw_key) > 4096:
             parser.error("Credential must contain 32..4096 raw bytes")
         keys = {args.reviewer: raw_key}
+    # W4 is scoped to the two independently verified W3 run artifacts.
+    # Their IDs are not embedded in 09_render.json: pin the GitHub evidence
+    # here rather than accepting an arbitrary asserted artifact identity.
+    if (args.original_artifact_id != 12142320238
+            or args.fake_artifact_id != 12141772943
+            or args.original_sha != "d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7"
+            or args.fake_sha != "de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f"):
+        parser.error("W4 requires the exact verified original and W1-FAKE W3 artifact identities")
     try:
         original = load_w3_bundle(args.original_dir, artifact_id=args.original_artifact_id,
                                   version="original", expected_mp4_sha256=args.original_sha)
