@@ -1,11 +1,11 @@
-# G4 / R4.3 — W4 内容 QA 本轮交接（2026-10-19 NZT）
+# 最新权威状态：W4 离线内容 QA 工程交付完成 → W5（2026-10-19 NZT）
 
-**当前唯一工作包：W4（M4）。** 已从 `main@c5ed3314714523ced3c9c5391a4652289766ee8e` 创建 [W4 PR #176](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/176)，新增独立只读内容 QA 模块、12 镜及 W1-FAKE 父版本严格来源锁定、人工审片验签/UNKNOWN 门禁、离线运行脚本、测试和 W5 标准交接 [W4_EVIDENCE_20261019.md](W4_EVIDENCE_20261019.md)。**PR 最终 CI/合并回执以 Issue #175 的最终标准交接评论为准；不能在检查完成前认为已合并。**
+**Stage: G4 / Req: R4.3 / W4.1 + W4.2 已完成零费用工程验收。下一个唯一工作包：W5（仍 G4）。** [PR #176](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/176) 6/6 CI 全绿（scope、Python 3.11/3.13 各897 passed/176 skipped、offline-video、Fake、libSQL），已合并 main `40aedd50306919ea2b7451fc734030cbb9eb92e9`。正式 [W4 标准交接](W4_EVIDENCE_20261019.md) 与 [Issue #175 最终评论](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/175) 是输入权威。上一阶段 W1/W2/W3 工程已完成、不重复开发。
 
-- 已从 [Run 39141517448](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39141517448) 实际下载原版 Artifact 12142320238 / W1-FAKE Artifact 12141772943，独立核对两套 MP4+SRT+09/10 SHA、12 镜实测 60.156s、60.177333s 视频、H264/AAC/mov_text 并分别完整解码成功。原版 / Fake 成片 SHA 前缀分别 `d4208ccb7b43` / `de6d623523d8`。新视频生成与新增收费模型调用0。
-- 审片内容审查保守：原版 s03/s09 年龄外貌漂移、s07 三格分屏保留历史负面证据；Fake s07 是旧 s04 模拟，不能继承原版缺陷或任何通过结论。两版各3镜已有需修建议、其余9镜 unknown；**此处可用镜头已验收数量=0，不代表真实可用比例为0**，因为未做覆盖全片的真人试听签字。原生中文音频存在≠对白/声线正确；16 条 DRAFT 非 ASR；W2 生产资产 manifest SHA=null。
-- 三门禁明确分开：technical pass（W3 来源/媒体）/ content fail（已有负面观察，其他 unknown）/ release blocked。R4.3 Gemini 相邻镜头真实预检、可靠ASR均 `not_run`；R4.3 完整验收 `pending`，`publish_approved=false`，G4 尚未退出，G5 禁止。
-- **唯一后续工作包：W5（G4 集成/退出验收）**，前提为 W4 PR 全绿合并与标准交接完结；核对真实合格镜头≥50%、真实历史供应商账单≤USD30/合格分钟、人工≤2h 与所有者签字。不把 W4 新API费用USD0 当历史模型账单。W1/W2/W3 源码、旧媒体、Provider、冻结区、治理未改。
+- **真实媒体核验**：[Run39141517448](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39141517448) 原版 Artifact 12142320238、W1-FAKE Artifact 12141772943 已下载并独立校验 MP4/SRT/render receipt 哈希、12 镜 60.156 秒 FFprobe 时间轴、两版 60.177333 秒 H264/AAC/mov_text、实际全解码。没有新生成视频/新付费模型调用；历史供应商实际账单仍未知。
+- **内容 QA 仍有阻断**：原版 s03/s09 年龄外貌漂移、s07 三格分屏历史 P0；W1-FAKE s07 只是旧 s04 回填，不能算质量修复。两版各3镜需修、其余9镜 `unknown`，真人独立签字0镜；字幕 DRAFT 非 ASR，中文实际对白、配音音色、口型/字幕对齐 `unknown`。独立三门禁：`technical=pass`、`content=fail`（已知历史负面）、`release=blocked`；`publish_approved=false`。
+- **正式 R4.3 尚未完成**：Gemini 相邻镜头真实自动打分 `not_run`，中文 ASR `not_run`。新 [所有者决策 #177](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/177) 明确后续预算/许可/隐私前置；不能把 Fake 分数或 CI 作为真实视觉预检通过。G4 没有退出，G5 继续禁止。
+- **唯一下一工作包 W5**：只读集成阶段验收，不提前实现 R4.3 收费分支；必须核对真实合格镜头≥50%、真实供应商账单≤USD30/合格分钟、人工时长≤2h、Gemini 视觉自动预检缺口以及所有者 G4/发布签字。未知指标绝不能用零代替。W4 源码后续维护由 M4 负责；W5 不重写 W1/W2/W3/W4。
 
 ---
 
