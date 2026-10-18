@@ -55,6 +55,10 @@ jobs:
           with open(os.environ["GITHUB_PATH"], "a", encoding="utf-8") as f:
               print(target, file=f)
           PY
+      - name: Verify pinned FFmpeg tools after GITHUB_PATH takes effect
+        run: |
+          command -v ffmpeg
+          command -v ffprobe
           ffmpeg -version > /dev/null
           ffprobe -version > /dev/null
       - name: Verify postproduction using real FFmpeg and synthetic test media
