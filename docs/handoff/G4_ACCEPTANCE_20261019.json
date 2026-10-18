@@ -12,7 +12,6 @@
   "publish_approved": false,
   "g5_authorized": false,
   "historical_lineage": {
-    "approved_writer_source_response_sha256": "c5665e198eb3d30110a0bb6dc30d5f2cfadf74979eb5e6e0596d64751ff1a6f9",
     "original_episode_report_sha256": "959c3775f7846ae1184c70a0a0e0d58c17a6e7ba527726045f2aed5caa31f56a",
     "original_preview_sha256": "f76daf3065796ef847500041648f5dadb1cffa98898c466f11ac3471be9e8887",
     "w1_repaired_report_sha256": "b608ff8d5d5c22e18b49a967bd1d84d061892947d23951b2d47148d2d0608bf7",
@@ -20,7 +19,9 @@
     "w1_fake_source_shot": "s04",
     "unchanged_shot_count": 11,
     "w2_real_production_manifest_sha256": null,
-    "w2_provider_mode": "prompt_anchor_only"
+    "w2_provider_mode": "prompt_anchor_only",
+    "fixed_validated_writer_source_response_sha256": "c5665e198eb3d30110a0bb6dc30d5f2cfadf74979eb5e6e0596d64751ff1a6f9",
+    "operator_screenplay_approval": "not_verified"
   },
   "source_work_packages": [
     {
