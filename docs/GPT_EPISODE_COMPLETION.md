@@ -34,3 +34,32 @@ This mode never calls a provider. Default CLI without --paid or --generated-dir 
 140 related local tests +compileall passed. Existing real Sol+three-clip artifacts passed default offline preflight, showing exactly9 new IDs and3 reuse IDs,0 calls. Synthetic FFmpeg12-clip staging/assembly also passed; its36-second duration correctly fails60–90s eligibility. Actual remaining9 have NOT been generated. Actual invoice fees remain unknown.
 
 All12 shots present and duration60–90s are reported separately; neither grants publication approval or stage exit. Exact5s per clip is not enforced. No trimming/stretching, dubbed voice, subtitles or music is fabricated. Stream incompatibility fails delivery for offline handling instead of triggering new generation. Dialogue/visual/subtitle quality remains pending. G4/R4.4 still requires real full-episode verification and the scoped failed-shot repair capability before declaring complete.
+
+## R4.4: offline one-shot replacement of an already available clip
+
+Once the completed `episode/` folder has an ordered, integrity-checked report
+and its twelve local MP4s, an operator may replace one clip with an **already
+available** local H.264/AAC MP4 of matching stream configuration:
+
+```bash
+python scripts/repair_gpt_episode_offline.py \
+  --episode-dir /path/to/original/episode \
+  --shot-id s05 \
+  --replacement /path/to/already-generated/s05-new.mp4 \
+  --output-dir /path/to/new-unique-repair-output
+```
+
+This command validates **all twelve** original hashes, durations, codecs,
+and order plus the supplied replacement before making a new output directory.
+It copies the other eleven unchanged, records an explicit offline-replacement
+provenance (not authenticated as a vendor result), and reuses the existing
+`assemble_gpt_video_three.py` concatenate/decode checks. The original
+`episode/` directory is not modified; final MP4, report, and delivery
+manifest are in the new output directory.
+
+**Important:** this only proves the offline replacement/assembly portion of
+single-shot repair. It does not generate a new clip, make a paid retry,
+approve a shot, validate spoken Chinese, create accurate subtitles, or
+authorize publication. Any new paid video call needs a separate authorization
+and the unchanged single-use financial protections. The fake eleven-stage
+pipeline is still not identical to this real-video path.
