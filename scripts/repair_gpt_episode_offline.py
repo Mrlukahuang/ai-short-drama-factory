@@ -108,7 +108,8 @@ def replace_completed_shot(source: Path, shot_id: str, replacement: Path,
     changed = {
         "shot_id": shot_id, "old_sha256": old_hash,
         "new_sha256": replacement_hash,
-        "operator_supplied_media_not_provider_authenticated": True,\n        "prior_shot_receipt": prior_receipt,
+        "operator_supplied_media_not_provider_authenticated": True,
+        "prior_shot_receipt": prior_receipt,
     }
     staged_report = {**report, "shots": new_records,
         "offline_replacements": [*history, changed],
