@@ -38,9 +38,13 @@ def assemble(source: Path, output: Path) -> dict:
     if source.is_symlink() or report_path.is_symlink() or not report_path.is_file():
         raise ValueError("Regular completed source artifact required")
     report = json.loads(report_path.read_text("utf-8"))
-    if (report.get("status") != "three_clips_completed_pending_human_review"
-            or report.get("generation_attempts") != 3
-            or [s.get("shot_id") for s in report.get("shots", [])] != IDS):
+    full = report.get("status") == "episode_clips_completed_pending_human_review"
+    ids = [f"s{i:02}" for i in range(1, 13)] if full else IDS
+    expected_status = "episode_clips_completed_pending_human_review" if full else "three_clips_completed_pending_human_review"
+    if (report.get("status") != expected_status
+            or report.get("generation_attempts") != (9 if full else 3)
+            or [s.get("shot_id") for s in report.get("shots", [])] != ids
+            or (full and report.get("reused_shot_ids") != IDS)):
         raise ValueError("Incomplete or reordered generation report; never regenerate")
     clips, metadata = [], []
     for record in report["shots"]:
@@ -56,12 +60,12 @@ def assemble(source: Path, output: Path) -> dict:
         metadata.append(info)
     # No output is touched until every source has passed validation.
     output.mkdir(parents=True, exist_ok=False)
-    final = output / "gpt-three-shot-preview.mp4"
+    final = output / ("gpt-episode-preview.mp4" if full else "gpt-three-shot-preview.mp4")
     with tempfile.TemporaryDirectory(prefix="gpt-concat-") as temp:
         folder = Path(temp)
         for i, clip in enumerate(clips):
             shutil.copyfile(clip, folder / f"clip{i}.mp4")
-        (folder / "clips.txt").write_text("".join(f"file 'clip{i}.mp4'\n" for i in range(3)))
+        (folder / "clips.txt").write_text("".join(f"file 'clip{i}.mp4'\n" for i in range(len(clips))))
         subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-n", "-f", "concat", "-safe", "1",
             "-i", str(folder / "clips.txt"), "-map", "0:v:0", "-map", "0:a:0", "-c", "copy",
             "-movflags", "+faststart", str(final)], check=True, capture_output=True, timeout=120)
@@ -73,15 +77,20 @@ def assemble(source: Path, output: Path) -> dict:
         "-map", "0:v:0", "-map", "0:a:0", "-f", "null", "-"],
         check=True, capture_output=True, timeout=120)
     result = {"status": "technical_preview_passed_pending_human_review",
-        "source_run_id": report.get("run_id"), "source_report_sha256": sha(report_path),
+        "source_run_id": report.get("run_id"),
+        "reused_source_run_id": report.get("reused_source_run_id"),
+        "accounting_scope": "offline_assembly_only",
+        "generation_attempts_in_source_report": report.get("generation_attempts"), "source_report_sha256": sha(report_path),
         "source_response_sha256": report.get("source_response_sha256"),
         "source_provenance": "supplied_report_and_matching_bytes_not_authenticated_provider_proof",
-        "shot_order": IDS, "source_shots": report["shots"],
+        "shot_order": ids, "source_shots": report["shots"],
         "duration_seconds": joined["duration_seconds"], "width": 360, "height": 640,
         "native_audio_preserved": True, "stream_copy": True, "full_decode_passed": True,
         "mp4_sha256": sha(final), "new_model_calls": 0, "new_api_cost_usd": "0",
         "actual_original_generation_fee_usd": None,
         "subtitle_alignment_verified": False, "dialogue_content_verified": False,
+        "all_script_shots_assembled": full,
+        "g4_duration_range_passed": full and 60 <= joined["duration_seconds"] <= 90,
         "full_episode_complete": False, "publish_approved": False}
     (output / "delivery.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     return result

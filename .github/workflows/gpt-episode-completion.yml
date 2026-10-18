@@ -1,0 +1,110 @@
+name: GPT episode completion remaining9 (manual, USD5 estimate risk)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type RUN_GPT_REMAINING9_ESTIMATE_USD5 (one attempt, no retries)
+        required: true
+        type: string
+      accept_estimate_not_cap:
+        description: Accept about USD4.27 estimate / one-time USD5 acknowledgement; NOT a proven billing cap
+        required: true
+        default: false
+        type: boolean
+      reported_spend_today_usd:
+        description: Operator-verified API spend TODAY (Pacific/Auckland), do not guess
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  issues: write
+concurrency:
+  group: gpt-episode-remaining9-owner-20261019
+  cancel-in-progress: false
+jobs:
+  video3:
+    if: ${{ github.actor == 'Mrlukahuang' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && inputs.confirmation == 'RUN_GPT_REMAINING9_ESTIMATE_USD5' && inputs.accept_estimate_not_cap }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: python -m pip install -e '.[test,google-video]'
+      - name: Test offline gates before credentials
+        run: python -m pytest -q tests/test_gpt_video_three.py tests/test_screenplay_video_plan.py tests/test_writer_pilot.py
+      - name: Install hash-pinned FFmpeg and FFprobe binaries (same as offline CI)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'ffprobe-binaries-only==0.1.2 --hash=sha256:15b8d28d2ee159145b131450f018bf708b4910dff13a21bfa9b8e13c9309715c' > /tmp/f3-ffmpeg-requirements.txt
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r /tmp/f3-ffmpeg-requirements.txt
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from importlib.metadata import distribution
+
+          dist = distribution("ffprobe-binaries-only")
+          target = Path("/tmp/shortdrama-f3-ffmpeg")
+          target.mkdir(exist_ok=True)
+          for name in ("ffmpeg", "ffprobe"):
+              matches = [
+                  Path(dist.locate_file(part)).resolve()
+                  for part in (dist.files or [])
+                  if Path(str(part)).name == name
+              ]
+              matches = [p for p in matches if p.is_file()]
+              if len(matches) != 1:
+                  raise RuntimeError(f"Expected one bundled {name} binary; found {matches}")
+              binary = matches[0]
+              binary.chmod(binary.stat().st_mode | 0o111)
+              (target / name).symlink_to(binary)
+          with open(os.environ["GITHUB_PATH"], "a", encoding="utf-8") as handle:
+              print(target, file=handle)
+          PY
+      - name: Verify pinned FFmpeg tools
+        run: |
+          command -v ffmpeg
+          command -v ffprobe
+          ffmpeg -version > /dev/null
+          ffprobe -version > /dev/null
+      - name: Verify offline assembly with real FFmpeg
+        run: python -m pytest -q tests/test_gpt_video_assembly.py tests/test_gpt_episode_completion.py
+      - name: Download existing successful Sol output (no model generation)
+        uses: actions/download-artifact@v4
+        with:
+          name: writer-first3-39035812309
+          run-id: 39035812309
+          github-token: ${{ github.token }}
+          path: artifacts/source-writer
+      - name: Download already completed first three clips (no regeneration)
+        uses: actions/download-artifact@v4
+        with:
+          name: gpt-screenplay-video3-39047208593
+          run-id: 39047208593
+          github-token: ${{ github.token }}
+          path: artifacts/prior-video3
+      - name: Verify both original artifacts and prepare offline
+        run: python scripts/complete_gpt_episode.py --writer-dir artifacts/source-writer --prior-dir artifacts/prior-video3
+      - name: Generate only remaining nine, reuse first three, assemble and QA with new owner approval
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          DRAMA_ENABLE_PAID_GENERATION: 'YES'
+          VIDEO_CONFIRM: ${{ inputs.confirmation }}
+          ACK_ESTIMATE_NOT_CAP: 'YES'
+          SPEND_TODAY: ${{ inputs.reported_spend_today_usd }}
+        run: python scripts/complete_gpt_episode.py --writer-dir artifacts/source-writer --prior-dir artifacts/prior-video3 --paid --reported-spend-today-usd "$SPEND_TODAY"
+      - name: Preserve original clips and uncertain-attempt receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-episode-completion-${{ github.run_id }}
+          path: artifacts/gpt-episode/
+          if-no-files-found: warn
+          retention-days: 14
