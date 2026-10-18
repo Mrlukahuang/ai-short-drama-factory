@@ -1,49 +1,25 @@
-# 当前交接状态（2026-10-18 NZT）
-
-## 最新：三镜视频手动入口已准备，等待明确风险接受
-
-- G4/R4.1，基线main1585fe3（#154已合并，六项CI全绿）。Sol临时开发基线，正式主备选型未改。
-- 新manual workflow GPT screenplay first3 video test：只读取Run39035812309的Sol原响应且校验固定hash，只生成s01/s02/s03；默认CLI离线。
-- 预估USD1.42391275 =10.1秒×3视频输出1.02391275 +输入预留0.15 +思考预留0.25。360p换算、输入及思考均非已证实上界；不是账单封顶，actual_fee=null。
-- 必须owner在main手动attempt1、输入RUN_GPT_VIDEO3_ESTIMATE_USD2且单独勾选accept_estimate_not_cap；声明当日API支出+USD2≤USD5。不可把普通继续解释为接受未知超额风险，不自主调用。
-- 新Issue146一次性claim在生成前记录；F3/文本旧claim不改不清。SDK显式attempts=1禁自动重试；每次请求前保存in-flight报告；失败停，保留原片/恢复记录。
-- 129相关本地离线测试+compileall通过。仅模拟供应商及媒体响应，未生成新视频或新剧本，未新增/输出密钥。当前连接器无dispatch，需要owner确认参数后点击一次。
-- 三个原片保持真实时长、不裁对白不改速；原生音轨存在不是中文对白内容已验收。外观是comparison Bible测试锚点，不是正式生产资产版本。
-- 详见docs/GPT_VIDEO_THREE.md；下一步owner明确风险决定及手动运行，之后检查真实artifact，不重跑。
-
-## 已有GPT接线和视频计划证据
+# 当前交接状态（2026-10-19 NZT）
 
 ## 当前阶段与方向
 
-G4 MVP / R4.1，未进入G5。所有者本轮明确「基于 GPT」推进；Sol作为临时开发基线，正式主备选型未定。Gemini HTTP400单独排查，不阻塞GPT主线。本轮零新增收费调用、零视频生成、未新增密钥。
+G4 MVP / R4.4，未进入G5。所有者要求先跑通流水线，画面细节后处理。Sol临时编剧开发基线，正式主备未改。
 
-## 最新交付：视频请求准备
+## 已验证真实进展
 
-- #153已合并5d88967，6项CI全绿；真实Sol响应已在独立SQLite测试项目完成导入、拒绝未审提交、测试批准建档，1剧集/0production/0新增调用。不是正式生产资产。
-- 本次补build_screenplay_video_plan纯离线转换：12镜或连续子集，不调用F3旧六镜故事、不混用预设旧服装，不授予付费权限。
-- 真实Sol12镜60秒输出估算USD2.02755；按10秒/镜场景USD4.05510。首3镜目标15秒估算USD0.5068875；10秒/镜场景USD1.013775。均不含输入等，非账单、非完整预算。
-- 360p每秒成本为仓库旧快照，本次官方价格页只明确720p换算，未独立重证360p token换算；total_budget_verified=false，执行仍禁止。
-- 109项相关离线测试通过；两份真实计划已准备，无新增收费调用/视频。详见docs/SCREENPLAY_VIDEO_PLAN.md。
-- 下一步：准备首3镜独立测试的完整输入/思考费用边界、外观/道具版本和执行入口；先不放行整集，不复用已消费F3或first3 claim。
+- main基线8411f617（#155合并）。Run39047208593确实成功：Sol原稿s01–s03各生成一次，共3镜，每镜约5.013秒；artifact12106182855。
+- Run39126187434为重复启动，被原一次性claim拦截；report生成尝试0、claim_recorded=false、shots空，无新增生成。旧claim不清除，不重跑。
+- 已下载成功原片并按receipt SHA256校验，离线拼接为15.060333秒360x640 H264/AAC预览，保留原音轨、不裁剪改速，完整解码PASS。
+- 输出MP4 SHA256 f75251d60f49a1061b9384cca5f303057c57fed23b58a7a6cd91020320cbc101。新增调用0/新增API费用USD0；原3镜真实账单仍null。
 
-## 已交付：GPT待审入口
+## 本次R4.4接线
 
-- 新增离线GPT响应导入：POST /api/v1/series/{series_id}/screenplays/from-openai-response/validate，Sol默认、兼容Luna。
-- 使用当前系列Bible及资产校验输出，返回Screenplay和EpisodeDraft待审预览；不写DB、不自动批准、不创建production。
-- 人工修改后复用既有validate/commit；明确reviewed_by_operator=true才创建剧集草稿，后续生产审批仍独立。
-- 导入来源是operator_supplied；不宣称响应真实性或原请求绑定已获验证。缓存写入计费尚待修正，因此此入口费用返回null，保留token信息。
-- 本地96项相关测试通过，涵盖SQLite+FastAPI真实人工门禁、跨系列/缺资产拒绝、截断/拒绝/model不符等。
-- 重用Run39035812309的真实响应做离线回放：Sol12镜60秒、Luna8镜60秒均可转待审预览；未生成新稿，未评定创作质量。比较fixture IDs不自动改写成真实项目ID。
-- 详见docs/GPT_SCREENPLAY_REVIEW.md。
+- scripts/assemble_gpt_video_three.py：消费已完成报告+3原片，校验顺序/哈希/流/时长→拼接→完整解码→MP4与delivery.json，无网络/SDK/凭据/审批写入。
+- 三镜workflow增加生成后离线合成/QA；已有成功运行不重跑。合成出错只对已有原片运行独立CLI。
+- 134项相关本地测试通过；新增5项使用真实FFmpeg合成媒体测试。CI见PR。详见docs/GPT_VIDEO_DELIVERY.md。
 
-## 既有证据与边界
+## 验收范围与下一步
 
-- main基线8bdf0f0，#152已合并，六项CI全绿；已补Google白名单status/field诊断，但旧400正文丢失，根因仍未知，不能称Gemini已修复。端点与官方及既有视频Interactions接口一致。
-- Run39035812309：Sol/Luna真实生成通过结构校验，Flash400；artifact12102675304。原first3 claim已消耗，禁止整批重跑，剩余15未放行。
-- 原report估算USD0.0534832漏缓存写入差额；两份GPT补算目录价估算USD0.0540418，非实际账单。新导入入口不传播旧费用估算。
-- TokenUpperBound.verified是外部可信证据断言，不是模块验证或账单封顶。Google输出含思考cap有文档依据，完整18任务仍须独立执行前检查。
-- F3视频Run38931439653原型已接受、不返工；#137实际账单待核，US$1.75896721仅视频输出估算；一次性授权已使用，不重跑。
-
-## 下一步
-
-GPT待审接线#153已合并；选定真实项目Bible和演员场景资产后形成并人工审核该项目剧本。新文本生成必须另走已审预算/授权路径；本次没有增加付费生成入口。G4退出、商业发布、中文对白/字幕验收均未完成。
+- 已跑通三镜样片链路，不宣称60秒整集或R4.4全部完成；剩余9镜未生成。画面、人脸/服装、语音逐字、字幕时序、发布审批均未验收。
+- 用户暂不优化细节；接下来以该交付接口推进整集接线。新增收费镜头需另行明确范围/预算，禁止复用已消费的F3或三镜授权。
+- GPT原稿来源Run39035812309/artifact12102675304；Sol12镜60秒、Luna8镜60秒结构通过，不是创作质量结论。
+- TokenUpperBound.verified仍是外部证据断言；视频估算不是硬封顶；Google文本400根因未修复，不阻塞GPT主线。#137旧F3账单仍待核，G4未退出。
