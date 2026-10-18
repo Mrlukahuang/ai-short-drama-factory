@@ -11,10 +11,12 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import postprocess_gpt_episode_offline as post
 import assemble_gpt_video_three as assembly
+import repair_gpt_episode_offline as repair
 sys.path.pop(0)
 
 from drama_factory.pipeline.screenplay import Screenplay, ScreenplayShot, DialogueCue
 from test_gpt_video_assembly import source
+from test_gpt_w1_single_shot_closed_loop import parent as w1_parent, alternate as w1_alternate
 
 
 def script12(*, dialogue=True):
@@ -119,3 +121,83 @@ def test_srt_slots_are_calculated_from_real_clip_lengths():
     assert count == 12
     assert "00:00:00,000 --> 00:00:03,000" in text
     assert "00:00:49,500 --> 00:00:52,500" in text
+
+
+def test_w3_measured_timeline_and_immutable_render_receipt(completed, tmp_path):
+    episode, delivery = completed
+    target = tmp_path / "w3-original"
+    result = post.render_draft_postprocess(script12(), "a"*64, episode, delivery, target)
+    render_file = target / "09_render.json"
+    receipt = json.loads(render_file.read_text("utf-8"))
+    qa = json.loads((target / "10_qa.json").read_text("utf-8"))
+    assert receipt["contract"] == "g4-w3-render-provenance.v1"
+    assert receipt["shot_order"] == post.IDS
+    assert len(receipt["shots"]) == 12
+    assert receipt["shots"][0]["start_ms"] == 0
+    assert receipt["shots"][-1]["end_ms"] == receipt["measured_shot_total_ms"]
+    assert all(a["end_ms"] == b["start_ms"]
+               for a,b in zip(receipt["shots"], receipt["shots"][1:]))
+    assert all(item["clip_sha256"] == assembly.sha(episode / (item["shot_id"] + ".mp4"))
+               for item in receipt["shots"])
+    assert receipt["original_source_report_sha256"] == assembly.sha(episode / "report.json")
+    assert receipt["original_delivery_manifest_sha256"] == assembly.sha(delivery / "delivery.json")
+    assert receipt["srt_sha256"] == assembly.sha(target / "draft-captions.srt")
+    assert receipt["mp4_sha256"] == assembly.sha(target / "gpt-episode-caption-draft.mp4")
+    assert qa["render_receipt_sha256"] == assembly.sha(render_file)
+    assert qa["production_assets_verified"] is False
+    assert qa["asset_manifest_sha256"] is None
+    assert receipt["subtitle_mode"] == "screenplay_timed_draft_not_asr"
+    assert receipt["audio_stream_copy"] is True and receipt["audio_reencoded"] is False
+    assert receipt["repair"]["replacement_mode"] == "original_completed_episode"
+    assert receipt["repair"]["parent_source_crosschecked"] is False
+    assert result["publish_approved"] is False
+
+
+def test_w3_read_only_w1_parent_chain_is_crosschecked(
+        w1_parent, w1_alternate, tmp_path):
+    parent_episode, parent_delivery = w1_parent
+    repaired_root = tmp_path / "repaired"
+    repair.replace_completed_shot(parent_episode, "s07", w1_alternate, repaired_root)
+    before = assembly.sha(parent_episode / "report.json")
+    child_episode = repaired_root / "episode"
+    child_delivery = repaired_root / "delivery"
+    output = tmp_path / "w3-repaired"
+    result = post.render_draft_postprocess(
+        script12(), "a"*64, child_episode, child_delivery, output,
+        parent_episode_dir=parent_episode, parent_delivery_dir=parent_delivery)
+    receipt = json.loads((output / "09_render.json").read_text("utf-8"))
+    lineage = receipt["repair"]
+    assert result["technical_decode_passed"] is True
+    assert lineage["parent_source_crosschecked"] is True
+    assert lineage["parent_episode_report_sha256"] == before
+    assert lineage["parent_preview_sha256"] == assembly.sha(
+        parent_delivery / "gpt-episode-preview.mp4")
+    assert lineage["replacement_mode"] == "operator_existing_media_offline_simulation"
+    assert lineage["replacements"][0]["shot_id"] == "s07"
+    assert lineage["replacements"][0]["new_sha256"] == assembly.sha(w1_alternate)
+    assert sum(rec["clip_sha256"] != assembly.sha(parent_episode / (rec["shot_id"]+".mp4"))
+               for rec in receipt["shots"]) == 1
+    assert assembly.sha(parent_episode / "report.json") == before
+    assert receipt["production_assets_verified"] is False
+    assert receipt["asset_manifest_sha256"] is None
+
+
+@pytest.mark.parametrize("fault", ["missing_pair", "wrong_parent_hash", "wrong_parent_video"])
+def test_w3_rejects_false_parent_before_output(w1_parent, w1_alternate, tmp_path, fault):
+    parent_episode, parent_delivery = w1_parent
+    repaired_root = tmp_path / "repaired"
+    repair.replace_completed_shot(parent_episode, "s07", w1_alternate, repaired_root)
+    opts = {"parent_episode_dir": parent_episode, "parent_delivery_dir": parent_delivery}
+    if fault == "missing_pair":
+        opts.pop("parent_delivery_dir")
+    elif fault == "wrong_parent_hash":
+        report = json.loads((parent_episode / "report.json").read_text("utf-8"))
+        report["run_id"] = "tampered-after-repair"
+        (parent_episode / "report.json").write_text(json.dumps(report), encoding="utf-8")
+    else:
+        (parent_delivery / "gpt-episode-preview.mp4").write_bytes(b"invalid-parent")
+    output = tmp_path / "no-version"
+    with pytest.raises(ValueError):
+        post.render_draft_postprocess(script12(), "a"*64,
+            repaired_root / "episode", repaired_root / "delivery", output, **opts)
+    assert not output.exists()

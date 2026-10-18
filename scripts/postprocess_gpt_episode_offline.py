@@ -96,9 +96,81 @@ def _verified_screenplay(writer_dir: Path) -> tuple[Screenplay, str]:
     return parsed.screenplay, SOURCE_HASH
 
 
+def _repair_provenance(report: dict, records: list[dict], *, parent_episode_dir: Path | None,
+                       parent_delivery_dir: Path | None) -> dict:
+    """Constrain W1 receipt chain; never infer provider-authenticated replacement."""
+    changes = report.get("offline_replacements", [])
+    if type(changes) is not list or len(changes) > 12:
+        raise ValueError("Invalid offline replacement history")
+    if (parent_episode_dir is None) != (parent_delivery_dir is None):
+        raise ValueError("Parent episode and delivery must be supplied together")
+    if not changes:
+        if parent_episode_dir is not None or report.get("parent_episode_report_sha256"):
+            raise ValueError("Unexpected parent version")
+        return {"replacement_mode": "original_completed_episode", "replacements": [],
+                "parent_episode_report_sha256": None, "parent_preview_sha256": None,
+                "parent_source_crosschecked": False}
+    if len(changes) != 1 or type(changes[0]) is not dict:
+        raise ValueError("Only one verified offline repair is supported")
+    change = changes[0]
+    shot_id = change.get("shot_id")
+    if shot_id not in IDS or type(change.get("prior_shot_receipt")) is not dict:
+        raise ValueError("Invalid replacement receipt")
+    old = change["prior_shot_receipt"]
+    current = records[IDS.index(shot_id)]
+    parent_sha = report.get("parent_episode_report_sha256")
+    if (type(parent_sha) is not str or not HEX.fullmatch(parent_sha)
+            or parent_sha == change.get("new_sha256")
+            or change.get("operator_supplied_media_not_provider_authenticated") is not True
+            or old.get("shot_id") != shot_id
+            or old.get("video_sha256") != change.get("old_sha256")
+            or current.get("replaced_prior_video_sha256") != change.get("old_sha256")
+            or current.get("video_sha256") != change.get("new_sha256")
+            or current.get("replacement_origin") != "operator_supplied_local_media_unverified_provider"
+            or current.get("provider_task_id") is not None):
+        raise ValueError("Replacement version chain mismatch")
+    parent_preview_sha = None
+    if parent_episode_dir is not None:
+        parent_episode_dir, parent_delivery_dir = Path(parent_episode_dir), Path(parent_delivery_dir)
+        if parent_episode_dir.is_symlink() or parent_delivery_dir.is_symlink():
+            raise ValueError("Linked parent directory denied")
+        previous_report = _input_file(parent_episode_dir / "report.json")
+        previous_delivery = _input_file(parent_delivery_dir / "delivery.json")
+        previous_preview = _input_file(parent_delivery_dir / "gpt-episode-preview.mp4")
+        if sha(previous_report) != parent_sha:
+            raise ValueError("Parent source report SHA mismatch")
+        parent_records = json.loads(previous_report.read_text("utf-8")).get("shots")
+        parent_manifest = json.loads(previous_delivery.read_text("utf-8"))
+        if (type(parent_records) is not list or len(parent_records) != 12
+                or [x.get("shot_id") for x in parent_records if type(x) is dict] != IDS
+                or parent_manifest.get("source_report_sha256") != parent_sha
+                or parent_manifest.get("mp4_sha256") != sha(previous_preview)
+                or parent_manifest.get("shot_order") != IDS
+                or parent_manifest.get("source_response_sha256") != report.get("source_response_sha256")
+                or parent_records[IDS.index(shot_id)] != old
+                or any(parent_records[i].get("video_sha256") != records[i].get("video_sha256")
+                       for i, sid in enumerate(IDS) if sid != shot_id)):
+            raise ValueError("Wrong original parent version or unchanged-shot mismatch")
+        for parent_shot in parent_records:
+            clip = _input_file(parent_episode_dir / (parent_shot["shot_id"] + ".mp4"))
+            if sha(clip) != parent_shot.get("video_sha256"):
+                raise ValueError("Parent shot bytes differ from receipt")
+        parent_preview_sha = sha(previous_preview)
+    return {"replacement_mode": "operator_existing_media_offline_simulation",
+            "replacements": [{"shot_id": shot_id, "old_sha256": change["old_sha256"],
+                              "new_sha256": change["new_sha256"],
+                              "prior_shot_receipt_sha256": hashlib.sha256(
+                                  json.dumps(old, ensure_ascii=False, sort_keys=True,
+                                             separators=(",", ":")).encode()).hexdigest()}],
+            "parent_episode_report_sha256": parent_sha,
+            "parent_preview_sha256": parent_preview_sha,
+            "parent_source_crosschecked": parent_episode_dir is not None}
+
+
 def render_draft_postprocess(screenplay: Screenplay, source_hash: str,
                              episode_dir: Path, delivery_dir: Path,
-                             output_dir: Path) -> dict:
+                             output_dir: Path, *, parent_episode_dir: Path | None = None,
+                             parent_delivery_dir: Path | None = None) -> dict:
     """Existing media only; never modify prior successful 12-shot delivery."""
     episode_dir, delivery_dir, output_dir = map(Path, (episode_dir, delivery_dir, output_dir))
     if any(p.is_symlink() for p in (episode_dir, delivery_dir, output_dir)):
@@ -118,6 +190,7 @@ def render_draft_postprocess(screenplay: Screenplay, source_hash: str,
             or type(records) is not list or len(records) != 12
             or [s.get("shot_id") for s in records if type(s) is dict] != IDS
             or delivery.get("shot_order") != IDS
+            or delivery.get("source_shots") != records
             or delivery.get("source_report_sha256") != sha(report_path)
             or delivery.get("source_response_sha256") != source_hash
             or delivery.get("mp4_sha256") != sha(preview)
@@ -127,6 +200,9 @@ def render_draft_postprocess(screenplay: Screenplay, source_hash: str,
         raise ValueError("Verified full-episode delivery and report required")
     # Check every original source file as well as the existing delivery.
     signature = None
+    elapsed_ms = 0
+    timeline = []
+    measured_records = []
     for record in records:
         path = _input_file(episode_dir / (record["shot_id"] + ".mp4"))
         if sha(path) != record.get("video_sha256"):
@@ -137,10 +213,23 @@ def render_draft_postprocess(screenplay: Screenplay, source_hash: str,
         if signature is not None and details["stream_signature"] != signature:
             raise ValueError("Incompatible original clip streams")
         signature = details["stream_signature"]
+        duration_ms = round(Decimal(str(details["duration_seconds"])) * 1000)
+        if duration_ms <= 0:
+            raise ValueError("Invalid measured shot duration")
+        timeline.append({"shot_id": record["shot_id"], "clip_sha256": record["video_sha256"],
+                         "start_ms": elapsed_ms, "end_ms": elapsed_ms + duration_ms,
+                         "duration_ms": duration_ms,
+                         "measured_duration_seconds": str(details["duration_seconds"])})
+        measured_records.append({**record, "duration_seconds": str(details["duration_seconds"])})
+        elapsed_ms += duration_ms
     original_media = probe(preview)
-    if original_media["stream_signature"] != signature:
-        raise ValueError("Original assembled stream mismatch")
-    srt, count = _draft_captions(screenplay, records)
+    if (original_media["stream_signature"] != signature
+            or abs(original_media["duration_seconds"] - elapsed_ms / 1000) > .25
+            or abs(original_media["duration_seconds"] - float(delivery["duration_seconds"])) > .25):
+        raise ValueError("Assembled duration/streams differ from measured shot timeline")
+    repair = _repair_provenance(report, records, parent_episode_dir=parent_episode_dir,
+                                parent_delivery_dir=parent_delivery_dir)
+    srt, count = _draft_captions(screenplay, measured_records)
 
     resolved_output = output_dir.resolve()
     if (output_dir.exists() or episode_dir.resolve() == resolved_output
@@ -181,9 +270,26 @@ def render_draft_postprocess(screenplay: Screenplay, source_hash: str,
                           "actual_speech_alignment_verified": False},
         "08_music": {"step": "08_music", "route": "existing_native_audio_unchanged",
                      "separate_music_added": False},
-        "09_render": {"step": "09_render", "file_name": final.name,
-                      "mp4_sha256": digest, "original_mp4_sha256": sha(preview),
-                      "video_stream_copy": True, "audio_stream_copy": True},
+        "09_render": {"step": "09_render", "contract": "g4-w3-render-provenance.v1",
+                      "file_name": final.name, "mp4_sha256": digest,
+                      "original_mp4_sha256": sha(preview),
+                      "original_delivery_manifest_sha256": sha(delivery_path),
+                      "original_source_report_sha256": sha(report_path),
+                      "source_response_sha256": source_hash,
+                      "shots": timeline, "shot_order": IDS,
+                      "measured_shot_total_ms": elapsed_ms,
+                      "source_preview_duration_seconds": original_media["duration_seconds"],
+                      "final_duration_seconds": final_media["duration_seconds"],
+                      "repair": repair,
+                      "asset_manifest_sha256": None, "production_assets_verified": False,
+                      "asset_binding_mode": "prompt_anchor_only_unverified_for_legacy_video",
+                      "subtitle_mode": "screenplay_timed_draft_not_asr",
+                      "srt_sha256": sha(subtitles), "subtitle_cues": count,
+                      "ffmpeg_route": "native_h264_aac_stream_copy_plus_mov_text",
+                      "ffmpeg_config": {"video_codec": "copy", "audio_codec": "copy",
+                                        "subtitle_codec": "mov_text", "faststart": True},
+                      "video_stream_copy": True, "audio_stream_copy": True,
+                      "audio_reencoded": False},
         "10_qa": {"step": "10_qa", "technical_decode_passed": True,
                   "embedded_draft_subtitles_verified": True,
                   "subtitle_cue_count": count, "mp4_sha256": digest,
@@ -195,8 +301,13 @@ def render_draft_postprocess(screenplay: Screenplay, source_hash: str,
                   "subtitle_alignment_verified": False,
                   "full_episode_complete": False, "publish_approved": False},
     }
+    _write_json(output_dir / "09_render.json", metadata["09_render"])
+    metadata["10_qa"]["render_receipt_sha256"] = sha(output_dir / "09_render.json")
+    metadata["10_qa"]["asset_manifest_sha256"] = None
+    metadata["10_qa"]["production_assets_verified"] = False
     for step, data in metadata.items():
-        _write_json(output_dir / (step + ".json"), data)
+        if step != "09_render":
+            _write_json(output_dir / (step + ".json"), data)
     return {"output_mp4": str(final), "subtitle_cues": count,
             "mp4_sha256": digest, **metadata["10_qa"]}
 
@@ -207,10 +318,14 @@ def main(argv=None):
     parser.add_argument("--episode-dir", type=Path, required=True)
     parser.add_argument("--delivery-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--parent-episode-dir", type=Path)
+    parser.add_argument("--parent-delivery-dir", type=Path)
     args = parser.parse_args(argv)
     screenplay, source_hash = _verified_screenplay(args.writer_dir)
     result = render_draft_postprocess(screenplay, source_hash,
-                                      args.episode_dir, args.delivery_dir, args.output_dir)
+                                      args.episode_dir, args.delivery_dir, args.output_dir,
+                                      parent_episode_dir=args.parent_episode_dir,
+                                      parent_delivery_dir=args.parent_delivery_dir)
     print(json.dumps(result, ensure_ascii=False))
     return 0
 
