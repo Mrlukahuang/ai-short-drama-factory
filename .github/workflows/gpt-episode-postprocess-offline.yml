@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "scripts/postprocess_gpt_episode_offline.py"
+      - "scripts/postprocess_gpt_episode_offline.py"\n      - "scripts/w1_single_shot_repair.py"\n      - "scripts/repair_gpt_episode_offline.py"
       - ".github/workflows/gpt-episode-postprocess-offline.yml"
   workflow_dispatch:
 
@@ -62,7 +62,7 @@ jobs:
           ffmpeg -version > /dev/null
           ffprobe -version > /dev/null
       - name: Verify postproduction using real FFmpeg and synthetic test media
-        run: python -m pytest -q tests/test_gpt_episode_offline_postprocess.py
+        run: python -m pytest -q tests/test_gpt_episode_offline_postprocess.py tests/test_gpt_w1_single_shot_closed_loop.py
       - name: Download original validated writer output (read-only, no generation)
         uses: actions/download-artifact@v4
         with:
@@ -84,6 +84,62 @@ jobs:
             --episode-dir artifacts/original-episode/episode \
             --delivery-dir artifacts/original-episode/delivery \
             --output-dir artifacts/draft-postproduction
+      - name: W1 simulated single-shot repair on real existing 12-shot media (no API keys)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("artifacts/original-episode/episode")
+          report = json.loads((root / "report.json").read_text("utf-8"))
+          source = next(s for s in report["shots"] if s["shot_id"] == "s07")
+          review = {"shot_id": "s07", "decision": "needs_repair",
+              "reason": "existing human review: unintended triple-panel frame",
+              "reviewed_by": "2026-10-19-visual-review",
+              "source_video_sha256": source["video_sha256"]}
+          Path("artifacts/w1-review.json").write_text(
+              json.dumps(review, ensure_ascii=False), encoding="utf-8")
+          PY
+          python scripts/w1_single_shot_repair.py prepare \
+            --writer-dir artifacts/original-writer \
+            --episode-dir artifacts/original-episode/episode \
+            --delivery-dir artifacts/original-episode/delivery \
+            --review-file artifacts/w1-review.json \
+            --output-plan artifacts/w1-plan.json
+          # Deliberately use an EXISTING, DIFFERENT clip as a Fake replacement;
+          # NOT a quality fix or newly generated video. New model calls = 0.
+          python scripts/w1_single_shot_repair.py fake-apply \
+            --writer-dir artifacts/original-writer \
+            --episode-dir artifacts/original-episode/episode \
+            --delivery-dir artifacts/original-episode/delivery \
+            --review-file artifacts/w1-review.json \
+            --plan-file artifacts/w1-plan.json \
+            --replacement artifacts/original-episode/episode/s04.mp4 \
+            --output-dir artifacts/w1-offline-simulation
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("artifacts/w1-offline-simulation")
+          result = json.loads((root / "w1-result.json").read_text("utf-8"))
+          assert result["shot_id"] == "s07"
+          assert result["new_paid_model_calls"] == 0
+          assert result["new_provider_task_id"] is None
+          assert result["technical_qa_passed"] is True
+          assert result["content_qa_passed"] is False
+          assert result["publish_approved"] is False
+          assert len(result["unchanged_shots_sha256"]) == 11
+          PY
+      - name: Upload explicitly marked W1 Fake repair evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-W1-FAKE-single-shot-repair-${{ github.run_id }}
+          path: |
+            artifacts/w1-plan.json
+            artifacts/w1-review.json
+            artifacts/w1-offline-simulation/
+          if-no-files-found: error
+          retention-days: 14
       - name: Upload draft MP4, SRT, real-audio preservation and explicit QA receipts
         uses: actions/upload-artifact@v4
         with:
