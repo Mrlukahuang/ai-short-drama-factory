@@ -8,7 +8,7 @@
 - W2 [#170](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/170)：离线确定性角色/场景/服装/speaker ID、版本及 Prompt SHA，7项检查成功、Python 3.11/3.13 各883 passed/171 skipped；[标准 handoff（Issue #169）](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/169#issuecomment-6251556462)。生产资产 manifest SHA **null**；reference_image/audio 没有接入。
 - W3 [#173](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/173)/[#174](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/174)：Run [39141517448](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39141517448)，真实原/FAKE 后期技术媒体，6/6 CI；[证据](W3_EVIDENCE_20261019.md)。原生 AAC 和 H264 stream copy，16 条 **DRAFT 剧本推算字幕**，未 ASR/授权配乐。
 - W4 [#176](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/176)/[#178](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/178)：6/6 CI、Python 3.11/3.13 各897 passed/176 skipped；[证据](W4_EVIDENCE_20261019.md)；内容审查 contract 已交付。原先 **CLI 未直接跑真实 W3 两版**；下节由 W5 补足。Issue [#177](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/177) 仍未批准任何新的模型调用。
-- 两片共同的 writer response SHA `c5665e198eb3d30110a0bb6dc30d5f2cfadf74979eb5e6e0596d64751ff1a6f9`；原始 12 镜 report `959c3775f7846ae1184c70a0a0e0d58c17a6e7ba527726045f2aed5caa31f56a`，原 preview MP4 `f76daf3065796ef847500041648f5dadb1cffa98898c466f11ac3471be9e8887`。FAKE parent report `b608ff8d5d5c22e18b49a967bd1d84d061892947d23951b2d47148d2d0608bf7`。
+- 两片共同的**固定且通过 schema 校验、但未找到独立 Owner 正式剧本批准回执**的 writer response SHA `c5665e198eb3d30110a0bb6dc30d5f2cfadf74979eb5e6e0596d64751ff1a6f9`；原始 12 镜 report `959c3775f7846ae1184c70a0a0e0d58c17a6e7ba527726045f2aed5caa31f56a`，原 preview MP4 `f76daf3065796ef847500041648f5dadb1cffa98898c466f11ac3471be9e8887`。FAKE parent report `b608ff8d5d5c22e18b49a967bd1d84d061892947d23951b2d47148d2d0608bf7`。
 
 ## W5 新完成：对 **实际 W3 两份媒体** 运行既有 W4 CLI（零 API）
 独立使用 GitHub artifact download 取出两个 ZIP，先 `sha256sum` 再调用 `scripts/review_gpt_episode_offline.py`。**CLI/main 内容审查器均保持 GitHub 精确字节**：CLI blob SHA `5283a59e1e036ad45ecca1680c3f842724826473`，core blob SHA `e8da5b92e43569e2f3616fccce244dc0b04e5cef`；隔离运行时仅将 main 原 `offline_qa._subtitle_items`、`_stamp` 及相关常量原样提取作 import shim，避免加载无关 offline_render 模块；未修改 W4 源码或媒体。未导入或伪造任何人工 HMAC 签字。
@@ -39,7 +39,7 @@ PYTHONPATH=src python scripts/review_gpt_episode_offline.py \
 | 路径 | 真正证实 | 不可延伸的宣称 |
 | --- | --- | --- |
 | `run_gpt_video_three.py` | 历史三镜实生成；`--paid` 与当日费用操作参数；无 `--paid` 离线只列计划 | 不是全12镜后期审片命令；不得重新使用 USD5 |
-| `complete_gpt_episode.py` | 已批准剧本/原三镜 + 剩九镜 artifact 重用或显式 `--paid`，完成片段与合成 | 未把生产 W2 manifest / W3/W4 人审/账单/发布自动整合 |
+| `complete_gpt_episode.py` | 固定历史剧本/原三镜 + 剩九镜 artifact 重用或显式 `--paid`，完成片段与合成 | 未把生产 W2 manifest / W3/W4 人审/账单/发布自动整合 |
 | `w1_single_shot_repair.py` | 真实旧素材仅可作 **existing-media offline simulation** 的修镜契约，11镜哈希保护 | 不具备真实计费单镜 Provider 修复授权 |
 | `postprocess_gpt_episode_offline.py` | 实际真实 MP4 技术字幕/时间轴/原生音轨来源收据 | DRAFT SRT 不是 ASR 或口型正确 |
 | `review_gpt_episode_offline.py` | W5 对两份真实 W3 artifact 已直接验 SHA/三门禁 | HMAC 不证明真人看片；无 Gemini 评分 |
