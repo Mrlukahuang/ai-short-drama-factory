@@ -132,6 +132,37 @@ jobs:
           assert result["publish_approved"] is False
           assert len(result["unchanged_shots_sha256"]) == 11
           PY
+      - name: Verify W3 measured timeline and exact W1 parent provenance (read-only media)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/postprocess_gpt_episode_offline.py \
+            --writer-dir artifacts/original-writer \
+            --episode-dir artifacts/w1-offline-simulation/repair/episode \
+            --delivery-dir artifacts/w1-offline-simulation/repair/delivery \
+            --parent-episode-dir artifacts/original-episode/episode \
+            --parent-delivery-dir artifacts/original-episode/delivery \
+            --output-dir artifacts/w3-repaired-provenance
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          roots = [Path("artifacts/draft-postproduction"),
+                   Path("artifacts/w3-repaired-provenance")]
+          for folder, expected in zip(roots, ["original_completed_episode",
+                                                "operator_existing_media_offline_simulation"]):
+              receipt = json.loads((folder / "09_render.json").read_text("utf-8"))
+              qa = json.loads((folder / "10_qa.json").read_text("utf-8"))
+              assert receipt["repair"]["replacement_mode"] == expected
+              assert len(receipt["shots"]) == 12
+              assert receipt["shots"][-1]["end_ms"] == receipt["measured_shot_total_ms"]
+              assert qa["render_receipt_sha256"]
+              assert qa["technical_decode_passed"] is True
+              assert qa["publish_approved"] is False
+              assert qa["asset_manifest_sha256"] is None
+              assert qa["production_assets_verified"] is False
+          assert json.loads((roots[1] / "09_render.json").read_text("utf-8"))[
+              "repair"]["parent_source_crosschecked"] is True
+          PY
       - name: Upload explicitly marked W1 Fake repair evidence
         uses: actions/upload-artifact@v4
         with:
@@ -140,6 +171,13 @@ jobs:
             artifacts/w1-plan.json
             artifacts/w1-review.json
             artifacts/w1-offline-simulation/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload W3 independently versioned offline repaired MP4 and SHA provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-W3-repaired-provenance-${{ github.run_id }}
+          path: artifacts/w3-repaired-provenance/
           if-no-files-found: error
           retention-days: 14
       - name: Upload draft MP4, SRT, real-audio preservation and explicit QA receipts
