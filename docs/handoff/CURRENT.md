@@ -7,6 +7,16 @@
 - [阶段交付与验收](../development_bible/STAGE_DELIVERABLES.md)、[多模型无损交接](../development_bible/MODEL_HANDOFF.md)：不同模型换聊天前必须使用统一证据包与明确文件 Owner。
 - **本段仅指向技术实施规范，不重排本文件现有“单一下一任务”，不授权 G5/付费模型/冻结区或治理变更。**
 
+## 新 Development Bible / W1 当前施工（2026-10-19）
+
+- main 起点 `ac28e5dff9c9ff7035881a4ef2e07f231cc35abf`，PR #165 已合并；Stage **G4** / Req **R4.4** / W1，按 `docs/development_bible/STAGE_DELIVERABLES.md` 的单镜定向修复零付费合同优先。
+- 本轮新 `scripts/w1_single_shot_repair.py` 是薄适配：原剧本固定校验 + 单个 failed shot 计划 + 独立收费未批准状态 + 已有本地 Fake 镜头接收 + 复用 `repair_gpt_episode_offline.py` 单镜回填 + `postprocess_gpt_episode_offline.py` 草稿字幕、原生音轨与技术 QA。
+- `scripts/repair_gpt_episode_offline.py` 仅加历史 `prior_shot_receipt`，保留被替换片原 Prompt/任务/账单；不修改其它11镜、原媒体或已用 USD5 claim。
+- 现有 `gpt-episode-postprocess-offline.yml` 增加一个**明确标记 W1-FAKE** 的只读真实12镜离线回填演练：使用真实旧 s04 模拟 s07 的替代**绝非真实质量修复**。不能冒称新供应商请求完成。
+- 验收以本轮 PR 实际 CI、真实 Artifact 成功记录为准；当前不宣称已通过直至工具证实。本轮 **0 新模型调用/费用USD0**。
+- 详细 I/O、回滚和 W2 输入输出/禁止重复开发见 [W1_SINGLE_SHOT_REPAIR.md](../W1_SINGLE_SHOT_REPAIR.md)。
+- **单一下一任务（待 W1 验收后）**：W2 角色/场景/对话的生产资产 ID/version/固定锚点离线契约，G4/R4.4；禁止动 W1 修镜/现有后期、冻结区和付费生成。W1 后续真实单镜付费生产仍需要独立可核实授权与供应商成本上限评估，未获则保持关闭。
+
 ## Stage / Req / 当前交付
 
 Stage: G4 / Req: R4.4。真实 12 镜链路已成功生成+拼接，但用户审片认为人物与配音不合格。**不得把技术通过视为内容通过或 G4 退出。** 仍在 G4，不启动 G5。
