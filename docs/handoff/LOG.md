@@ -52,3 +52,4 @@
 - 2026-10-19 | GPT-6 | G4/R4.4 | 新增已完成真实12镜的离线字幕草稿后期桥梁：原源文件哈希/剧本校验→原生AAC/H264透传→估算SRT封装mov_text→字幕实际mux比对/FFmpeg解码→06-10阶段JSON；无ASR或新配乐、真人音色/字幕对齐/发布均未通过；新增真实FFmpeg合成素材测试，模型调用0次/API费用0 | offline postprocess PR
 - 2026-10-19 | GPT-6 | G4/R4.4 | #160单镜离线回填和#161真实视频后期草稿字幕已合并；#162修Actions跨步PATH。自动真实原素材Run39133557599 success，Artifact12138992023/6.02MB；原音轨保留/草稿mov_text字幕+验收元数据落地；本轮重放真实API调用0/USD0，原视频账单仍未知。画面/对白/字幕对齐/发布未批准，G4约85%工程估算/未退出 | handoff PR
 - 2026-10-19 | GPT-6 | G4/R4.4 documentation | 所有者要求以成熟开源为蓝本、不同模型按阶段交付；创建开发 Bible、固定 upstream 复用手册、W0-W8 交付/验收手册、多模型文件所有权与 handoff schema；只写文档/不改治理与生产模型，付费 API 0 次/USD0；现有真实12镜/离线字幕基线不重复。主线下一任务仍以 CURRENT 为准 | Development Bible PR
+- 2026-10-19 | GPT-6 | G4/R4.4/W1 | ac28e5d基线按新Development Bible新增单镜失败审查→固定Prompt/旧片SHA计划→付费pending→已有片Fake收片→单镜离线回填→已有06–10后期/QA。保留旧原镜头receipt/费用，11镜不动；现有真实12镜只做s04代替s07的W1-FAKE零费用接口试验，尚待PR CI/Actions回执；0新视频API/0 USD，不重新使用旧USD5 | W1 PR
