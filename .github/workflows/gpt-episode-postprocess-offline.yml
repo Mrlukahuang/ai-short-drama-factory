@@ -1,0 +1,89 @@
+name: GPT real 12-shot postproduction draft (offline, no model calls)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/postprocess_gpt_episode_offline.py"
+      - ".github/workflows/gpt-episode-postprocess-offline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: gpt-real-episode-postproduction-offline
+  cancel-in-progress: false
+
+jobs:
+  postproduce-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline-only code and tests (no provider credentials)
+        run: python -m pip install -e '.[test]'
+      - name: Install hash-pinned FFmpeg + FFprobe binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'ffprobe-binaries-only==0.1.2 --hash=sha256:15b8d28d2ee159145b131450f018bf708b4910dff13a21bfa9b8e13c9309715c' > /tmp/ffmpeg-requirements.txt
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r /tmp/ffmpeg-requirements.txt
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from importlib.metadata import distribution
+          dist = distribution("ffprobe-binaries-only")
+          target = Path("/tmp/drama-postproduction-ffmpeg")
+          target.mkdir(exist_ok=True)
+          for name in ("ffmpeg", "ffprobe"):
+              matches = [
+                  Path(dist.locate_file(item)).resolve()
+                  for item in (dist.files or []) if Path(str(item)).name == name
+              ]
+              matches = [file for file in matches if file.is_file()]
+              if len(matches) != 1:
+                  raise RuntimeError(f"Exactly one {name} binary required")
+              binary = matches[0]
+              binary.chmod(binary.stat().st_mode | 0o111)
+              (target / name).symlink_to(binary)
+          with open(os.environ["GITHUB_PATH"], "a", encoding="utf-8") as f:
+              print(target, file=f)
+          PY
+          ffmpeg -version > /dev/null
+          ffprobe -version > /dev/null
+      - name: Verify postproduction using real FFmpeg and synthetic test media
+        run: python -m pytest -q tests/test_gpt_episode_offline_postprocess.py
+      - name: Download original validated writer output (read-only, no generation)
+        uses: actions/download-artifact@v4
+        with:
+          name: writer-first3-39035812309
+          run-id: 39035812309
+          github-token: ${{ github.token }}
+          path: artifacts/original-writer
+      - name: Download original completed 12-shot material (read-only)
+        uses: actions/download-artifact@v4
+        with:
+          name: gpt-episode-completion-39130058487
+          run-id: 39130058487
+          github-token: ${{ github.token }}
+          path: artifacts/original-episode
+      - name: Postprocess existing real clips with draft screenplay-timed captions
+        run: |
+          python scripts/postprocess_gpt_episode_offline.py \
+            --writer-dir artifacts/original-writer \
+            --episode-dir artifacts/original-episode/episode \
+            --delivery-dir artifacts/original-episode/delivery \
+            --output-dir artifacts/draft-postproduction
+      - name: Upload draft MP4, SRT, real-audio preservation and explicit QA receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-real-12shot-caption-DRAFT-${{ github.run_id }}
+          path: artifacts/draft-postproduction/
+          if-no-files-found: error
+          retention-days: 14
