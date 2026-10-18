@@ -162,6 +162,16 @@ def test_invalid_identity_scope_or_version_fails_closed(sample, kind):
     pins = deepcopy(locks)
     raw = original.model_dump(mode="json")
     extra = {}
+    if kind in {"actor_foreign_series", "scene_foreign_series", "story_bible_foreign"}:
+        # Make the foreign Series real, so the existing FK remains enforced
+        # and the W2 scope validator (not SQLite setup) rejects the binding.
+        db.exec(
+            """INSERT INTO projects
+               (id,title,premise,visual_style,ratio,created_at,column_id)
+               VALUES (?,?,?,?,?,?,?)""",
+            ("other", "其它作品", "另一个作品", "felt_diorama",
+             "9:16", timestamp(), DEFAULT_COLUMN_ID),
+        )
     if kind == "missing_pin": pins.pop("a-jie")
     elif kind == "missing_sha": pins["a-jie"].pop("specification_sha256")
     elif kind == "bad_sha": pins["a-jie"]["specification_sha256"] = "z" * 64
