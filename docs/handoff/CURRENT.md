@@ -1,5 +1,16 @@
 # 当前交接状态（2026-10-19 NZT）
 
+## 最新权威状态：W3 真实后期来源验收成功 → W4 内容 QA（2026-10-19 NZT）
+
+**Stage: G4 / Req: R4.4 / W3.1 已完成；下一唯一工作包 W4（G4/R4.3）。** [PR #173](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/173) 6 项 CI 全绿合并至 `main@4c16e12d8d4aebd4395ba43b2512de61825c4d80`。[真实素材 Run39141517448](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39141517448) 成功；原真实版 Artifact **12142320238**、W1-FAKE s07 修镜后严验版 Artifact **12141772943**，分别保留 12 镜实测毫秒时间轴、源报告/视频 SHA、16 cue 剧本推算 DRAFT 字幕及 MP4 SHA、来源/父版本 `09_render` receipt、`10_qa` 独立校验。最终媒体均 60.177333s，H264/AAC/mov_text，Full Decode pass；原/新 MP4 SHA 分别 `d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7` / `de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f`。旧 s04 只是模拟 s07，不是质量修复。详见 [W3 标准证据包](W3_EVIDENCE_20261019.md)。
+
+- **复用而不重写**：已有 `postprocess_gpt_episode_offline`、`assemble_gpt_video_three`、`offline_qa`、W1 修镜、FFmpeg；W1/W2 源码冻结无变更。W3.2 无本地获授权 WAV/许可证据，按 Issue #171 的条件性范围不启用，也不改通用 `offline_audio.mix_local_stems`；默认原生中文 AAC 透传。
+- **仍未通过**：W2 生产资产 Manifest SHA=null / assets verified=false；W3 字幕 **draft_not_asr**、原始 Omni **prompt_anchor_only**；同脸/同声、对白内容、字幕实际对齐、人类内容审查、真正修镜和发布均 `false/pending`。新模型调用 0、增量 API 费用 USD0；旧真实供应商账单仍未知。**G4 未退出，G5 禁止。**
+- **下一个唯一任务 W4**：Owner M4（G4/R4.3）只用 W3 Artifact 中原版+W1-FAKE 两份 `09_render.json`、`10_qa.json`、`draft-captions.srt`、MP4 和 W2 离线 prompt-binding 契约，按每镜 ID/真实哈希/时间轴做人物外貌、声线/中文对白、口型、字幕和 s03/s09/s07 已知故障的审片与人工签字；没有实际 ASR/镜头一致性与内容许可证据则状态 `unknown`，不得宣称发布可用。**W4 不改 W1/W2/W3 已交付源码，不进行付费生成。**
+
+下面 W2/W1 历史章节只作历史证据，其“下一个任务 W3/W2”已被本最新指针覆盖。
+
+
 ## 当前权威状态：W2 离线验收通过 → W3 增量后期交接（2026-10-19 NZT）
 
 **Stage: G4 / Req: R4.4 / 下一个工作包 W3。** 2026-10-19 已核验 W2 [PR #170](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/170) 合并至 `main@278763505b165e6a637a8acecc4b162121b3170a`；7 项 GitHub check-run success，Python 3.11 / 3.13 各 883 passed、171 skipped。Issue [#169](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/169) 已关闭，且 [最终 `drama-stage-handoff.v1`](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/169#issuecomment-6251556462) 已登记。W2 纯离线绑定，通过 `pipeline/shot_asset_binding.py` 锁定角色/scene/服装规格/speaker/资产版本、源 SHA 与 Prompt 变更；**没有真实生产版 W2 manifest SHA、没有真参考图/音频注入、没有新视频生成或人工内容验收。**
