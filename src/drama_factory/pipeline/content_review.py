@@ -253,8 +253,8 @@ def assess_bundle(bundle: dict, reviews: list[dict], *,
                                "kind": "previously_documented_negative_not_new_W4_review"})
         if bundle["version"] == "w1_fake" and sid == "s07":
             reasons.append("existing_s04_as_s07_fake_not_content_repair")
-        reasons.extend("human_" + k for k in FIELDS if values[k] == "fail"
-                       and "human_" + k not in reasons)
+        if entry:
+            reasons.extend("human_" + k for k in FIELDS if entry["verdicts"][k] == "fail")
         disposition = ("needs_repair" if reasons else
                        "usable" if entry and all(v == "pass" for v in values.values()) else "unknown")
         rows.append({
