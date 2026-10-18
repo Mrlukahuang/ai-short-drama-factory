@@ -95,7 +95,7 @@ def replace_completed_shot(source: Path, shot_id: str, replacement: Path,
     old_hash = original_hashes[shot_id]
     new_records = [dict(s) for s in records]
     target = new_records[SHOT_IDS.index(shot_id)]
-    target.pop("provider_task_id", None)  # Never attribute supplied bytes to old task.
+    prior_receipt = dict(target)\n    target.pop("provider_task_id", None)  # Never attribute supplied bytes to old task.\n    target.pop("prompt_sha256", None)  # Old prompt is not the replacement provenance.
     target.update({
         "video_sha256": replacement_hash,
         "duration_seconds": str(new_media["duration_seconds"]),
@@ -106,7 +106,7 @@ def replace_completed_shot(source: Path, shot_id: str, replacement: Path,
     changed = {
         "shot_id": shot_id, "old_sha256": old_hash,
         "new_sha256": replacement_hash,
-        "operator_supplied_media_not_provider_authenticated": True,
+        "operator_supplied_media_not_provider_authenticated": True,\n        "prior_shot_receipt": prior_receipt,
     }
     staged_report = {**report, "shots": new_records,
         "offline_replacements": [*history, changed],
