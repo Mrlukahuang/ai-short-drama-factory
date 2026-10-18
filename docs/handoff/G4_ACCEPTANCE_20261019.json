@@ -1,0 +1,240 @@
+{
+  "schema": "g4-w5-acceptance-inventory.v1",
+  "date_nzt": "2026-10-19",
+  "project": "Mrlukahuang/ai-short-drama-factory",
+  "stage": "G4",
+  "req": "R4.4",
+  "work_package": "W5",
+  "main_sha_at_start": "2cc91f54a030ba2bc1e7e679c3f409126e912ee8",
+  "issue_url": "https://github.com/Mrlukahuang/ai-short-drama-factory/issues/179",
+  "verdict": "NOT_READY",
+  "g4_exited": false,
+  "publish_approved": false,
+  "g5_authorized": false,
+  "historical_lineage": {
+    "approved_writer_source_response_sha256": "c5665e198eb3d30110a0bb6dc30d5f2cfadf74979eb5e6e0596d64751ff1a6f9",
+    "original_episode_report_sha256": "959c3775f7846ae1184c70a0a0e0d58c17a6e7ba527726045f2aed5caa31f56a",
+    "original_preview_sha256": "f76daf3065796ef847500041648f5dadb1cffa98898c466f11ac3471be9e8887",
+    "w1_repaired_report_sha256": "b608ff8d5d5c22e18b49a967bd1d84d061892947d23951b2d47148d2d0608bf7",
+    "w1_fake_replacement_shot": "s07",
+    "w1_fake_source_shot": "s04",
+    "unchanged_shot_count": 11,
+    "w2_real_production_manifest_sha256": null,
+    "w2_provider_mode": "prompt_anchor_only"
+  },
+  "source_work_packages": [
+    {
+      "wp": "W1",
+      "prs": [
+        166,
+        167,
+        168
+      ],
+      "merged_main": "409d042ae00e6d66fd097b86e0d34555eb20b83e",
+      "artifact_run": 39137352545,
+      "verification": "offline_fake_repair_pass",
+      "real_paid_single_shot_executor": "not_run",
+      "new_paid_calls": 0,
+      "actual_historical_invoice_usd": null
+    },
+    {
+      "wp": "W2",
+      "prs": [
+        170
+      ],
+      "merged_main": "278763505b165e6a637a8acecc4b162121b3170a",
+      "handoff_issue": 169,
+      "verification": "deterministic_offline_binding_pass",
+      "real_production_asset_manifest": "not_verified",
+      "new_paid_calls": 0,
+      "actual_historical_invoice_usd": null
+    },
+    {
+      "wp": "W3",
+      "prs": [
+        173,
+        174
+      ],
+      "merged_main": "c5ed3314714523ced3c9c5391a4652289766ee8e",
+      "run": 39141517448,
+      "verification": "real_media_technical_replay_pass",
+      "new_paid_calls": 0,
+      "actual_historical_invoice_usd": null
+    },
+    {
+      "wp": "W4",
+      "prs": [
+        176,
+        178
+      ],
+      "merged_main": "2cc91f54a030ba2bc1e7e679c3f409126e912ee8",
+      "verification": "offline_contract_ci_pass_real_media_cli_previously_not_run",
+      "gemini_visual_precheck": "not_run",
+      "real_asr": "not_run",
+      "human_attestation_count": 0,
+      "new_paid_calls": 0,
+      "actual_historical_invoice_usd": null
+    }
+  ],
+  "real_media_w5_replay": {
+    "source_run": 39141517448,
+    "source": "https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39141517448",
+    "main_w4_cli_blob_sha": "5283a59e1e036ad45ecca1680c3f842724826473",
+    "main_w4_core_blob_sha": "e8da5b92e43569e2f3616fccce244dc0b04e5cef",
+    "runtime_import_note": "Unmodified Git-blob-verified W4 CLI/core; offline_qa._subtitle_items and its small primitives copied exactly from main to avoid unrelated offline_render imports in isolated local runtime.",
+    "execution_status": "verified_real_artifact_local_cli_run",
+    "unsigned_human_reviews_imported": false,
+    "wrong_version_variant_negative_test": "rejected_exit_2",
+    "files": [
+      {
+        "version": "original",
+        "artifact_id": 12142320238,
+        "mp4_sha256": "d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7",
+        "srt_sha256": "c6fa289f4a63192ea72d83c31dba86771fae10ee09a6ee68413ad78f7a259db6",
+        "render_receipt_sha256": "364016304d078e11730b858956002eb7236cdf5282bc92dfa5f80a99cdada1ad",
+        "qa_file_sha256": "479bcbfb0e04aebc175547a6957947b61f5b16341fe45137d612a5ca8b037ddf",
+        "report_sha256": "e8a6218d4f260e378d83cf886ecb1aebd972fc82ad41777aa777a8103cda9195",
+        "report_file_sha256": "4408055055157e3ef641549b05ce241b9bbb83b60d9783db9f9b27a757c4290c",
+        "recorded_duration_seconds": "60.177333",
+        "shot_total_ms": 60156,
+        "subtitle_cues": 16,
+        "subtitle_origin": "screenplay_timed_draft_not_asr",
+        "codecs": [
+          "h264",
+          "aac",
+          "mov_text"
+        ],
+        "sha_checks": "pass",
+        "ffprobe": "pass",
+        "ffmpeg_full_av_decode": "pass",
+        "w4_cli": "pass",
+        "technical_qa": "pass",
+        "content_qa": "fail",
+        "release_qa": "blocked",
+        "known_needs_repair": [
+          "s03",
+          "s07",
+          "s09"
+        ],
+        "unknown_shot_count": 9,
+        "verified_usable_shots": 0,
+        "human_attested_count": 0
+      },
+      {
+        "version": "w1_fake",
+        "artifact_id": 12141772943,
+        "mp4_sha256": "de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f",
+        "srt_sha256": "c6fa289f4a63192ea72d83c31dba86771fae10ee09a6ee68413ad78f7a259db6",
+        "render_receipt_sha256": "3296b63bf88f154a43efba6a8ad895243331de22a8633a7474f68b178677ecf4",
+        "qa_file_sha256": "f6b673b3a3420541bfb48390a8bc25cc9bcde01a5bacb482c37bd773703b600d",
+        "report_sha256": "e1b2a69e4dc54bcfef45fd5efcdaf04a97fffed794f6eb7509f8f68c3fcaec10",
+        "report_file_sha256": "dd87f910185173d6301d8ad8072680e68355a5afccdfd3f3640fe8a25b88e5bc",
+        "recorded_duration_seconds": "60.177333",
+        "shot_total_ms": 60156,
+        "subtitle_cues": 16,
+        "subtitle_origin": "screenplay_timed_draft_not_asr",
+        "codecs": [
+          "h264",
+          "aac",
+          "mov_text"
+        ],
+        "sha_checks": "pass",
+        "ffprobe": "pass",
+        "ffmpeg_full_av_decode": "pass",
+        "w4_cli": "pass",
+        "technical_qa": "pass",
+        "content_qa": "fail",
+        "release_qa": "blocked",
+        "known_needs_repair": [
+          "s03",
+          "s07",
+          "s09"
+        ],
+        "unknown_shot_count": 9,
+        "verified_usable_shots": 0,
+        "human_attested_count": 0
+      }
+    ]
+  },
+  "contract_status": {
+    "real_12_shot_generation": "historical_verified",
+    "real_draft_postprocess": "verified",
+    "real_W4_existing_artifact_review_cli": "verified",
+    "real_one_command_approved_script_to_shots_post_qa": "not_verified",
+    "true_paid_single_shot_repair": "not_verified",
+    "full_fake_11_step_pipeline": "implemented_fake_only",
+    "real_W2_prod_asset_versions": "unknown",
+    "true_chinese_dialogue": "unknown",
+    "same_face": "not_verified",
+    "same_voice": "not_verified",
+    "real_asr": "not_run",
+    "gemini_adjacent_visual_scoring": "not_run",
+    "manual_release_approval": "blocked"
+  },
+  "kpis": {
+    "usable_shots": {
+      "target_percent": 50,
+      "required_per_12_shots": 6,
+      "attested_usable_shots": 0,
+      "unknown_shots": 9,
+      "known_not_usable_shots": 3,
+      "observed_quality_rate_percent": null,
+      "status": "unknown_not_demonstrated"
+    },
+    "cost_per_qualified_minute": {
+      "max_usd": 30,
+      "actual_original_provider_invoice_usd": null,
+      "qualifying_duration_minutes": null,
+      "actual_usd_per_qualified_minute": null,
+      "status": "unknown_not_computable"
+    },
+    "human_operator_hours": {
+      "max_hours": 2,
+      "measured_end_to_end_hours": null,
+      "status": "unknown"
+    }
+  },
+  "money": {
+    "new_W1_to_W5_paid_model_calls": 0,
+    "new_W1_to_W5_model_api_usd": 0,
+    "prior_special_video_budget_usd": 5,
+    "prior_special_budget_spent": true,
+    "actual_prior_provider_invoice_usd": null,
+    "new_approved_model_or_asr_evaluation": false
+  },
+  "pending": [
+    {
+      "owner": "Owner / human reviewer",
+      "task": "watch/listen to exact versioned MP4; human-attest at least 6 truly usable shots and diagnose s03/s07/s09"
+    },
+    {
+      "owner": "Owner",
+      "task": "Issue #177 decision on Gemini adjacent-frame score and optional genuine Chinese ASR with cap/privacy/rights",
+      "status": "awaiting_authorization"
+    },
+    {
+      "owner": "Operator / supplier billing",
+      "task": "retrieve historical provider invoice and eligible final footage duration"
+    },
+    {
+      "owner": "Operator",
+      "task": "measure actual manual effort from brief to releasable episode"
+    },
+    {
+      "owner": "Future scoped G4 owner (separate authorization)",
+      "task": "repair negative shots with a new limited one-shot provider receipt; never recycle spent USD5"
+    },
+    {
+      "owner": "M5 / G4 owner",
+      "task": "separately prove real approved-script-to-release CLI path or record not_verified"
+    },
+    {
+      "owner": "Owner",
+      "task": "validate rights, dubbed dialogue, original language, sign publication and G4 exit before G5"
+    }
+  ],
+  "owner_decision_url": "https://github.com/Mrlukahuang/ai-short-drama-factory/issues/177",
+  "license_rights_release": "blocked",
+  "r4_3_full_requirement": "not_run",
+  "owner_exit_signoff": "not_run"
+}
