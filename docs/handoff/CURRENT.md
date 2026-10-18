@@ -1,5 +1,13 @@
 # 当前交接状态（2026-10-19 NZT）
 
+## G4/R4.4 W2 资产与对白版本绑定（2026-10-19 NZT；PR #170）
+
+- W1 已正式通过且被冻结，不重复 W1 / FFmpeg / 后期，也不修改历史12镜或一次性费用权限。本 W2 从 main 409d042ae00e6d66fd097b86e0d34555eb20b83e 开发。
+- 单一 W2 执行 PR：[#170](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/170)。新增只读 `pipeline/shot_asset_binding.py`；继续复用 Screenplay 验证器、`check_screenplay_scope`、`build_screenplay_video_plan`、ActorBible/SceneBible/VoiceBible；不复制上游 ViMax/Jellyfish 源码。测试与端口边界见 [W2_SHOT_ASSET_BINDING.md](../W2_SHOT_ASSET_BINDING.md)。
+- 核心交付：固定 story/script/source/style + 资产 ID/version/specification SHA、逐镜外貌/服装/scene、cue speaker/expected dialogue，双 Prompt SHA 与 canonical manifest SHA。供消费的是 `prompt_anchor_only`，**不支持 reference image/audio**，原审批、媒体、账单、技术与内容审核均不被改写。
+- 按 [Issue #169](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/169) 验收：PR 的 Python/scope/offline CI 必须全部绿才算完成并可依 AMEND-004 自治合并；任何检查未完成不得宣称通过。正式已合并 main SHA 和最终 `drama-stage-handoff.v1` 以 #169 的最后交接回执为准。
+- **下一任务（待 W2 成功合并后）**：依最新 Bible 继续 G4 工作包 W3；W4 需要使用该 manifest 做内容 QA，不能提前进入 G5。任何真正 Omni/参考音视频能力验证另需授权。
+
 ## 持久开发 Bible（2026-10-19，G4/R4.4 技术实施指南）
 
 - [开发 Bible 总入口](../DEVELOPMENT_BIBLE.md)：架构、正式 G0–G7 与可交付 W0–W8 的边界、现有真实代码/Artifact 复用原则。
