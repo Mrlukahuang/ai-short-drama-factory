@@ -1,5 +1,14 @@
 # 当前交接状态（2026-10-19 NZT）
 
+## 当前权威状态：W2 离线验收通过 → W3 增量后期交接（2026-10-19 NZT）
+
+**Stage: G4 / Req: R4.4 / 下一个工作包 W3。** 2026-10-19 已核验 W2 [PR #170](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/170) 合并至 `main@278763505b165e6a637a8acecc4b162121b3170a`；7 项 GitHub check-run success，Python 3.11 / 3.13 各 883 passed、171 skipped。Issue [#169](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/169) 已关闭，且 [最终 `drama-stage-handoff.v1`](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/169#issuecomment-6251556462) 已登记。W2 纯离线绑定，通过 `pipeline/shot_asset_binding.py` 锁定角色/scene/服装规格/speaker/资产版本、源 SHA 与 Prompt 变更；**没有真实生产版 W2 manifest SHA、没有真参考图/音频注入、没有新视频生成或人工内容验收。**
+
+- **下一个唯一开发 Issue：[W3 #171](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/171)**：增量真实后期——先补 W1 已有修镜版本/原12镜的实测时间轴、来源与输出 receipt 证明；需要时仅使用本地合法授权 WAV 验证可选配乐，且必须保留原生中文对白。已有真实 DRAFT 字幕/FFmpeg 后期 Run39133557599、W1-FAKE Run39137352545 不重做。W2 没有真实锁定 Manifest 时**绝不能写生产 assets verified**。
+- W1 / W2 源码冻结，分别由对应模型完成并交接；W3 只改后期 Owner 范围，零付费/不碰 Omni Provider、冻结 TTS、生产资产历史和治理文件；PR/CI/Run/Artifact/准确源 SHA 后方能标 W3 通过。
+- **G4 尚未退出，G5 禁止**；`publish_approved=false`、对白/字幕实际对齐及人物声线未通过，早期一次 USD5 权限已经消费且不得重用。
+- 本节是最新任务指针；下面 W2 施工、W1 与真实12镜章节保留为历史证据，不能把其中的“待 W2 验收后”作为现在仍在等待的任务。
+
 ## G4/R4.4 W2 资产与对白版本绑定（2026-10-19 NZT；PR #170）
 
 - W1 已正式通过且被冻结，不重复 W1 / FFmpeg / 后期，也不修改历史12镜或一次性费用权限。本 W2 从 main 409d042ae00e6d66fd097b86e0d34555eb20b83e 开发。
