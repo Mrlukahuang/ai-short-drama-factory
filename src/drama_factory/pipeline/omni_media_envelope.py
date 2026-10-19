@@ -64,7 +64,7 @@ def _frame_image(frame: dict | None, path: Path | None, *,
         if path is not None:
             raise MediaAdmissionError("Frame path without approved storyboard slot")
         return None
-    if type(frame) is not dict or type(path) is not Path:
+    if type(frame) is not dict or not isinstance(path, Path):
         raise MediaAdmissionError("Storyboard frame bytes unavailable")
     if (role == "first_frame" and not cap.supports_first_frame
             or role == "last_frame" and not cap.supports_last_frame):
