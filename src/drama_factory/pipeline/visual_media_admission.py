@@ -60,7 +60,7 @@ def verify_png(path: Path, expected_sha256: str, *, max_bytes: int = 4_000_000,
     decoder. The original local media importer is responsible for decoding
     and sanitizing PNGs; provider must never accept untrusted unsanitized paths.
     """
-    if not valid_sha(expected_sha256) or type(path) is not Path:
+    if not valid_sha(expected_sha256) or not isinstance(path, Path):
         raise MediaAdmissionError("Image digest or file handle invalid")
     if (type(max_bytes) is not int or not 100 <= max_bytes <= 8_000_000
             or type(max_pixels) is not int or not 1 <= max_pixels <= 12_000_000):
