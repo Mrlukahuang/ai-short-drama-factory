@@ -1,3 +1,13 @@
+# 最新权威状态：G4 基础视频生产框架重整 FND-01 已合并 → FND-02（2026-10-19 NZT）
+
+**Stage: G4 / Req: R4.4 / G4 出厂仍 NOT_READY。** Owner 在 s01–s12 第一轮**未正式签字**人工审片后，要求**先调查高热度成熟 AI 短剧项目，建立可核验的角色/场景/道具资产和分镜依赖生产框架，再回到个别坏镜头**。这不是批准付费修镜、发布或进入 G5。架构入口 [Issue #181](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/181)；[FND-00 PR #182](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/182) 六项CI全绿合并 main `cc5e5f871e8bd10e64e6660b4bda3978d4237833`，新增 [源码级架构审计](../G4_VISUAL_PRODUCTION_ARCHITECTURE.md)。
+
+**FND-01 正式完成**：[Issue #183](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/183) 与 [PR #184](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/184) 六项 CI SUCCESS、local 11 tests pass 后合并 **main `75774051751b6f33a01f63e41873dca83f908658`**。仅新增 `pipeline/visual_production_plan.py` 与测试，复用 W2 版本资产，选择镜位匹配的角色正/侧/背图和固定场景/道具，构造12镜离线 candidate plan/稳定 SHA/下游失效依赖；非法图片授权/版本/跨项目/镜位/图数/未来依赖 fail closed。**当前无真实可用经独立批准的参考图库；所有输出 `provider_reference_applied=false`、`model_submission_allowed=false`、`production_assets_verified=false`、模型调用0。不是已有 Omni 生产参考图接线完成，也不是内容一致性真实改善。**
+
+**下一唯一框架工作包：[FND-02 Issue #185](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/185)**：只做零费用多模态媒体准入、ProviderCapability 和 Omni 图像角色输入的 dry-run/Fake 请求合同，不碰 W1–W5 已交付源码/旧视频/冻结区/治理。FND-03 后续做首帧候选与审核，FND-04 要新 Owner 预算/许可/隐私授权才能真实2–3镜 A/B。现行 AMEND-006“毛毡暂不需要定妆图”与新观察有策略差异，Agent 不自行改 Active；如需开启真实生产参考图，先由 Owner 正式作治理决策。[R4.3 Gemini/ASR 决策 #177](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/177) 继续开放且**未授权**。W1–W5 交付及 W5 NOT_READY 审计仍保持；G5/W6 禁止，发布不可。
+
+---
+
 # 最新权威状态：W5 已完成零费用真实媒体 CLI 集成审计 — G4 NOT_READY（2026-10-19 NZT）
 
 **Stage: G4 / Req: R4.4 / W5**。唯一验收清单 [G4_ACCEPTANCE_20261019.md](G4_ACCEPTANCE_20261019.md) + [机器 JSON](G4_ACCEPTANCE_20261019.json)，正式 Issue #179。开工 main 2cc91f54a030ba2bc1e7e679c3f409126e912ee8。W5 从 GitHub Run39141517448 两份真实 Artifact 下载并亲自运行 Git-blob 验证的 W4 CLI，原版/W1-FAKE 技术各 PASS、内容 FAIL、发布 BLOCKED；两份报告 SHA 与 W4 已记录离线基线一致；跨版本混用 fail-closed。真人签字仍 0，已证实合格镜头0/历史3需修/其余9未知，Gemini视觉打分和ASR not_run，旧供应商账单及人工工时 unknown。**NOT_READY = W5 工程审计结论，不是 G4 退出。**
