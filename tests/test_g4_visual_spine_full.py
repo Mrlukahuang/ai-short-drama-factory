@@ -275,3 +275,47 @@ def test_symlink_and_non_png_rejected(tmp_path):
     fake.write_bytes(b"i am not png" * 20)
     with pytest.raises(MediaAdmissionError,match="not a sanitized PNG"):
         verify_png(fake,hashlib.sha256(fake.read_bytes()).hexdigest())
+
+
+def test_cli_12_shot_replay_writes_only_sanitized_report(tmp_path):
+    import json
+    import os
+    import subprocess
+    import sys
+    f=_fixture(tmp_path)
+    shot_ids=[s["shot_id"] for s in f[3]["shots"]]
+    inputs=dict(
+        w2_manifest=f[0], shot_specs=f[1], gallery=f[2],
+        prompts={sid:"Fixed visual shot and audible Chinese dialogue" for sid in shot_ids},
+        image_index={sha:str(path) for sha,path in f[4].items()},
+        operator_grants={sid:_grant(f[3],sid) for sid in shot_ids},
+    )
+    args=[sys.executable, str(Path(__file__).resolve().parents[1]/
+                              "scripts/g4_visual_spine_offline.py")]
+    for name,body in inputs.items():
+        path=tmp_path/(name+".json")
+        path.write_text(json.dumps(body,ensure_ascii=False),encoding="utf-8")
+        args.extend(["--"+name.replace("_","-"),str(path)])
+    out=tmp_path/"replay.json"
+    args.extend(["--out",str(out)])
+    env={**os.environ,"DRAMA_VISUAL_OPERATOR_HMAC_KEY_HEX":KEY.hex()}
+    process=subprocess.run(args,env=env,capture_output=True,text=True,timeout=30)
+    assert process.returncode == 0, process.stderr
+    doc=json.loads(out.read_text(encoding="utf-8"))
+    assert doc["shot_count"] == 12
+    assert doc["new_paid_model_calls"] == 0
+    assert doc["provider_reference_applied"] is False
+    assert doc["g4_content_pass"] is False
+    assert "data" not in str(doc)
+    assert "file://" not in str(doc)
+    assert str(tmp_path) not in str(doc)
+    # Output cannot be silently overwritten, and no grant == fail closed.
+    again=subprocess.run(args,env=env,capture_output=True,text=True,timeout=30)
+    assert again.returncode == 2
+    assert "BLOCKED" in again.stderr
+    assert str(tmp_path) not in again.stderr
+    env.pop("DRAMA_VISUAL_OPERATOR_HMAC_KEY_HEX")
+    out.unlink()
+    unsigned=subprocess.run(args,env=env,capture_output=True,text=True,timeout=30)
+    assert unsigned.returncode == 2
+    assert not out.exists()
