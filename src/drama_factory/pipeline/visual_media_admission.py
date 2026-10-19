@@ -7,6 +7,7 @@ A signature authenticates the operator's declaration, not legal ownership.
 from __future__ import annotations
 
 import hashlib
+import io
 import hmac
 import json
 import re
@@ -65,7 +66,7 @@ def verify_png(path: Path, expected_sha256: str, *, max_bytes: int = 4_000_000,
             or type(max_pixels) is not int or not 1 <= max_pixels <= 12_000_000):
         raise MediaAdmissionError("Invalid provider media limits")
     try:
-        if path.is_symlink() or not path.is_file():
+        if any(part.is_symlink() for part in (path, *path.parents)) or not path.is_file():
             raise MediaAdmissionError("Reference file cannot be trusted")
         with path.open("rb") as handle:
             data = handle.read(max_bytes + 1)
@@ -81,6 +82,18 @@ def verify_png(path: Path, expected_sha256: str, *, max_bytes: int = 4_000_000,
         if (width < 1 or height < 1 or width > 4096 or height > 4096
                 or width * height > max_pixels):
             raise MediaAdmissionError("Reference image dimensions exceed limits")
+        try:
+            from PIL import Image
+            with Image.open(io.BytesIO(data)) as image:
+                if (image.format != "PNG" or image.mode != "RGB"
+                        or image.size != (width, height)
+                        or getattr(image, "n_frames", 1) != 1):
+                    raise MediaAdmissionError("Reference must be a normalized RGB PNG")
+                image.verify()
+        except ImportError:
+            raise MediaAdmissionError("Pillow required for verified PNG media") from None
+        except (OSError, ValueError):
+            raise MediaAdmissionError("Reference image decode failed") from None
         return data
     except (OSError, OverflowError, ValueError) as exc:
         if isinstance(exc, MediaAdmissionError):
@@ -146,7 +159,9 @@ def verify_operator_grant(plan: dict, shot_id: str, image_shas: list[str], *,
 def admit_shot_media(plan: dict, shot_id: str, image_paths: list[Path], *,
                      grant: dict, verification_key: bytes,
                      now_epoch: int | None = None,
-                     max_bytes: int = 4_000_000) -> tuple[list[dict], list[bytes]]:
+                     max_bytes: int = 4_000_000,
+                     additional_verified_sha256: list[str] | None = None,
+                     ) -> tuple[list[dict], list[bytes]]:
     """Media descriptors + bytes for a single shot; zero network activity.
 
     Must receive the exact positional reference list. Paths do not enter the
@@ -175,8 +190,11 @@ def admit_shot_media(plan: dict, shot_id: str, image_paths: list[Path], *,
             "view": image["view"], "png_sha256": image["png_sha256"],
             "media_mime": "image/png",
         })
+    extra = [] if additional_verified_sha256 is None else additional_verified_sha256
+    if (type(extra) is not list or any(not valid_sha(s) for s in extra)):
+        raise MediaAdmissionError("Invalid additional frame hash declarations")
     verify_operator_grant(
-        plan, shot_id, [d["png_sha256"] for d in descriptors],
+        plan, shot_id, [d["png_sha256"] for d in descriptors] + extra,
         grant=grant, verification_key=verification_key, now_epoch=now_epoch,
     )
     return descriptors, buffers
