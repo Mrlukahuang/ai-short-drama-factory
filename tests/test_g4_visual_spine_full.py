@@ -77,7 +77,7 @@ def _payload(f, shot_id="s01", *, graph=None, extra_paths=None,
     return prepare_offline_omni_envelope(
         plan, shot_id, original_prompt="同一毛毡双人对话，动作连续。",
         reference_paths=imgpaths,
-        operator_grant=grant or _grant(plan, shot_id, graph=graph),
+        operator_grant=(grant if grant is not None else _grant(plan, shot_id, graph=graph)),
         verification_key=KEY, frame_graph=graph,
         first_frame_path=paths.get(first), last_frame_path=paths.get(last),
         now_epoch=1_800_000_000, **options,
