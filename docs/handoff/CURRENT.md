@@ -1,3 +1,15 @@
+# 最新权威状态：G4/FND-00–03 完整离线视觉生产框架已合并并统一测试，等待未来经授权的真实 A/B（2026-10-19 NZT）
+
+**Stage: G4 / Req: R4.4（R4.3 自动 QA 独立）/ G4 NOT_READY。** Owner 12镜真人未签字反馈后明确要求：“先把整体都搭建好，跟着开源视频代码，然后再统一测试”，停止逐镜 Prompt 修补。GitHub 主线源码级高热度开源对照和完整视觉产线已落地。**这不是 G4 发布/退出或额外模型/素材上传批准。**
+
+- **FND-00**：[PR #182](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/182) 六绿并入 `cc5e5f871e8bd10e64e6660b4bda3978d4237833`；源码/许可证/差距见 [架构审计](../G4_VISUAL_PRODUCTION_ARCHITECTURE.md)。
+- **FND-01**：[PR #184](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/184) 六绿并入 `75774051751b6f33a01f63e41873dca83f908658`；角色正侧背、scene/prop 版本图与 shot graph 依赖离线计划。
+- **FND-02 + FND-03**：[PR #187](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/187) **GitHub 6/6 full CI SUCCESS 后合并 main `cc66d82517c895c794d889ecd2b572d374631d00`**（Python 3.11/3.13 **各922 passed、176 skipped**；scope、offline-video、fake-artifact、local-libSQL 均绿）。新增：独立操作员签名/有效期/版次/顺序范围 HMAC+实 PNG 字节/SHA/RGB 安全核验；同场景已批准 first/last keyframe 和明确上一镜 last 继承；Google Omni `image+text`/`IMAGE_REF_N`/`FIRST_FRAME`/`LAST_FRAME` **离线请求数组**；整集12镜一条 CLI 可用的 Fake replay 和 receipt SHA。详见 [G4离线产线运行手册](../G4_VISUAL_SPINE_INTEGRATION.md)。`FND-02 #185` 已完成并关闭。
+- **当前下一唯一决策**：[FND-04 统一真实 A/B 授权 #188](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/188)：**先核准实际参考图来源/使用权/跨境传输、确认 AMEND-006 历史暂缓定妆照的政策调整、Google Omni 当前 SDK/媒体传输/费用边界及单次预算，然后单独审查默认关闭的最小 live reference adapter，只执行 2–3 镜真实对照。** 未得到明确新授权前 **不得模型调用/外发任何图片/重生12镜**，以前消耗的 USD5 不能复用。Issue #177 Gemini/ASR 实际评估也保持独立未授权。
+- **当前可信声明**：FND-00–03 离线基础架构已经实现、测试通过；**生产的`google_omni_video.py`仍 prompt-only，没有真实 reference_applied、真实同脸改善、ASR、供应商实账或发布批准**。本轮新增模型调用0、USD0，W1–W5 已交付源码/原真实影片/冻结区和治理文件不变。W5 `content=fail`、`release=blocked`、G4 `NOT_READY`；G5/W6 禁止。
+
+---
+
 # 最新权威状态：G4 基础视频生产框架重整 FND-01 已合并 → FND-02（2026-10-19 NZT）
 
 **Stage: G4 / Req: R4.4 / G4 出厂仍 NOT_READY。** Owner 在 s01–s12 第一轮**未正式签字**人工审片后，要求**先调查高热度成熟 AI 短剧项目，建立可核验的角色/场景/道具资产和分镜依赖生产框架，再回到个别坏镜头**。这不是批准付费修镜、发布或进入 G5。架构入口 [Issue #181](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/181)；[FND-00 PR #182](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/182) 六项CI全绿合并 main `cc5e5f871e8bd10e64e6660b4bda3978d4237833`，新增 [源码级架构审计](../G4_VISUAL_PRODUCTION_ARCHITECTURE.md)。
