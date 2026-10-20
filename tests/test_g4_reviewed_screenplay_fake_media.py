@@ -117,7 +117,7 @@ def test_two_distinct_series_reach_fake_provider_without_network(tmp_path, monke
         assert '"data":' not in json.dumps(data)
         assert "SYNTHETIC_TEST_ONLY" not in json.dumps(data)
     # An explicitly declared dependency inherits the previous reviewed end frame.
-    assert first["shots"][0]["request"]["media"][-1]["role"] == "last_frame"
+    assert first["shots"][0]["request"]["media"][0]["role"] == "last_frame"
     assert first["shots"][1]["request"]["media"][0]["role"] == "first_frame"
     assert first == _replay(a) and second == _replay(b)
 
