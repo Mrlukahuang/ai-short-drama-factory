@@ -18,11 +18,16 @@
   "primary_audience": "新西兰本地华语消费人群",
   "positioning": "本地优惠和消费选择的资讯整理、条件说明与对比，不是领券App或商家官方合作平台",
   "style": {
-    "id": "citydiscount_pop_art_candidate_v1",
-    "description": "高对比漫画/街头涂鸦式资讯贴纸、大字体、图钉NEW ZEALAND、CITYDISCOUNT插播；品牌最终资产及商标需人工提供批准",
+    "id": "citydiscount_needle_felt_mascot_v1",
+    "description": "Owner confirmed original needle-felt 3D miniature diorama style, not flat pop-art. Primary character is the uploaded white wool sheep with dark green knitted scarf (source sha 79e653ff...), and CityDiscount flower-gold CD emblem (source sha 19a62023...). Fixed character multi-views and logo must be passed as authentic reference media in a later authorized production request; exact Chinese text remains deterministic post-render overlay.",
     "brand_visual_asset_sha256": null,
     "style_asset_approved": false,
-    "legacy_felt_diorama_global_default_unchanged": true
+    "legacy_felt_diorama_global_default_unchanged": true,
+    "mascot_source_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+    "logo_source_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+    "mascot_asset_id": "citydiscount-mascot-v1",
+    "logo_asset_id": "citydiscount-logo-v1",
+    "owner_confirmed_felt_style": true
   },
   "controls": {
     "sound": "Chinese original narration candidate; native speech fidelity not_verified; exact external TTS/use requires separate approval",
@@ -45,18 +50,22 @@
       "duration_seconds": 5,
       "storybeat": "hook",
       "scene_anchor": "street_collage",
-      "background_prompt_zh": "开场钩子：新西兰街道抽象拼贴，贴纸图形飞入，不出现真实商标",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。开场钩子：新西兰街道抽象拼贴，贴纸图形飞入，不出现真实商标",
       "voiceover_zh": "在新西兰，想找划算的选择，有时候真不容易。",
       "on_screen_text_zh": "新西兰本地好选择",
       "shot_dependencies": [],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s02",
@@ -65,20 +74,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "consumer_choices",
-      "background_prompt_zh": "同一品牌美术风格的餐饮与购物插画卡片快速切换",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。同一品牌美术风格的餐饮与购物插画卡片快速切换",
       "voiceover_zh": "吃什么、买什么，总要花时间比较。",
       "on_screen_text_zh": "吃什么？买什么？",
       "shot_dependencies": [
         "s01"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s03",
@@ -87,20 +100,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "不含真实价格的抽象对比表：时间、价格、规则标签混杂",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。不含真实价格的抽象对比表：时间、价格、规则标签混杂",
       "voiceover_zh": "价格、时间、限制条件，还得一条条查。",
       "on_screen_text_zh": "价格｜时间｜条件",
       "shot_dependencies": [
         "s02"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s04",
@@ -109,20 +126,24 @@
       "duration_seconds": 5,
       "storybeat": "brand_reveal",
       "scene_anchor": "brand_ident",
-      "background_prompt_zh": "CityDiscount 名称出现，品牌位置图钉与 NEW ZEALAND 标识定版；不模拟平台官方背书",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。CityDiscount 名称出现，品牌位置图钉与 NEW ZEALAND 标识定版；不模拟平台官方背书",
       "voiceover_zh": "所以，我们做了 CityDiscount。",
       "on_screen_text_zh": "CITYDISCOUNT 插播",
       "shot_dependencies": [
         "s03"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s05",
@@ -131,20 +152,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "info_cards",
-      "background_prompt_zh": "新西兰生活类优惠资讯卡片以漫画形式展开，不能出现未经核查的优惠数值",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。新西兰生活类优惠资讯卡片以漫画形式展开，不能出现未经核查的优惠数值",
       "voiceover_zh": "把本地值得关注的优惠，整理给你看。",
       "on_screen_text_zh": "本地优惠 · 一眼看重点",
       "shot_dependencies": [
         "s04"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s06",
@@ -153,20 +178,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "手机套餐和商品选项抽象对比；不使用真实运营商或设备商标",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。手机套餐和商品选项抽象对比；不使用真实运营商或设备商标",
       "voiceover_zh": "不只看价格，也比较不同选择。",
       "on_screen_text_zh": "优惠对比",
       "shot_dependencies": [
         "s05"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s07",
@@ -175,20 +204,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "info_cards",
-      "background_prompt_zh": "大字贴纸依次突出有效日期、适用时间；使用字段名而非虚构时间",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。大字贴纸依次突出有效日期、适用时间；使用字段名而非虚构时间",
       "voiceover_zh": "什么时候开始？什么时候结束？",
       "on_screen_text_zh": "开始时间｜结束时间",
       "shot_dependencies": [
         "s06"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s08",
@@ -197,20 +230,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "info_cards",
-      "background_prompt_zh": "会员资格、限制、额外条件作为信息标签强调，无未经证实条款",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。会员资格、限制、额外条件作为信息标签强调，无未经证实条款",
       "voiceover_zh": "需不需要会员？有哪些限制？",
       "on_screen_text_zh": "会员要求｜使用条件",
       "shot_dependencies": [
         "s07"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s09",
@@ -219,20 +256,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "info_cards",
-      "background_prompt_zh": "来源、最近核查时间等信息位置占位，显示字段而不伪造时间",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。来源、最近核查时间等信息位置占位，显示字段而不伪造时间",
       "voiceover_zh": "关键条件与信息来源，值得看清楚。",
       "on_screen_text_zh": "信息来源｜核查时间",
       "shot_dependencies": [
         "s08"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s10",
@@ -241,20 +282,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "consumer_choices",
-      "background_prompt_zh": "回顾吃喝与购物的本地消费场景，沿用同一套插画和贴纸",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。回顾吃喝与购物的本地消费场景，沿用同一套插画和贴纸",
       "voiceover_zh": "从吃喝到购物，帮你少走一点弯路。",
       "on_screen_text_zh": "吃喝｜购物｜对比",
       "shot_dependencies": [
         "s09"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s11",
@@ -263,20 +308,24 @@
       "duration_seconds": 5,
       "storybeat": "value_demonstration",
       "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "三张统一卡片依次排列：发现、理解、比较",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。三张统一卡片依次排列：发现、理解、比较",
       "voiceover_zh": "先看明白，再决定要不要出手。",
       "on_screen_text_zh": "发现｜看明白｜再决定",
       "shot_dependencies": [
         "s10"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     },
     {
       "shot_id": "s12",
@@ -285,20 +334,34 @@
       "duration_seconds": 5,
       "storybeat": "cta",
       "scene_anchor": "brand_ident",
-      "background_prompt_zh": "CityDiscount 主标识加地图图钉、NEW ZEALAND，纯品牌收尾",
+      "background_prompt_zh": "同一只戴深绿色围巾、奶油白羊毛团、棕色大眼睛的小羊毛毡玩偶和毛毡手工场景；保持圆脸、绿围巾、毛绒身体完全一致。新西兰毛毡微缩街区，细致毛纤维与景深。CityDiscount 主标识加地图图钉、NEW ZEALAND，纯品牌收尾",
       "voiceover_zh": "关注 CityDiscount，发现身边的好选择。",
       "on_screen_text_zh": "关注 CityDiscount",
       "shot_dependencies": [
         "s11"
       ],
       "asset_roles": [
+        "citydiscount_mascot_main_actor",
         "approved_citydiscount_brand_identity",
-        "nz_local_visual_style",
-        "approved_type_system"
+        "nz_local_felt_diorama_style",
+        "logo_postproduction_overlay"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "character_id": "citydiscount-mascot-v1",
+      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
     }
-  ]
+  ],
+  "reference_registry": {
+    "schema": "citydiscount-operator-media-ref.v1",
+    "status": "operator_files_locally_staged_original_bytes_not_committed_in_github",
+    "mascot_original_filename": "mascot_character_sheet.png",
+    "mascot_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+    "logo_original_filename": "citydiscount_logo.png",
+    "logo_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+    "remote_provider_use_approved": false,
+    "github_binary_committed": false
+  }
 }
