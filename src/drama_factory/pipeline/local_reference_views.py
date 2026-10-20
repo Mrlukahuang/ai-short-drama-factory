@@ -142,7 +142,7 @@ def build_unapproved_shot_image_review(
                 or inventory.get("rights_independently_verified") is not False
                 or type(inventory.get("images")) is not list
                 or not 3 <= len(inventory["images"]) <= 20
-                or type(folder) is not Path
+                or not isinstance(folder, Path)
                 or any(path.is_symlink() for path in (folder, *folder.parents))
                 or not folder.is_dir()):
             raise VisualPlanError("Untrusted local image inventory or approval claim")
