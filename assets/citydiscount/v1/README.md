@@ -1,16 +1,14 @@
-# CityDiscount Pilot 01 — exact owner-supplied fixtures
+# CityDiscount Pilot 01 — Owner-selected v1 reference fixtures
 
-**Upload only these two ORIGINAL PNG files through the GitHub website into THIS directory on branch `g4-citydiscount-felt-mascot-real-asset-manifest`:**
+The owner explicitly selected the **NEW revised mascot** already uploaded to this branch on 2026-10-20. **No additional upload is required.**
 
-| Exact filename | Original SHA-256 | Size |
-|---|---|---:|
-| `mascot_character_sheet.png` | `79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb` | 2,303,266 bytes |
-| `citydiscount_logo.png` | `19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651` | 93,326 bytes |
+| Fixture | GitHub file | File size | Exact Git blob SHA-1 |
+|---|---|---:|---|
+| Canonical mascot v1 | `mascot_character_sheet_v1.png` | 2,211,254 bytes | `a5665b80a8484d5124fb874576ff40372f5a7c06` |
+| Canonical CD logo v1 | `citydiscount_logo_v1.png` | 93,326 bytes | `903f96f235b5375fb540f3ad656ba39eea2b50e2` |
 
-Keep the original bytes. Rename filenames only; do not resize, recompress, change colors or paste the image into a document. The previous large test ZIP has derivative crops, shot stills and preview MP4: do NOT upload those.
+Logo source SHA256 is verified `19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651`. **Revised mascot source SHA256 is not yet known from a trusted binary readback**, since the available GitHub connector does not return the >1 MB PNG bytes. On trusted checkout, `scripts/citydiscount_pilot_preflight.py` computes its SHA256 from real bytes, checks exact Git blob SHA1, and refuses wrong variants. **Do not reuse old mascot SHA256 `79e653ff...`**; that belongs to the superseded 2,303,266-byte artwork. The new v1 must be visually reviewed before external model use.
 
-These two files are brand reference *test fixtures* for the general `ai-short-drama-factory` production pipeline. Do not create a CityDiscount-only video generator or a separate editing pipeline. The intended path is the repository's own reusable chain: media intake/versions -> Story Bible -> script -> storyboard -> reference selection and first/last frames -> provider contract (Fake then independently authorized real) -> audio/subtitles -> FFmpeg -> QA. CityDiscount is Pilot 01, not a custom replacement for the existing 11-stage pipeline.
+These uploaded files are real Pilot 01 sample inputs for the **generic** `ai-short-drama-factory` pipeline. New requirement and generic adapter: [Issue #194](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/194), [PR #195](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/195). The pipeline must work unchanged for an unrelated cast/episode. Do not treat a CityDiscount-only static video or an 11-step receipt template as successful AI production.
 
-Human authorship/brand permission to upload assets to the repo does NOT automatically grant permission for external model submission or paid generations. Before generating real video, complete explicit rights/provider/cost checks. Existing W1-W5 sources and old film receipts remain immutable.
-
-Relevant scope: [CityDiscount Pilot Issue #190](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/190), [integration PR #193](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/193).
+Keep all `media_submission_allowed`, `operator_approved_for_model`, paid call, and publish states **false** until genuinely authorized. No extra brand image upload, new model run, merge or release is inferred by this fixture version selection.
