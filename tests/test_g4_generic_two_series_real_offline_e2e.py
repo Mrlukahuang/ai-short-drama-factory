@@ -159,9 +159,10 @@ def test_two_creative_projects_get_real_ffmpeg_fake_mp4_and_scoped_cached_jobs(
     # No media or shot-job IDs may leak between independently created series.
     a, b = results
     assert a[0] != b[0] and a[1] != b[1]
-    assert set(x["shot_id"] for x in a[2]["shots"]).isdisjoint(
-        set(x["shot_id"] for x in b[2]["shots"])
-    ) is False or a[0] != b[0]  # Identity scoped by series, not shot name.
+    # Clip scope is (series_id, production_id, shot_id), not shot_id alone.
+    assert (media / a[0] / a[1] / "preview.mp4").is_file()
+    assert (media / b[0] / b[1] / "preview.mp4").is_file()
+    assert (media / a[0] / a[1]).resolve() != (media / b[0] / b[1]).resolve()
     db = client.app.state.db
     for series, pid, output in results:
         rows = db.many(
