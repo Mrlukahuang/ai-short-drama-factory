@@ -1,3 +1,13 @@
+# 2026-10-21 续开发：Reviewed Screenplay → W2 → FND-01/02/03 → Fake Omni 双 Series 安全演练（PR #209）
+
+**Stage: G4 / Req: R4.4 / G4 NOT_READY，G5 禁止。** [PR #209](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/209) 在现有 `visual_spine_offline.fake_episode_visual_replay` 增加可选的**已审 Screenplay 全量镜头绑定校验**：先调用现有 Screenplay→W2→FND-01 bridge，强制镜头顺序一致并比对视觉计划 SHA，才允许读取媒体构造临时本地 envelope。旧离线调用保持兼容；不用另写视觉系统。
+
+**验证范围：** 新测试 `tests/test_g4_reviewed_screenplay_fake_media.py` 以两个**不同 Series ID** 的 12 镜单演员故事与 6 镜双演员故事走同一现有 FND-01/02/03、签名 Fake grant、实际合成 RGB PNG 字节门禁和 `FakeOmniReferenceProvider`；断言跨片 grant、错配角色、漏镜、依赖重接、PNG 字节篡改 fail closed，模拟首尾帧继承和零网络。CI 结果及最终 merge 状态必须以 PR 页面实证为准，不能由测试文件存在就宣称跑绿。
+
+**权限边界：** 此处 only *synthetic testing*, 测试 HMAC 不是 Owner 真实审批。已经上传的十张真实小羊仍没有人工视角语义确认、独立权利核实或模型外传授权；`rights_independently_verified=false`、`operator_approved_for_model=false`、`model_submission_allowed=false`。无真实 Omni API、无收费、无可发布新视频。#201 继续 Open；下一个真正阻断是可信操作员视觉/版权审批与真实图片系列版本绑定，绝不伪造认可。
+
+---
+
 # 2026-10-21 最新：Owner 十张真实小羊多视角/动作 PNG 已入 main，来源 SHA 与 FND-02 离线字节验收全绿
 
 **Stage: G4 / Req: R4.4 / G4 NOT_READY，禁止进入 G5。** 本仓库仍以通用 AI 短剧工厂为目标；CityDiscount 只是首个公开工程测试样本，不是独立的品牌影片渲染器。
