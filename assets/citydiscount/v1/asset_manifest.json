@@ -13,9 +13,14 @@
       "relative_file": "mascot_character_sheet_v1.png",
       "size_bytes": 2211254,
       "git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06",
-      "source_sha256": null,
-      "source_sha256_status": "pending_checked_out_bytes_verification",
-      "supersedes_old_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb"
+      "source_sha256": "9706eb126398d703e3750c4ac0ca0d296e618ae548ca05d5b1f9a3d99633bf92",
+      "source_sha256_status": "owner_verified_on_mac_with_shasum_and_pillow_2026_10_20",
+      "supersedes_old_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "source_dimensions": [
+        1536,
+        1024
+      ],
+      "source_mode": "RGBA"
     },
     {
       "asset_id": "citydiscount-logo-v1",
@@ -24,7 +29,12 @@
       "size_bytes": 93326,
       "git_blob_sha1": "903f96f235b5375fb540f3ad656ba39eea2b50e2",
       "source_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
-      "source_sha256_status": "previously_verified"
+      "source_sha256_status": "previously_verified",
+      "source_dimensions": [
+        1024,
+        1024
+      ],
+      "source_mode": "RGBA"
     }
   ]
 }
