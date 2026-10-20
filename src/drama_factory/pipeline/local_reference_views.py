@@ -62,10 +62,44 @@ def bind_local_reference_views(
     }
 
 
+def _check_series_asset_db_pins(db: Database, series_id: str, shots: list[dict]) -> None:
+    """Verify actual read-only SQLite SeriesAsset rows, not fixture pin claims.
+
+    Only actor + scene references are checked here; optional props remain
+    governed by their existing W2/FND binding. No approvals or DB writes.
+    """
+    import hashlib
+
+    if not isinstance(db, Database):
+        raise VisualPlanError("SQLite SeriesAsset connection required")
+    checked = set()
+    for shot in shots:
+        refs = [("actor", item) for item in shot["characters"]]
+        refs.append(("scene", shot["scene_asset"]))
+        for kind, ref in refs:
+            key = (kind, ref["asset_id"], ref["version"],
+                   ref["specification_sha256"])
+            if key in checked:
+                continue
+            checked.add(key)
+            row = db.one(
+                """SELECT version, specification_json FROM series_assets
+                   WHERE id=? AND series_id=? AND kind=?""",
+                (ref["asset_id"], series_id, kind),
+            )
+            if (row is None or type(row["version"]) is not int
+                    or row["version"] != ref["version"]
+                    or not isinstance(row["specification_json"], str)
+                    or hashlib.sha256(row["specification_json"].encode("utf-8")).hexdigest()
+                       != ref["specification_sha256"]):
+                raise VisualPlanError("SeriesAsset SQLite version or specification pin mismatch")
+
+
 def build_unapproved_shot_image_review(
     w2_manifest: dict, inventories_by_actor: dict[str, dict],
     folders_by_actor: dict[str, Path],
-    shot_actor_views: dict[str, dict[str, str]],
+    shot_actor_views: dict[str, dict[str, str]], *,
+    db: Database | None = None,
 ) -> dict:
     """Read REAL image bytes and pin per-shot review candidates, not approvals.
 
@@ -128,6 +162,12 @@ def build_unapproved_shot_image_review(
             if actor["asset_id"] in actors and actors[actor["asset_id"]] != pin:
                 raise VisualPlanError("Actor changes version between reviewed shots")
             actors[actor["asset_id"]] = pin
+
+    # A populated repository image inventory is NOT sufficient to prove
+    # W2's version pins actually exist in the active SeriesAsset SQLite DB.
+    # When db is supplied, fail before opening any local image files.
+    if db is not None:
+        _check_series_asset_db_pins(db, w2_manifest["series_id"], shots)
 
     if set(inventories_by_actor) != set(actors) or set(folders_by_actor) != set(actors):
         raise VisualPlanError("Missing or foreign actor image inventory")
@@ -225,6 +265,7 @@ def build_unapproved_shot_image_review(
         "w2_manifest_sha256": digest_json(w2_manifest),
         "shots": rows, "shot_count": len(rows),
         "actual_png_bytes_checked": True,
+        "series_asset_sqlite_pins_verified": db is not None,
         "angle_semantics_human_verified": False,
         "model_submission_allowed": False,
         "provider_reference_applied": False,
