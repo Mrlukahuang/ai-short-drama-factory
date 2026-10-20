@@ -1,0 +1,97 @@
+name: CityDiscount s03 first REAL Omni city plate (manual, may incur cost)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "PREVIEW_ONLY or GENERATE_ONE_S03_PAID_PLATE (one paid model call)"
+        required: true
+        type: choice
+        options:
+          - PREVIEW_ONLY
+          - GENERATE_ONE_S03_PAID_PLATE
+      nz_spend_today_usd:
+        description: "Independently verified NZ-calendar-day Google paid video spend (USD), WITHOUT the new run"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: citydiscount-s03-real-omni-once
+  cancel-in-progress: false
+
+jobs:
+  citydiscount-s03:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure FFmpeg and FFprobe (video verification)
+        run: |
+          if ! command -v ffmpeg || ! command -v ffprobe; then
+            sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+          fi
+      - name: Install SDK and production package
+        run: python -m pip install -e '.[test,google-video]'
+      - name: Strict zero-cost preflight from Owner 12-shot pilot
+        env:
+          DRAMA_ENABLE_PAID_GENERATION: 'NO'
+          SPEND: ${{ inputs.nz_spend_today_usd }}
+        run: |
+          python scripts/citydiscount_s03_omni_once.py \
+            --nz-spend-today-usd "${SPEND}" \
+            --out artifacts/s03-preflight
+          test -s artifacts/s03-preflight/receipt.json
+      - name: Verify API secret before billable execution
+        if: ${{ inputs.confirmation == 'GENERATE_ONE_S03_PAID_PLATE' }}
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "${GEMINI_API_KEY}" ]; then
+            echo "::error::GEMINI_API_KEY secret missing: no paid request submitted"
+            exit 1
+          fi
+      - name: ONE real 360p Google Omni generation (no Owner media transmitted)
+        if: ${{ inputs.confirmation == 'GENERATE_ONE_S03_PAID_PLATE' }}
+        env:
+          DRAMA_ENABLE_PAID_GENERATION: 'YES'
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SPEND: ${{ inputs.nz_spend_today_usd }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          python scripts/citydiscount_s03_omni_once.py \
+            --paid --confirmation "${CONFIRMATION}" \
+            --nz-spend-today-usd "${SPEND}" \
+            --out artifacts/s03-real
+      - name: Inspect actual downloaded video (never treat dry run as real media)
+        if: ${{ inputs.confirmation == 'GENERATE_ONE_S03_PAID_PLATE' }}
+        run: |
+          test -s artifacts/s03-real/s03_city_plate.mp4
+          ffprobe -v error -show_entries format=duration:stream=codec_type,codec_name,width,height -of json artifacts/s03-real/s03_city_plate.mp4
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path("artifacts/s03-real/receipt.json").read_text("utf-8"))
+          assert data["model_calls"] == 1
+          assert data["output_media"] == "real_model_video_downloaded"
+          assert data["source_pngs_transmitted"] == 0
+          assert data["owner_approved_publication"] is False
+          assert data["actual_fee_usd"] is None
+          PY
+      - name: Upload strict preflight and ONE real clip if generated
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: citydiscount-s03-city-plate-not-final-episode
+          path: |
+            artifacts/s03-preflight/receipt.json
+            artifacts/s03-real/receipt.json
+            artifacts/s03-real/s03_city_plate.mp4
+            artifacts/s03-real/s03_city_plate.recovery.json
+          retention-days: 7
+          if-no-files-found: warn
