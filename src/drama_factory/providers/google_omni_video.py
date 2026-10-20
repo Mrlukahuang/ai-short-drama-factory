@@ -194,6 +194,12 @@ class GoogleOmniVideoProvider:
         return receipt
 
     def generate(self, spec: OmniVideoSpec, destination: Path) -> dict:
+        return self._generate_with_payload(spec, destination)
+
+    def _generate_with_payload(
+        self, spec: OmniVideoSpec, destination: Path,
+        *, approved_reference_payload: dict | None = None,
+    ) -> dict:
         if os.getenv("DRAMA_ENABLE_PAID_GENERATION") != "YES":
             raise VideoCallDisabled("Paid Google video generation disabled")
         if not spec.operator_approved:
@@ -204,14 +210,15 @@ class GoogleOmniVideoProvider:
         if dest.exists():
             raise InvalidVideoResponse("Refusing to overwrite an existing video output")
         # The official Interactions video URI mode avoids the ~4MB inline limit.
-        interaction = client.interactions.create(
-            model=spec.model_id,
-            input=spec.prompt,
-            response_format={
+        request = approved_reference_payload if approved_reference_payload is not None else {
+            "model": spec.model_id,
+            "input": spec.prompt,
+            "response_format": {
                 "type": "video", "aspect_ratio": spec.aspect_ratio,
                 "resolution": spec.resolution, "delivery": "uri",
             },
-        )
+        }
+        interaction = client.interactions.create(**request)
         task_id = getattr(interaction, "id", None)
         if not isinstance(task_id, str) or not (1 <= len(task_id) <= 256):
             task_id = None  # Do not fabricate a provider task ID.
@@ -265,6 +272,129 @@ class GoogleOmniVideoProvider:
             dest.unlink(missing_ok=True)
             raise
 
+
+    def generate_approved_reference_envelope(
+        self, envelope, destination: Path, *, live_consent: dict,
+    ) -> dict:
+        """Explicitly send FND-02 locally verified PNG+text to real Omni ONCE.
+
+        This method is NOT reached by legacy VideoRequest, API endpoints or
+        background workers. Caller must first prepare a verified HMAC-backed
+        OfflineOmniEnvelope and independently obtain external-transfer, rights,
+        provider-retention and spend approvals. A signature proves an operator
+        assertion, not copyright. Bytes are never written to audit JSON.
+        """
+        from drama_factory.pipeline.omni_media_envelope import OfflineOmniEnvelope
+        from drama_factory.pipeline.visual_media_admission import (
+            MediaAdmissionError, digest_json, valid_sha,
+        )
+
+        expected = {
+            "shot_id", "request_fingerprint_sha256",
+            "source_rights_verified_by_operator",
+            "external_model_transfer_approved",
+            "provider_retention_terms_accepted",
+            "already_spent_today_usd",
+            "max_run_spend_usd",
+        }
+        if (not isinstance(envelope, OfflineOmniEnvelope)
+                or type(live_consent) is not dict
+                or set(live_consent) != expected
+                or any(live_consent[k] is not True for k in (
+                    "source_rights_verified_by_operator",
+                    "external_model_transfer_approved",
+                    "provider_retention_terms_accepted",
+                ))):
+            raise VideoCallDisabled("Separate rights, provider and per-run consent missing")
+        receipt = envelope.receipt
+        payload = envelope.request_payload
+        if (type(receipt) is not dict or type(payload) is not dict
+                or receipt.get("schema") != "g4-omni-reference-envelope.v1"
+                or receipt.get("dry_run_serialization_verified") is not True
+                or receipt.get("model_submission_allowed") is not False
+                or receipt.get("provider_reference_applied") is not False
+                or receipt.get("legal_rights_independently_verified_by_code") is not False
+                or receipt.get("shot_id") != live_consent["shot_id"]
+                or receipt.get("request_fingerprint_sha256")
+                   != live_consent["request_fingerprint_sha256"]
+                or not valid_sha(receipt.get("request_fingerprint_sha256"))
+                or payload.get("model") != MODEL_ID
+                or receipt.get("model_id") != MODEL_ID
+                or payload.get("response_format") != {
+                    "type": "video", "aspect_ratio": "9:16",
+                    "resolution": "360p", "delivery": "uri",
+                }):
+            raise VideoCallDisabled("Prepared media receipt or approval scope invalid")
+
+        try:
+            run_cap = Decimal(str(live_consent["max_run_spend_usd"]))
+            reported_today = Decimal(str(live_consent["already_spent_today_usd"]))
+        except (TypeError, ValueError, ArithmeticError) as exc:
+            raise VideoCallDisabled("Budget declaration invalid") from exc
+        if (not run_cap.is_finite() or not reported_today.is_finite()
+                or not Decimal("0") < run_cap <= Decimal("2")
+                or not Decimal("0") <= reported_today
+                or reported_today + run_cap > Decimal("5")):
+            raise VideoCallDisabled("Run or NZ-day USD budget limit exceeded")
+        # Acknowledgement is NOT a Google-side hard billing cap: no retries,
+        # no bulk shots, only single-call requests. Check invoices separately.
+        parts = payload.get("input")
+        media = receipt.get("media")
+        if (type(parts) is not list or type(media) is not list
+                or not 1 <= len(media) <= 8
+                or len(parts) != len(media) + 1
+                or type(parts[-1]) is not dict
+                or parts[-1].get("type") != "text"
+                or type(parts[-1].get("text")) is not str
+                or not parts[-1]["text"].strip()
+                or len(parts[-1]["text"]) > 9000
+                or type(receipt.get("model_input_roles")) is not list
+                or len(receipt["model_input_roles"]) != len(media)):
+            raise VideoCallDisabled("Media envelope lacks exact ordered image references")
+        compressed = 0
+        for part, entry in zip(parts[:-1], media):
+            if (type(part) is not dict or set(part) != {
+                    "type", "data", "mime_type",
+                } or part["type"] != "image"
+                    or part["mime_type"] != "image/png"
+                    or type(part["data"]) is not str
+                    or type(entry) is not dict
+                    or not valid_sha(entry.get("png_sha256"))):
+                raise VideoCallDisabled("Image reference payload invalid")
+            try:
+                media_bytes = base64.b64decode(part["data"], validate=True)
+            except (binascii.Error, ValueError) as exc:
+                raise VideoCallDisabled("Image reference encoding invalid") from exc
+            compressed += len(part["data"])
+            if (not 100 <= len(media_bytes) <= 3_000_000
+                    or hashlib.sha256(media_bytes).hexdigest()
+                       != entry["png_sha256"]):
+                raise VideoCallDisabled("Reference image checksum changed")
+        if compressed > 3_000_000:
+            raise VideoCallDisabled("Reference inline size exceeds policy")
+        # Verify the original FND receipt digest, including exact ordered media
+        # descriptors and prompt. No images/base64 or private paths logged.
+        expected_fingerprint = digest_json({
+            "model": MODEL_ID, "media": media,
+            "prompt": parts[-1]["text"],
+            "response_format": payload["response_format"],
+        })
+        if expected_fingerprint != receipt["request_fingerprint_sha256"]:
+            raise VideoCallDisabled("Reference role/order/prompt fingerprint changed")
+        spec = OmniVideoSpec(
+            prompt=parts[-1]["text"],
+            aspect_ratio="9:16", resolution="360p",
+            maximum_acknowledged_spend_usd=run_cap,
+            operator_approved=True,
+        )
+        result = self._generate_with_payload(
+            spec, destination, approved_reference_payload=payload,
+        )
+        result["provider_reference_applied"] = True
+        result["reference_fingerprint_sha256"] = expected_fingerprint
+        result["reference_image_count"] = len(media)
+        result["actual_fee_usd"] = None
+        return result
 
     def generate_video(self, request: VideoRequest, destination: Path) -> VideoResult:
         """G1 common protocol, delegating to the existing one-call Omni path.
