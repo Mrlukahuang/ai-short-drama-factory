@@ -68,6 +68,25 @@ def build_offline_citydiscount_promo_plan(candidate: dict) -> dict:
             or storyline.get("script_reviewed_by_owner") is not False
             or storyline.get("brand_use_approved_for_render") is not False):
         raise PromoPlanError("Missing or prematurely approved story arc")
+    brand = candidate.get("brand_asset_requirements")
+    if (storyline.get("story_supplied_by_owner") is not True
+            or type(storyline.get("end_card_lines")) is not list
+            or storyline["end_card_lines"] != [
+                "CityDiscount",
+                "替你到处挖折扣，让生活多一点。",
+                "关注 CityDiscount",
+                "下次消费前，先来找找折扣。",
+            ]
+            or type(brand) is not dict
+            or type(brand.get("logo")) is not dict
+            or type(brand.get("coin")) is not dict
+            or type(brand.get("family")) is not dict
+            or brand["logo"].get("rights_verified") is not False
+            or brand["logo"].get("final_min_hold_seconds") != 3
+            or brand["coin"].get("canonical_coin_artwork_verified") is not False
+            or brand["coin"].get("face_mark") != "CD"
+            or brand["family"].get("version_locked") is not False):
+        raise PromoPlanError("Brand, coin and owner story gates missing")
     ordered = []
     seen = set()
     for i, shot in enumerate(shots):
@@ -87,7 +106,10 @@ def build_offline_citydiscount_promo_plan(candidate: dict) -> dict:
         fields = [shot.get(x) for x in (
             "background_prompt_zh", "voiceover_zh", "on_screen_text_zh",
         )]
-        if (any(type(x) is not str or not 1 <= len(x.strip()) <= 250 for x in fields)
+        if (any(type(x) is not str or len(x) > 250 for x in fields)
+                or not fields[0].strip() or not fields[1].strip()
+                or (i == 11 and fields[2] != "\n".join(storyline["end_card_lines"]))
+                or (i != 11 and fields[2] != "")
                 or any(_PRICE.search(x) for x in fields)
                 or any(b.lower() in " ".join(fields).lower()
                        for b in _UNCLEARED_BRANDS + _FALSE_PRODUCTS)):
@@ -103,21 +125,49 @@ def build_offline_citydiscount_promo_plan(candidate: dict) -> dict:
         valid_actions = valid_views | {
             "happy", "wink", "sparkle", "jump", "thumbsup", "coin"
         }
-        if (view not in valid_views or action not in valid_actions
+        cast = shot.get("visible_roles")
+        if (type(cast) is not list or not cast or len(set(cast)) != len(cast)
+                or not set(cast).issubset({"family", "mascot"})
+                or (("mascot" in cast) != (view in valid_views and action in valid_actions))
+                or ("mascot" not in cast and (view is not None or action is not None))
                 or type(camera) is not str or not camera.strip()
                 or type(continuity) is not str or not continuity.strip()
+                or type(shot.get("owner_visual_direction_zh")) is not str
+                or not shot["owner_visual_direction_zh"].strip()
+                or type(shot.get("shot_title_zh")) is not str
+                or not shot["shot_title_zh"].strip()
+                or type(shot.get("sfx_cues_zh")) is not list
+                or any(type(x) is not str or not x.strip() for x in shot["sfx_cues_zh"])
+                or type(shot.get("music_beat_zh")) is not str
+                or not shot["music_beat_zh"].strip()
                 or shot.get("storybeat") != (
-                    {0: "hook", 3: "reversal", 10: "resolution",
-                     11: "cta"}.get(i, shot.get("storybeat"))
-                )):
-            raise PromoPlanError("Incomplete visual continuity or dramatic turn")
+                    "setup", "mission", "city_map", "hunt_groceries",
+                    "hunt_food", "hunt_shopping", "hunt_outing",
+                    "organise", "deliver", "payoff", "savings", "cta",
+                )[i]
+                or shot.get("coin_mark_required") is not (i in {0, 10, 11})
+                or shot.get("logo_placement") != {
+                    1: "mascot_chest",
+                    7: "discount_book_cover",
+                    11: "end_card",
+                }.get(i)
+                or shot.get("logo_hold_seconds") != (3 if i == 11 else 0)):
+            raise PromoPlanError("Incomplete owner story, CD coin or brand continuity")
         # Explicitly keep source-image prompt and guaranteed later text overlay apart:
         # generated video model has no need to render logotypes or Chinese text.
         ordered.append({
             "shot_id": sid, "start_ms": shot["start_ms"],
             "end_ms": shot["end_ms"],
             "scene_anchor": shot["scene_anchor"],
+            "shot_title_zh": shot["shot_title_zh"],
             "storybeat": shot["storybeat"],
+            "owner_visual_direction_zh": shot["owner_visual_direction_zh"],
+            "visible_roles": list(cast),
+            "sfx_cues_zh": list(shot["sfx_cues_zh"]),
+            "music_beat_zh": shot["music_beat_zh"],
+            "coin_mark_required": shot["coin_mark_required"],
+            "logo_placement": shot["logo_placement"],
+            "logo_hold_seconds": shot["logo_hold_seconds"],
             "mascot_camera_view": view,
             "mascot_expression_or_action_hint": action,
             "camera_direction_zh": camera,
@@ -138,6 +188,15 @@ def build_offline_citydiscount_promo_plan(candidate: dict) -> dict:
         "story_title_zh": storyline["title_zh"],
         "story_logline_zh": storyline["logline_zh"],
         "dramatic_spine": list(storyline["dramatic_spine"]),
+        "end_card_lines": list(storyline["end_card_lines"]),
+        "sound_direction": dict(storyline["sound_direction"]),
+        "brand_requirements": {
+            "logo_source_sha256": brand["logo"]["source_sha256"],
+            "logo_final_min_hold_seconds": 3,
+            "coin_face_mark": "CD",
+            "canonical_coin_artwork_verified": False,
+            "family_asset_version_locked": False,
+        },
         "script_reviewed_by_owner": False,
         "purpose": "brand_first_motion_graphics",
         "shot_count": len(ordered), "duration_seconds": 60,
