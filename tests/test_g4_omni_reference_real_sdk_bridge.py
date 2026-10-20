@@ -15,7 +15,7 @@ from drama_factory.providers.google_omni_video import (
     GoogleOmniVideoProvider, VideoCallDisabled,
 )
 from test_g4_visual_spine_full import _fixture, _payload
-from test_google_omni_video import ClientStub, make_local_video
+from test_google_omni_video import ClientStub
 
 
 def _consent(envelope, **overrides):
@@ -37,10 +37,29 @@ def test_actual_FND_media_payload_can_enter_one_official_omni_image_interaction(
 ):
     monkeypatch.setenv("DRAMA_ENABLE_PAID_GENERATION", "YES")
     envelope = _payload(_fixture(tmp_path))
-    local_mp4 = make_local_video(tmp_path / "synthetic_video.mp4")
-    sdk = ClientStub(local_mp4)
+    sdk = ClientStub(tmp_path / "unused.mp4")
     path = tmp_path / "result.mp4"
-    receipt = GoogleOmniVideoProvider(sdk, poll_interval=0, max_polls=4).generate_approved_reference_envelope(
+    provider = GoogleOmniVideoProvider(sdk, poll_interval=0, max_polls=4)
+
+    # Test the actual SDK method and exact image+text payload on plain
+    # Python CI, which has no FFmpeg. Existing offline-video job tests real
+    # FFmpeg source validation separately.
+    def fake_verified_download(client, file_id, uri, destination, min_duration):
+        assert client is sdk
+        assert file_id == "generated123"
+        assert uri.startswith("https://generativelanguage.googleapis.com/")
+        assert min_duration == 3
+        destination.write_bytes(b"fake-sdk-mp4-receipt-bytes")
+        return {
+            "model": "gemini-omni-1.1-flash",
+            "is_mock": False, "model_calls": 0,
+            "media_path": str(destination),
+            "source_sha256": "0" * 64,
+            "source_duration_seconds": 3.0, "delivery": "uri",
+        }
+
+    provider._download_file = fake_verified_download
+    receipt = provider.generate_approved_reference_envelope(
         envelope, path, live_consent=_consent(envelope),
     )
     assert len(sdk.calls) == 1
@@ -54,7 +73,7 @@ def test_actual_FND_media_payload_can_enter_one_official_omni_image_interaction(
         "request_fingerprint_sha256"
     ]
     assert receipt["actual_fee_usd"] is None
-    assert path.read_bytes() == local_mp4.read_bytes()
+    assert path.read_bytes() == b"fake-sdk-mp4-receipt-bytes"
     assert "data" not in str(receipt)
     assert "base64" not in str(receipt)
 
