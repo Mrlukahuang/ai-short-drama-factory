@@ -32,9 +32,11 @@ def test_fixed_sixty_second_brand_promo_not_fictional_felt_episode():
     assert out["model_submission_allowed"] is False
     assert out["publish_approved"] is False
     assert out["g4_exit_approved"] is False
-    assert "CityDiscount" in out["shots"][3]["postproduction_overlay_text"] or (
-        "CITYDISCOUNT" in out["shots"][3]["postproduction_overlay_text"]
-    )
+    # With the Owner's mascot short-story candidate, s04 is the dramatic
+    # card-flip reversal; the real-brand CTA remains a postproduction overlay
+    # at s12, never text hallucinated into the generated background.
+    assert out["shots"][3]["storybeat"] == "reversal"
+    assert "CityDiscount" in out["shots"][-1]["postproduction_overlay_text"]
 
 
 def test_stable_source_and_offline_plan_hash():
