@@ -50,7 +50,7 @@ def inspect_owner_assets(campaign: dict, asset_manifest: dict,
             or asset_manifest.get("github_original_binary_upload_status") != "NOT_VERIFIED_NOT_COMMITTED"
             or type(asset_manifest.get("assets")) is not list
             or len(asset_manifest["assets"]) != 2
-            or type(asset_dir) is not Path):
+            or not isinstance(asset_dir, Path)):
         raise CityDiscountPilotGateError("Unknown or falsely approved asset manifest")
     style = campaign["style"]
     expected = {
@@ -86,6 +86,11 @@ def preflight(campaign: dict, assets: dict, assets_dir: Path) -> dict:
             or plan["model_submission_allowed"] is not False
             or plan["shot_count"] != 12):
         raise CityDiscountPilotGateError("First-pilot felt visual direction mismatch")
+    for shot in campaign["shots"]:
+        if (shot.get("character_id") != "citydiscount-mascot-v1"
+                or shot.get("character_reference_sha256") != campaign["style"]["mascot_source_sha256"]
+                or shot.get("brand_logo_reference_sha256") != campaign["style"]["logo_source_sha256"]):
+            raise CityDiscountPilotGateError("Shot differs from pinned canonical mascot or logo")
     verified = inspect_owner_assets(campaign, assets, assets_dir)
     return {
         "schema": "g4-citydiscount-production-preflight.v1",
