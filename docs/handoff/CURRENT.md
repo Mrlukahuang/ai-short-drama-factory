@@ -1,3 +1,14 @@
+# 2026-10-20 · 统一资产和通用剧情入口分离；需要 GitHub Actions 原因才能验收
+
+**Stage G4 / Req R4.4 / Owner 明确：开发测试通用短剧工厂而非单独生产 CityDiscount 影片。** 已经过期的专用预检 [Draft PR #193](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/193) **closed without merge**。本聊天不接受把独立11阶段假收据/静态预演说成真短剧产线通过。
+
+1. **通用资产 Fixture [PR #197](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/197)，Draft 未合并：** 引用 Owner 已上传到 #193 分支的**完全相同 Git 对象**，在新分支 `assets/citydiscount/v1/mascot_character_sheet_v1.png`（Git SHA1 `a5665b80a8484d5124fb874576ff40372f5a7c06`, 2,211,254 bytes）和 `citydiscount_logo_v1.png`（`903f96f235b5375fb540f3ad656ba39eea2b50e2`, 93,326 bytes）。另有源资产 manifest 和读取真实字节/PNG/Blobs 验证测试。旧小羊 SHA256 不适用于新版，**新版 source SHA256 仍待 checkout 真字节验证**；Logo SHA256 `19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651` 已在本地原图按 Git blob 重新核对通过。两文件已在 GitHub 新 PR 分支但**都未入 main**。
+2. **通用 StoryBible→ScriptPlan→Screenplay→EpisodeDraft→VideoRequestPlan [PR #195](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/195)，Draft 未合并：** 同一 Python 模块接受 1～8 人、1～12 镜人工 ShotCards，严格分别处理角色台词/旁白/后期文字，外部模型/真实视频/收费永远 false；两套独立测试（CityDiscount 单羊12×5秒/车站两位角色6×5秒），**没有开发 CityDiscount-only 视频总控**。
+3. **GitHub Actions 真正阻塞 [Issue #196](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/196)：** #193/#195/#197 6/6 job 均约2秒失败/取消，`runner_name=""` / `steps=[]`，GitHub job logs 404 BlobNotFound。GitHub commit check output `annotations_count=2` 每 job，但 connector 不允许读取 annotation API。2026-10-19 GitHub 全球 Actions incident 在同日 16:56 UTC 已宣布 resolved；这些异常在 2026-10-20 02:xx UTC 出现，因此**全球故障不能直接认定为根因**。Issue #196 给 Owner 一条只读 `gh api .../annotations` 命令查实际原因。未经绿灯禁止 merge/disable CI/反复 rerun。账号 Actions 预算或 Runner 配额**仅是待查假说**。
+4. **下一步**：有 job annotation 诊断后修 GitHub Actions 运行条件，再针对两个独立PR拿到 6/6 执行证据；然后统一在现有 FakeVideoProvider/FFmpeg/QA 链上做两个题材的受控真端到端。既有 FND-01/02/03 多视图、逐镜参考帧接口复用，不重新造轮子。真实 Omni 视频或图片外发仍需权限/AMEND 决策。G4 NOT_READY，G5 禁止，新增付费模型调用 0、USD0。
+
+---
+
 # 2026-10-20 · 最新：通用短剧工厂优先，CityDiscount 仅 Pilot 01（未合并代码）
 
 **Stage: G4 · Req: R4.4 · Owner 最新指令：** “这个项目是用来测试和开发我们的短剧系统的，而不是为了生产video而做视频”。CityDiscount 仅第一组内容/资产测试，验收必须证明第二组无关题材也走同一 StoryBible→Screenplay→VideoProvider→FFmpeg/QA 合同，**不允许 CityDiscount-only 的第二套生产脚本**。
