@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from drama_factory.models import EpisodeDraft
 from drama_factory.pipeline.screenplay import Screenplay
 from drama_factory.pipeline.screenplay_visual_bridge import plan_screenplay_visual_references
 
@@ -30,6 +31,7 @@ def fake_episode_visual_replay(
     capability: OmniMediaCapability | None = None,
     now_epoch: int | None = None,
     reviewed_screenplay: Screenplay | None = None,
+    episode_draft: EpisodeDraft | None = None,
 ) -> dict:
     """Execute a full 12-shot dry-run with actual local PNG byte validation.
 
@@ -38,6 +40,8 @@ def fake_episode_visual_replay(
     If supplied, a typed reviewed screenplay must match the complete W2 shot
     order, cast, scene and deterministic continuity before any media is read.
     """
+    if episode_draft is not None and reviewed_screenplay is None:
+        raise MediaAdmissionError("EpisodeDraft requires reviewed screenplay")
     reviewed_plan = None
     if reviewed_screenplay is not None:
         if (not isinstance(reviewed_screenplay, Screenplay)
@@ -54,13 +58,24 @@ def fake_episode_visual_replay(
             reviewed_screenplay, w2_manifest, gallery,
             actor_views={sid: spec["actor_views"] for sid, spec in shot_specs.items()},
             prop_pins={sid: spec["prop_pins"] for sid, spec in shot_specs.items()},
+            episode_draft=episode_draft,
         )
     plan = build_visual_production_plan(
         w2_manifest, shot_specs, gallery,
         max_images_per_shot=(capability or OmniMediaCapability()).max_reference_images,
     )
-    if reviewed_plan is not None and reviewed_plan["plan_sha256"] != plan["plan_sha256"]:
-        raise MediaAdmissionError("Reviewed screenplay continuity or media pins mismatch")
+    if reviewed_plan is not None:
+        # The optional EpisodeDraft hash is scoped by the enhanced plan SHA.
+        # Strip only that optional projection to prove the base W2/FND plan
+        # is exactly unchanged; then use the enhanced plan downstream.
+        original_projection = dict(reviewed_plan)
+        original_projection.pop("episode_draft_sha256", None)
+        original_projection["plan_sha256"] = digest_json({
+            k: v for k, v in original_projection.items() if k != "plan_sha256"
+        })
+        if original_projection != plan:
+            raise MediaAdmissionError("Reviewed screenplay continuity or media pins mismatch")
+        plan = reviewed_plan
     ids = [row["shot_id"] for row in plan["shots"]]
     if (type(prompts) is not dict or set(prompts) != set(ids)
             or type(grants_by_shot) is not dict or set(grants_by_shot) != set(ids)

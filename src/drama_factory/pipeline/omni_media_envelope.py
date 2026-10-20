@@ -175,6 +175,7 @@ def prepare_offline_omni_envelope(
     receipt = {
         "schema": SCHEMA, "shot_id": shot_id,
         "visual_plan_sha256": plan["plan_sha256"],
+        "episode_draft_sha256": plan.get("episode_draft_sha256"),
         "frame_graph_sha256": frame_graph_sha,
         "model_id": cap.model_id,
         "original_prompt_sha256": __import__("hashlib").sha256(
