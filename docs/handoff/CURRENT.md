@@ -1,3 +1,18 @@
+# 2026-10-20 最新权威状态：通用双项目 Fake 视频产线已真实 FFmpeg 全绿；下一步图像参考接线
+
+**Stage: G4 / Req: R4.4 / G4 仍 NOT_READY，G5 禁止。** Owner 将本仓库主动切换为 **Public** 以恢复免费的 GitHub-hosted Actions CI，确认本项目用于**开发和验证通用 AI 短剧系统**，CityDiscount 只是第一套测试场景，**不得为了单条宣传片制造专属生产流水线**。公开后历史真实视频 Actions artifact/日志与用户上传的品牌素材可能被公开访问；未知是否旧日志泄密，不能宣称完整安全审计通过。真实账号密钥始终以 GitHub Secrets/本机隔离、不得输出。
+
+**2026-10-20 GitHub 已核实的合并及 CI：**
+1. [PR #197](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/197) **6/6 CI SUCCESS**, merge `e3d24b7e78ee69579e44e9006d0feeae8b4b1b3c`：把 Owner 选定的**新版**小羊完整 PNG（Git blob `a5665b80a8484d5124fb874576ff40372f5a7c06`、2,211,254 bytes）和 CD Logo（blob `903f96f235b5375fb540f3ad656ba39eea2b50e2`、93,326 bytes）以原始 Git 对象纳入 `main/assets/citydiscount/v1`，字节大小/Git blob SHA/PNG解码实际跑验；旧版本 SHA256 **不得套用新版**，新版本 SHA256 由可信 checkout 工具在运行时计算；Logo SHA256 `19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651` 已证实。
+2. [PR #195](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/195) **6/6 SUCCESS**, merge `36176056f949e06530383bb551fe3214bba48fb8`：新增通用 `operator_storyboard_adapter.py`，复用**原有** StoryBible/FakeTextProvider/Screenplay/EpisodeDraft/video-plan，一套代码支持 CityDiscount 单羊12镜60秒和无关车站双演员6镜30秒。旁白/演员对白/画面文字严格分开，不冒充模型已创作或人审通过。
+3. [PR #199](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/199) **6/6 SUCCESS**, merge `3349a54a375b020de9d30faabd33dd6b6471b0cd`：新增跨项目实际 TestClient→本地 SQLite / 原API两步模拟批准→已有 Fake Shot Worker→FFmpeg→MP4/字幕/哈希/缓存/隔离技术集成测试。**注意**：普通 Python CI 未安装 FFmpeg，因此该真实媒体用例曾被 skip，不能依赖这份报告冒称执行完成。
+4. [PR #200](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/200) **6/6 SUCCESS**, merge **当前 main `60b2daaf75de774f051b72a40e5a5d410d06fc1e`**：只在已有 `offline-video` job 新增强制 FFmpeg/FFprobe 测试。实际执行 [offline-video job](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39366468656/job/118444351453) 于03:52 UTC，**2 passed、0 skipped、1 warning、3.56秒**；双项目真实渲染 **Fake 技术占位 H.264/AAC/mov_text MP4**，逐镜SHA和重复运行缓存均核实。**没有真实 Omni 模型动画/真实中文配音/已批准外传的参考图片/生成内容评分**，本轮新增模型调用0，API费用USD0。
+5. [CI Issue #196](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/196) 原 Private 免费 3000/3000 分钟、超额预算 $0 阻断已在公开后恢复，现已关闭。[双项目 E2E Issue #198](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/198) 技术验收后关闭。过去旧短剧 W1–W5 源码/媒体/旧人工 QA 证据未改变，G4仍 NOT_READY。
+
+**下一唯一通用研发入口：[Issue #201](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/201)**：在现有模型内把**真实图片的源 SHA、角色/道具版本、逐镜 ID 和 Scene/Prop 引用**接到 FND-01多视图图像计划、FND-02签名媒体准入、FND-03首末帧，再执行双项目 Provider Fake 多图 dry-run；不单独建 CityDiscount 视频引擎。真实 Provider 调用仍 prompt-only，照片外发、AMEND-006 首片路线正式调整、费用和真人 ASR/内容验收均需 Owner 单独授权（#188、#177）。不提前进入 G5、不删历史记录。
+
+---
+
 # 2026-10-20 · 统一资产和通用剧情入口分离；需要 GitHub Actions 原因才能验收
 
 **Stage G4 / Req R4.4 / Owner 明确：开发测试通用短剧工厂而非单独生产 CityDiscount 影片。** 已经过期的专用预检 [Draft PR #193](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/193) **closed without merge**。本聊天不接受把独立11阶段假收据/静态预演说成真短剧产线通过。
