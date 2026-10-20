@@ -1,5 +1,16 @@
 # CityDiscount 第一条宣传片｜G4 创意与生产简报
 
+## Owner 2026-10-20 最新视觉/角色覆盖决定（优先于本简报旧建议）
+
+- **必须保留之前的毛毡手工微缩风格**（felt/needle-felt diorama），不采用下文早期提案的平面 pop-art/graffiti。此前旧稿为历史提案，不能再当最新视觉规则。
+- **主角不是零演员**：唯一固定主人公是所有者上传的奶油白毛毡小羊，深绿色围巾、棕色大眼、柔软羊毛质感；已提供正面、3/4、侧面、背面、六种表情的统一角色表。全12镜均绑定 **同一资产** `citydiscount-mascot-v1`。
+- **CD logo** 是所有者上传的奶油白花瓣、深绿轮廓、金币黄中圆、深绿 `CD`、右上绿边星芒徽章；全部镜头使用原始 Logo，不由模型重新绘制。
+- **原始图像字节的当前状态**：已在隔离本地测试工作区校验并打包，**尚未写入 GitHub 二进制文件**。小羊 source SHA-256 `79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb`，logo SHA-256 `19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651`。目标 GitHub 路径 `assets/citydiscount/v1/mascot_character_sheet.png` 和 `assets/citydiscount/v1/citydiscount_logo.png`，须由二进制受信任提交渠道另行提交原字节并验证，不能仅靠文本 manifest 冒充已上传。
+- 真人审核仍未进行。**没有 Omni 真实图像输入接线、没有中文真配音**；此处说明的是创意/分镜和本地离线演示，不是新品牌实际AI视频生成。
+
+---
+
+
 **Owner direction:** 2026-10-20 NZT 第一条真实视频改为 CityDiscount 宣传片。
 **Stage G4 / Req R4.4 / 工作包：CityDiscount Pilot 01 / Issue #190。**
 
