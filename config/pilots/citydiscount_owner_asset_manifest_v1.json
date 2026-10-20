@@ -1,0 +1,76 @@
+{
+  "schema": "g4-citydiscount-owner-supplied-assets.v1",
+  "project": "CityDiscount",
+  "owner_upload_date": "2026-10-20",
+  "media_use_scope": "local_pipeline_rehearsal_only",
+  "remote_model_use_granted": false,
+  "rights_independently_verified": false,
+  "operator_grant_present": false,
+  "github_original_binary_upload_status": "NOT_VERIFIED_NOT_COMMITTED",
+  "assets": [
+    {
+      "asset_id": "citydiscount-mascot-v1",
+      "kind": "actor",
+      "reference_type": "character_multiview_sheet",
+      "repo_target": "assets/citydiscount/v1/mascot_character_sheet.png",
+      "original_name": "Cute Lamb Scarf Character Sheet(7).png",
+      "sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+      "size_bytes": 2303266,
+      "pixel_width": 1448,
+      "pixel_height": 1086,
+      "views": [
+        "front",
+        "three_quarter",
+        "side",
+        "back",
+        "happy",
+        "wink",
+        "sparkle",
+        "jump",
+        "thumbsup",
+        "coin"
+      ],
+      "visual_lock": "white cream wool lamb; glossy brown eyes; blush cheeks; dark green knitted scarf; tan ears; brown hooves"
+    },
+    {
+      "asset_id": "citydiscount-logo-v1",
+      "kind": "brand_logo",
+      "reference_type": "canonical_logo",
+      "repo_target": "assets/citydiscount/v1/citydiscount_logo.png",
+      "original_name": "cd_logo(4).png",
+      "sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "size_bytes": 93326,
+      "pixel_width": 1024,
+      "pixel_height": 1024,
+      "views": [
+        "canonical"
+      ],
+      "visual_lock": "cream scalloped flower border with dark green outline; yellow coin circle; dark green CD letters; small star spark"
+    }
+  ],
+  "owner_directions": [
+    "CityDiscount first film",
+    "needle-felt miniature diorama style",
+    "same original lamb mascot all shots",
+    "same original CD logo all shots"
+  ],
+  "run_evidence": {
+    "execution_mode": "local_offline_storyboard_and_animatic_only",
+    "stage_count": 11,
+    "shot_count": 12,
+    "video_duration_seconds": 59.933333,
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "audio_content": "silence_placeholder",
+    "real_video_model_calls": 0,
+    "new_model_spend_usd": 0,
+    "real_video_generated": false,
+    "github_artifact_uploaded": false
+  },
+  "next_gate": [
+    "Commit exact original PNG binaries via permitted GitHub binary upload, then verify SHA matches",
+    "Use approved asset rights and owner issue for external media use if real provider required",
+    "Complete GitHub campaign -> Omni live provider mapping and real audio verification",
+    "Do not claim real video generated until provider receipts, ffprobe and human review"
+  ]
+}
