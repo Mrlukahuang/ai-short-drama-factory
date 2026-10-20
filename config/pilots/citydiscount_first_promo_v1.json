@@ -2,7 +2,7 @@
   "schema_version": "g4-citydiscount-first-promo.v1",
   "project": "CityDiscount",
   "campaign_id": "citydiscount-nz-first-brand-promo",
-  "revision": 1,
+  "revision": 2,
   "stage": "G4",
   "req": "R4.4",
   "purpose": "first_real_video_target_brand_promo",
@@ -19,15 +19,17 @@
   "positioning": "本地优惠和消费选择的资讯整理、条件说明与对比，不是领券App或商家官方合作平台",
   "style": {
     "id": "citydiscount_needle_felt_mascot_v1",
-    "description": "Owner confirmed original needle-felt 3D miniature diorama style, not flat pop-art. Primary character is the uploaded white wool sheep with dark green knitted scarf (source sha 79e653ff...), and CityDiscount flower-gold CD emblem (source sha 19a62023...). Fixed character multi-views and logo must be passed as authentic reference media in a later authorized production request; exact Chinese text remains deterministic post-render overlay.",
+    "description": "Needle-felt miniature CityDiscount brand world. Owner chose the NEW uploaded GitHub mascot character_sheet_v1.png (Git blob a5665b..., source SHA256 pending binary readback). Consistent sheep face/wool/green scarf must be visually reviewed and locked after local ingestion. Flower CD logo SHA256 19a62023... is verified; do not generate fake lettering.",
     "brand_visual_asset_sha256": null,
     "style_asset_approved": false,
     "legacy_felt_diorama_global_default_unchanged": true,
-    "mascot_source_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
+    "mascot_source_sha256": null,
     "logo_source_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
     "mascot_asset_id": "citydiscount-mascot-v1",
     "logo_asset_id": "citydiscount-logo-v1",
-    "owner_confirmed_felt_style": true
+    "owner_confirmed_felt_style": true,
+    "mascot_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06",
+    "mascot_sha256_verification": "pending_trusted_git_checkout_and_image_readback"
   },
   "controls": {
     "sound": "Chinese original narration candidate; native speech fidelity not_verified; exact external TTS/use requires separate approval",
@@ -41,7 +43,7 @@
     "publish_approved": false,
     "g4_exit_approved": false
   },
-  "source_context": "Owner message 2026-10-20: 首片由毛毡茶馆叙事改为CityDiscount宣传片。所含广告词是待审创意，并非核实的当前商家优惠。",
+  "source_context": "Owner message 2026-10-20: 首片由毛毡茶馆叙事改为CityDiscount宣传片。所含广告词是待审创意，并非核实的当前商家优惠。 2026-10-20 Owner selected uploaded v1 mascot file, not historical earlier original; new file SHA256 needs independent verification.",
   "shots": [
     {
       "shot_id": "s01",
@@ -64,8 +66,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s02",
@@ -90,8 +93,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s03",
@@ -116,8 +120,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s04",
@@ -142,8 +147,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s05",
@@ -168,8 +174,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s06",
@@ -194,8 +201,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s07",
@@ -220,8 +228,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s08",
@@ -246,8 +255,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s09",
@@ -272,8 +282,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s10",
@@ -298,8 +309,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s11",
@@ -324,8 +336,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     },
     {
       "shot_id": "s12",
@@ -350,8 +363,9 @@
       "real_model_result": "not_run",
       "human_visual_review": "not_run",
       "character_id": "citydiscount-mascot-v1",
-      "character_reference_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
+      "character_reference_sha256": null,
+      "brand_logo_reference_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "character_reference_git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06"
     }
   ],
   "reference_registry": {
