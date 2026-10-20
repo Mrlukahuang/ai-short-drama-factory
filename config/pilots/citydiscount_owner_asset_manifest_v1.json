@@ -6,18 +6,18 @@
   "remote_model_use_granted": false,
   "rights_independently_verified": false,
   "operator_grant_present": false,
-  "github_original_binary_upload_status": "NOT_VERIFIED_NOT_COMMITTED",
+  "github_original_binary_upload_status": "UPLOADED_TO_PR_BRANCH_SHA256_PENDING_LOCAL_READBACK",
   "assets": [
     {
       "asset_id": "citydiscount-mascot-v1",
       "kind": "actor",
       "reference_type": "character_multiview_sheet",
-      "repo_target": "assets/citydiscount/v1/mascot_character_sheet.png",
-      "original_name": "Cute Lamb Scarf Character Sheet(7).png",
-      "sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb",
-      "size_bytes": 2303266,
-      "pixel_width": 1448,
-      "pixel_height": 1086,
+      "repo_target": "assets/citydiscount/v1/mascot_character_sheet_v1.png",
+      "original_name": "mascot_character_sheet_v1.png",
+      "sha256": null,
+      "size_bytes": 2211254,
+      "pixel_width": null,
+      "pixel_height": null,
       "views": [
         "front",
         "three_quarter",
@@ -30,14 +30,17 @@
         "thumbsup",
         "coin"
       ],
-      "visual_lock": "white cream wool lamb; glossy brown eyes; blush cheeks; dark green knitted scarf; tan ears; brown hooves"
+      "visual_lock": "white cream wool lamb; glossy brown eyes; blush cheeks; dark green knitted scarf; tan ears; brown hooves",
+      "github_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06",
+      "sha256_verification_status": "PENDING_TRUSTED_BINARY_READBACK",
+      "views_status": "PENDING_NEW_REVISION_VISUAL_REVIEW"
     },
     {
       "asset_id": "citydiscount-logo-v1",
       "kind": "brand_logo",
       "reference_type": "canonical_logo",
-      "repo_target": "assets/citydiscount/v1/citydiscount_logo.png",
-      "original_name": "cd_logo(4).png",
+      "repo_target": "assets/citydiscount/v1/citydiscount_logo_v1.png",
+      "original_name": "citydiscount_logo_v1.png",
       "sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
       "size_bytes": 93326,
       "pixel_width": 1024,
@@ -45,17 +48,19 @@
       "views": [
         "canonical"
       ],
-      "visual_lock": "cream scalloped flower border with dark green outline; yellow coin circle; dark green CD letters; small star spark"
+      "visual_lock": "cream scalloped flower border with dark green outline; yellow coin circle; dark green CD letters; small star spark",
+      "github_blob_sha1": "903f96f235b5375fb540f3ad656ba39eea2b50e2",
+      "sha256_verification_status": "MATCHED_ORIGINAL_BYTES_USING_GIT_BLOB"
     }
   ],
   "owner_directions": [
     "CityDiscount first film",
     "needle-felt miniature diorama style",
-    "same original lamb mascot all shots",
+    "use NEW uploaded v1 lamb from GitHub branch as canonical actor across all shots",
     "same original CD logo all shots"
   ],
   "run_evidence": {
-    "execution_mode": "local_offline_storyboard_and_animatic_only",
+    "execution_mode": "historical_offline_preview_with_previous_mascot_NOT_NEW_V1",
     "stage_count": 11,
     "shot_count": 12,
     "video_duration_seconds": 59.933333,
@@ -65,12 +70,13 @@
     "real_video_model_calls": 0,
     "new_model_spend_usd": 0,
     "real_video_generated": false,
-    "github_artifact_uploaded": false
+    "github_artifact_uploaded": false,
+    "current_new_v1_rehearsal_status": "NOT_RUN"
   },
   "next_gate": [
-    "Commit exact original PNG binaries via permitted GitHub binary upload, then verify SHA matches",
-    "Use approved asset rights and owner issue for external media use if real provider required",
-    "Complete GitHub campaign -> Omni live provider mapping and real audio verification",
-    "Do not claim real video generated until provider receipts, ffprobe and human review"
-  ]
+    "Read NEW mascot binary from GitHub checkout and verify Git blob SHA1 + compute actual SHA256; then pin verified SHA256 across asset and shots",
+    "Use existing generic factory staging/StoryBible/Screenplay/VideoProvider; no brand-specific renderer",
+    "Keep real provider/rights/fees G4 gates disabled until explicitly authorized"
+  ],
+  "canonical_revision_decision": "Owner explicitly selected uploaded revised mascot v1 on 2026-10-20; supersedes earlier 2303266 byte image"
 }
