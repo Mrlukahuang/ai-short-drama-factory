@@ -1,3 +1,11 @@
+# 2026-10-21 G4 / R4.4：正式 Owner 城市寻宝 CityDiscount 首片（创意修订 3）
+
+**本轮正式创意来自 Owner 原文**：`《把奥克兰的好折扣，挖到你身边》`，60 秒/12×5 秒。原《小羊差点买错了》创意修订 2 已**在原有权威文件** `config/pilots/citydiscount_first_promo_v1.json` 中被替换（Git 保留历史）；新稿按 s01 钱包→s02 吉祥物接任务→s03 奥克兰立体地图→s04–s07 四个优惠寻宝站（买菜/美食/购物/出游）→s08 分类核对→s09 折扣地图送到家→s10 家庭出行→s11 CD 金币余钱→s12 完整品牌收尾。全部 Owner 原始画面要求（`owner_visual_direction_zh`）、逐镜中文旁白、音效、音乐提示、机位、连续性均已入原 JSON；可读执行单 `docs/CITYDISCOUNT_FIRST_FILM_STORY.md`。
+
+现有 `promo_motion_graphics.build_offline_citydiscount_promo_plan` 在同一 schema 中承接家庭/吉祥物镜头可见范围、Logo s02 胸前/s08 折扣册/s12 片尾 3 秒、s01/s11/s12 CD 金币正面、片尾四行精准文案，**没有新宣传片引擎**。保留 offlining 安全标记：仅示意优惠卡、无虚构商家/价格、`model_submission_allowed=false`、`script_reviewed_by_owner=false`（仅表示最终制作版本未单独验收）、`publish_approved=false`。**该 PR 是制作稿的代码交付，不是 60 秒真实 MP4**。实际素材仍待小羊版权独立核验、家庭角色版本、CD 金币独立标准图案、真实参考图模型 API/账号与价格、最终发布账号；#188/#210 保持开放。单次上限 USD2/NZ 日上限 USD5，本次模型调用 USD0。**G4 NOT_READY / G5 暂停。** PR/CI merge 是否完成以 GitHub 本轮回执为准。
+
+---
+
 # 2026-10-21 G4 / R4.4：CityDiscount 60 秒真实故事线与 12 镜制作稿（本 PR）
 
 **当前 G4 NOT_READY / G5 禁止。** 首片创意不再仅为 12 张营销说明卡：已改写 `config/pilots/citydiscount_first_promo_v1.json` 的**第二次创意修订**，主人公为 Owner 已反馈满意的奶油白深绿围巾小羊。60s 12×5s 原接口仍在，新增故事弧：0–15s 冲动发现 → 15–20s 卡片翻面/条件反转 → 20–45s 核对日期/门槛/限制/来源 → 45–60s 清醒选择和品牌结尾。每镜补齐摄影视角（来自已入库四角度源角色）、动作提示、拍摄指导、连续性、短旁白和 FFmpeg 后期字幕，真实优惠/日期/商家价格一律不编造。
