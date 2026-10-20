@@ -1,3 +1,15 @@
+# 2026-10-21 G4 / R4.4：CityDiscount 正式素材 60 秒无费预演 v2（本 PR）
+
+**Owner 创意反馈**：真实 run #39441034483 的 s03 奥克兰毛毡城市**风格通过**。供应商账单仍未可见，实际金额 UNKNOWN，继续禁止新付费请求。这轮只做已有片源的**后期本地合成**。
+
+将首次真实 s03 MP4（锁定 SHA256 `b718e6b0a6e5a64db66d74e6b1364326d16671823fca12935e8a3667b101af3f`）与仓库原有的 **10 张真实 CityDiscount 吉祥物 PNG、官方 Logo 原图**做成完整12镜×5s/60s的清晰**动画分镜预演**。不依赖新模型图片、TTS 或付费 SDK；原始素材仅在 GitHub Actions runner **本地 Pillow/FFmpeg** 使用，验证 PNG/Logo 字节 SHA，不发送给其他服务。现有其它11镜为带原角色静帧移动镜头的 LOCAL composite，不得声称它们是 AI 生成的连续动作或已达最终质量；s03 为**真实 AI 城市背景 + 本地吉祥物静态原图叠加**，同样不可称完整镜头AI角色一致性通过。
+
+新渲染工具 `scripts/render_citydiscount_branded_previs.py` + 专项 workflow `.github/workflows/citydiscount-real-assets-previs.yml`（PR自动零费执行），从原始 Owner revision3 JSON 逐镜读原文旁白与顺序，s02胸前、s08折扣册、s12结尾贴入 repo 确切 Logo 源，s01/s11/s12以清楚但**未被独立审批的示意版** CD 金币字样描画，s01/s10家庭仅为 silhouette 欠角色定妆，所有镜头均标注内部预演、无中文配音、有临时合成背景音乐。完全不修改原剧本，不写生成二进制入 Git，作业只输出7天保留的MP4/12帧总览/来源回执；本 PR 是否成功以真实 workflow/artifact 判断。
+
+预算 **新增模型调用 0**。真实账单仍未知；真实吉祥物动态、家庭角色/金币图案核准、发布审核均未完成。G4 NOT_READY、G5暂停。若失去源 GitHub artifact，必须报告失效、不得自动重做付费镜头。PR/CI待验收。
+
+---
+
 # 2026-10-21 G4 / R4.4：CityDiscount 第一次真实生成可执行入口——s03 奥克兰毛毡城市空镜（本 PR）
 
 前置已完成：Owner 正式12镜脚本 #215、Google Omni参考图SDK接线 #216。因真实吉祥物素材的独立权利审查和 provider 保留条款未完成（#210），本轮优先在**不向 Google 发送任何 Owner PNG/Logo**的前提下，拍出可用于 s03《奥克兰藏着宝》的毛毡微缩天空塔、海港大桥、帆船、海湾环境镜头。严格标记为**仅城市空镜 plate，不是包含吉祥物的完整 s03，也不是12镜成片**。
