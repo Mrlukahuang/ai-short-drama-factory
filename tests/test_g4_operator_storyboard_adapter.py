@@ -176,6 +176,9 @@ def test_changing_creative_input_invalidates_stable_preview_sha():
 def test_no_model_provider_calls_even_with_approval_like_fields():
     data=_citydiscount()
     data["shot_cards"][0]["paid_execution_authorized"] = True
+    with pytest.raises(StoryboardAdapterError, match="cannot grant"):
+        build_operator_storyboard_preview(**data)
+    data=_citydiscount()
     result=build_operator_storyboard_preview(**data)
     assert result["paid_model_calls"] == 0
     assert result["real_video_generated"] is False
