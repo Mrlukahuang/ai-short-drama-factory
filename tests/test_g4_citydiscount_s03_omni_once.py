@@ -8,7 +8,10 @@ from decimal import Decimal
 
 import pytest
 
-from scripts.citydiscount_s03_omni_once import (
+# Checkout-only scripts are outside the installed src/ Python package.
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+from citydiscount_s03_omni_once import (
     DEFAULT_PILOT, prepare_s03_city_plate, run_s03,
 )
 from drama_factory.providers.google_omni_video import VideoCallDisabled
