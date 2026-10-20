@@ -2,7 +2,7 @@
   "schema_version": "g4-citydiscount-first-promo.v1",
   "project": "CityDiscount",
   "campaign_id": "citydiscount-nz-first-brand-promo",
-  "revision": 1,
+  "revision": 2,
   "stage": "G4",
   "req": "R4.4",
   "purpose": "first_real_video_target_brand_promo",
@@ -19,7 +19,7 @@
   "positioning": "本地优惠和消费选择的资讯整理、条件说明与对比，不是领券App或商家官方合作平台",
   "style": {
     "id": "citydiscount_pop_art_candidate_v1",
-    "description": "高对比漫画/街头涂鸦式资讯贴纸、大字体、图钉NEW ZEALAND、CITYDISCOUNT插播；品牌最终资产及商标需人工提供批准",
+    "description": "沿用 CityDiscount 明亮漫画/贴纸式候选美术与后期定版文字，但主人公为同一只奶油白毛毡小羊（深绿色围巾）；固定毛毡微缩新西兰街角、暖光与贴纸视觉语言；图片仍需独立来源授权，不让生成模型画中文或假品牌商标",
     "brand_visual_asset_sha256": null,
     "style_asset_approved": false,
     "legacy_felt_diorama_global_default_unchanged": true
@@ -45,238 +45,293 @@
       "duration_seconds": 5,
       "storybeat": "hook",
       "scene_anchor": "street_collage",
-      "background_prompt_zh": "开场钩子：新西兰街道抽象拼贴，贴纸图形飞入，不出现真实商标",
-      "voiceover_zh": "在新西兰，想找划算的选择，有时候真不容易。",
-      "on_screen_text_zh": "新西兰本地好选择",
+      "background_prompt_zh": "一只奶油白针毡小羊，棕色眼睛、固定深绿色围巾，站在无商标的新西兰毛毡微缩街角。一张没有真实价格、数字或文字的闪亮虚构消费信息卡随风飘来，小羊抬头好奇，暖光与简洁漫画贴纸图形。画面内无字、无商标。",
+      "voiceover_zh": "一张看起来超划算的卡片，小羊心动了。",
+      "on_screen_text_zh": "看起来很划算？",
       "shot_dependencies": [],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "低机位中景，轻缓推镜",
+      "continuity_instruction_zh": "小羊在街角首次看见尚未捡起的虚构卡片；卡片颜色和形状锁定为黄绿双色圆角卡。"
     },
     {
       "shot_id": "s02",
       "start_ms": 5000,
       "end_ms": 10000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
+      "storybeat": "rising_action",
       "scene_anchor": "consumer_choices",
-      "background_prompt_zh": "同一品牌美术风格的餐饮与购物插画卡片快速切换",
-      "voiceover_zh": "吃什么、买什么，总要花时间比较。",
-      "on_screen_text_zh": "吃什么？买什么？",
+      "background_prompt_zh": "同一只奶油白针毡小羊与同一条深绿色围巾，从毛毡街角走向悬浮的黄绿双色圆角无字卡，几张无商标食物和日用品插画作为抽象选择飘过；小羊踮脚接近卡片。保持角色五官、比例和配色不变，画面不生成任何文字。",
+      "voiceover_zh": "它差点只看封面，就做决定。",
+      "on_screen_text_zh": "只看标题就决定？",
       "shot_dependencies": [
         "s01"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "jump",
+      "camera_direction_zh": "半侧身跟拍，轻快平移",
+      "continuity_instruction_zh": "接上一镜同一张黄绿圆角卡，卡片仍未翻面，小羊动作从好奇进入冲动。"
     },
     {
       "shot_id": "s03",
       "start_ms": 10000,
       "end_ms": 15000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
+      "storybeat": "rising_action",
       "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "不含真实价格的抽象对比表：时间、价格、规则标签混杂",
-      "voiceover_zh": "价格、时间、限制条件，还得一条条查。",
-      "on_screen_text_zh": "价格｜时间｜条件",
+      "background_prompt_zh": "同一只深绿围巾的奶油白毛毡小羊侧脸，伸出小羊蹄即将拿起黄绿双色圆角虚构无字卡，卡片表面只有明亮几何图形，没有任何商家、价格、日期或商标。短暂悬停定格，有轻喜剧节奏。",
+      "voiceover_zh": "可它刚伸出手，就发现不对劲。",
+      "on_screen_text_zh": "等等！",
       "shot_dependencies": [
         "s02"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "thumbsup",
+      "camera_direction_zh": "侧面近景，停顿一拍",
+      "continuity_instruction_zh": "卡片从空中靠近手边，镜头结束前一秒停住；为下一镜翻面埋钩子。"
     },
     {
       "shot_id": "s04",
       "start_ms": 15000,
       "end_ms": 20000,
       "duration_seconds": 5,
-      "storybeat": "brand_reveal",
-      "scene_anchor": "brand_ident",
-      "background_prompt_zh": "CityDiscount 名称出现，品牌位置图钉与 NEW ZEALAND 标识定版；不模拟平台官方背书",
-      "voiceover_zh": "所以，我们做了 CityDiscount。",
-      "on_screen_text_zh": "CITYDISCOUNT 插播",
+      "storybeat": "reversal",
+      "scene_anchor": "comparison_cards",
+      "background_prompt_zh": "仍是同一张黄绿圆角虚构卡，缓缓翻到背面，只有没有数字的沙漏、钥匙孔、问号三个图形图标；同一只深绿色围巾的奶油白小羊向后一愣，眼睛睁大。所有图标仅作抽象提示，不指代真实优惠条件，禁止在视频背景里生成文字。",
+      "voiceover_zh": "原来卡片背面，还有一堆条件！",
+      "on_screen_text_zh": "优惠也有条件",
       "shot_dependencies": [
         "s03"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "wink",
+      "camera_direction_zh": "卡片特写切角色反应近景",
+      "continuity_instruction_zh": "s03 定格的那张卡在 s04 翻面；首次出现三个抽象条件图标，构成故事反转。"
     },
     {
       "shot_id": "s05",
       "start_ms": 20000,
       "end_ms": 25000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
+      "storybeat": "investigation",
       "scene_anchor": "info_cards",
-      "background_prompt_zh": "新西兰生活类优惠资讯卡片以漫画形式展开，不能出现未经核查的优惠数值",
-      "voiceover_zh": "把本地值得关注的优惠，整理给你看。",
-      "on_screen_text_zh": "本地优惠 · 一眼看重点",
+      "background_prompt_zh": "毛毡小羊正面固定深绿围巾，手持同一张翻面的黄绿圆角无字卡，用放大镜看抽象空白日历与沙漏图标；温暖桌面微缩场景，绝不生成实际日期或文字。",
+      "voiceover_zh": "第一件事，看看日期还算不算数。",
+      "on_screen_text_zh": "① 查日期",
       "shot_dependencies": [
         "s04"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "front",
+      "camera_direction_zh": "俯拍卡片与小羊抬头，慢推",
+      "continuity_instruction_zh": "小羊将 s04 的背面卡放到街角小桌上，开始逐项检查，卡片不能换色。"
     },
     {
       "shot_id": "s06",
       "start_ms": 25000,
       "end_ms": 30000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
-      "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "手机套餐和商品选项抽象对比；不使用真实运营商或设备商标",
-      "voiceover_zh": "不只看价格，也比较不同选择。",
-      "on_screen_text_zh": "优惠对比",
+      "storybeat": "investigation",
+      "scene_anchor": "info_cards",
+      "background_prompt_zh": "同一只奶油白毛毡小羊、深绿围巾，在同一毛毡小桌边侧身查看同一张黄绿无字卡，抬起一个抽象钥匙形状的几何图标，表现有些选择需要资格；不显示会员服务真实条款或品牌名称。",
+      "voiceover_zh": "第二件事，有没有资格要求？",
+      "on_screen_text_zh": "② 看门槛",
       "shot_dependencies": [
         "s05"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "side",
+      "camera_direction_zh": "小幅侧向推轨",
+      "continuity_instruction_zh": "保持同一张小桌与黄绿卡，小羊从日期线索移向资格线索。"
     },
     {
       "shot_id": "s07",
       "start_ms": 30000,
       "end_ms": 35000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
+      "storybeat": "investigation",
       "scene_anchor": "info_cards",
-      "background_prompt_zh": "大字贴纸依次突出有效日期、适用时间；使用字段名而非虚构时间",
-      "voiceover_zh": "什么时候开始？什么时候结束？",
-      "on_screen_text_zh": "开始时间｜结束时间",
+      "background_prompt_zh": "从背后看同一只奶油白针毡小羊，深绿围巾背面连贯，正在同一桌前比对黄绿圆角卡上的抽象边界符号和问号图形；留白明显，卡片无字，不捏造有效范围或限制条件。",
+      "voiceover_zh": "第三件事，还有哪些使用限制？",
+      "on_screen_text_zh": "③ 看限制",
       "shot_dependencies": [
         "s06"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "back",
+      "mascot_expression_or_action_hint": "back",
+      "camera_direction_zh": "背后过肩视角，轻缓下移",
+      "continuity_instruction_zh": "小羊仍坐同一张桌前，背面视角凸显毛毡身体与围巾一致性。"
     },
     {
       "shot_id": "s08",
       "start_ms": 35000,
       "end_ms": 40000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
+      "storybeat": "investigation",
       "scene_anchor": "info_cards",
-      "background_prompt_zh": "会员资格、限制、额外条件作为信息标签强调，无未经证实条款",
-      "voiceover_zh": "需不需要会员？有哪些限制？",
-      "on_screen_text_zh": "会员要求｜使用条件",
+      "background_prompt_zh": "奶油白毛毡小羊、深绿围巾再次从正面出现，把一枚抽象放大镜与空白纸张图标放在同一张黄绿双色信息卡旁边；表现核查来源与更新信息的动作，不出现虚构日期、来源名称或平台 logo。",
+      "voiceover_zh": "还要弄清楚，消息从哪儿来的。",
+      "on_screen_text_zh": "④ 查来源",
       "shot_dependencies": [
         "s07"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "sparkle",
+      "camera_direction_zh": "正面特写，手指指向空白图标",
+      "continuity_instruction_zh": "同一小桌和卡，四个检查步骤完成，但仍未表现真实商家核验成功。"
     },
     {
       "shot_id": "s09",
       "start_ms": 40000,
       "end_ms": 45000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
-      "scene_anchor": "info_cards",
-      "background_prompt_zh": "来源、最近核查时间等信息位置占位，显示字段而不伪造时间",
-      "voiceover_zh": "关键条件与信息来源，值得看清楚。",
-      "on_screen_text_zh": "信息来源｜核查时间",
+      "storybeat": "organise",
+      "scene_anchor": "comparison_cards",
+      "background_prompt_zh": "同一只奶油白毛毡小羊、深绿围巾，以第三四分之三角度把同一张黄绿卡与两张纯色无字抽象信息卡排列成整齐顺序，旁边是无字沙漏、问号、放大镜图形；仅说明信息整理步骤，没有真实优惠、确认价格或已核实标记。",
+      "voiceover_zh": "把日期、条件、来源，都放在一起看。",
+      "on_screen_text_zh": "日期｜条件｜来源",
       "shot_dependencies": [
         "s08"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "斜上方俯拍，卡片整齐展开",
+      "continuity_instruction_zh": "卡片从散乱变整齐，完成调查动作，不出现任何已验证真实数据。"
     },
     {
       "shot_id": "s10",
       "start_ms": 45000,
       "end_ms": 50000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
+      "storybeat": "choice",
       "scene_anchor": "consumer_choices",
-      "background_prompt_zh": "回顾吃喝与购物的本地消费场景，沿用同一套插画和贴纸",
-      "voiceover_zh": "从吃喝到购物，帮你少走一点弯路。",
-      "on_screen_text_zh": "吃喝｜购物｜对比",
+      "background_prompt_zh": "毛毡小羊以侧面角度，深绿色围巾保持一致，轻轻把一张信息不完整的纯色空白卡放在一旁，留下同一张黄绿卡继续查看；动作表达耐心比较而不是已成功购买，不出现付款、领券、打折或交易画面。",
+      "voiceover_zh": "不急着下手，看明白再比较。",
+      "on_screen_text_zh": "看清楚，再比较",
       "shot_dependencies": [
         "s09"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "thumbsup",
+      "camera_direction_zh": "缓慢拉远，动作收束",
+      "continuity_instruction_zh": "小羊没有买东西，只是把资料按是否值得继续核对分组，卡片未变形。"
     },
     {
       "shot_id": "s11",
       "start_ms": 50000,
       "end_ms": 55000,
       "duration_seconds": 5,
-      "storybeat": "value_demonstration",
-      "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "三张统一卡片依次排列：发现、理解、比较",
-      "voiceover_zh": "先看明白，再决定要不要出手。",
-      "on_screen_text_zh": "发现｜看明白｜再决定",
+      "storybeat": "resolution",
+      "scene_anchor": "street_collage",
+      "background_prompt_zh": "同一只奶油白针毡小羊站回原来的新西兰微缩街角，深绿围巾、棕色眼睛与身形完全一致；小羊把黄绿双色圆角卡收进随身小袋，自信微笑，画面明亮干净，有开放式未来选择而非购买成功宣称。",
+      "voiceover_zh": "好选择，不光靠运气，也靠看仔细。",
+      "on_screen_text_zh": "发现｜理解｜比较",
       "shot_dependencies": [
         "s10"
       ],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "正面远中景，温暖光线收束",
+      "continuity_instruction_zh": "回到 s01 原街角，保持人物身份与色彩不变，用轻松表情完成故事闭环。"
     },
     {
       "shot_id": "s12",
@@ -285,8 +340,8 @@
       "duration_seconds": 5,
       "storybeat": "cta",
       "scene_anchor": "brand_ident",
-      "background_prompt_zh": "CityDiscount 主标识加地图图钉、NEW ZEALAND，纯品牌收尾",
-      "voiceover_zh": "关注 CityDiscount，发现身边的好选择。",
+      "background_prompt_zh": "同一只奶油白针毡小羊戴固定深绿色围巾，在暖光毛毡微缩街角向镜头挥手；右上和底部留出干净大面积空白给后期贴上经批准的 CityDiscount 品牌标识、字幕与 CTA。背景画面不生成任何商标、文字、价格或真实店名。",
+      "voiceover_zh": "关注 CityDiscount，一起看懂本地选择。",
       "on_screen_text_zh": "关注 CityDiscount",
       "shot_dependencies": [
         "s11"
@@ -294,11 +349,35 @@
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
-        "approved_type_system"
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
       ],
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run"
+      "human_visual_review": "not_run",
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "thumbsup",
+      "camera_direction_zh": "正面定机位，末尾品牌安全区",
+      "continuity_instruction_zh": "s11 的小羊面向镜头致意；最后仅后期贴入真实已批准标识和文字，不使用模型伪造品牌 logo。"
     }
-  ]
+  ],
+  "storyline": {
+    "title_zh": "小羊差点买错了",
+    "genre": "60秒原创毛毡小羊轻喜剧式品牌故事（非优惠事实报道）",
+    "logline_zh": "新西兰街角，小羊被一张闪亮的优惠卡吸引，差点凭标题做决定；翻过卡片才发现日期和条件，学会先查看、再比较，最后遇见 CityDiscount。",
+    "dramatic_spine": [
+      "0–15秒：发现诱人卡片，差点冲动选择",
+      "15–20秒：卡片翻面，突然出现尚未核对的规则，故事反转",
+      "20–45秒：小羊检查日期、会员、限制、来源，把线索排列整齐",
+      "45–60秒：做出更清醒的选择，CityDiscount 作为消费信息入口亮相"
+    ],
+    "main_character": "一只奶油白针毡小羊、棕色眼睛、固定深绿色围巾；其外观按现有角色图片人工核验，不声称模型已使用图片",
+    "setting": "抽象化的新西兰毛毡微缩街角与桌面，辅以明亮贴纸式动态图形；不出现真实商家招牌",
+    "continuity": "同一只小羊、同一条深绿色围巾、同一张无品牌虚构信息卡；冲动拿卡→翻面→查条件→整理信息→再决定；每镜只出现本镜角色",
+    "narrator": "第三人称中文旁白，不把未验证台词伪称为已经合成的声音",
+    "brand_conflict_note": "此前 CityDiscount 漫画品牌候选与 AMEND-006 全局毛毡短剧规定可能冲突；本稿仅为首片候选，需 Owner 依 Issue #188 明确限定例外后才能真实提交/发布",
+    "offer_claims": "示例卡片一律虚构且不出现真实价格、商家、实际优惠、有效日期或伪造的来源证据",
+    "script_reviewed_by_owner": false,
+    "brand_use_approved_for_render": false
+  }
 }

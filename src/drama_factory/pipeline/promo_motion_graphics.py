@@ -57,6 +57,17 @@ def build_offline_citydiscount_promo_plan(candidate: dict) -> dict:
             or ctl.get("publish_approved") is not False
             or ctl.get("g4_exit_approved") is not False):
         raise PromoPlanError("Promo media authorization and shot format inconsistent")
+    storyline = candidate.get("storyline")
+    if (type(storyline) is not dict
+            or type(storyline.get("title_zh")) is not str
+            or not storyline["title_zh"].strip()
+            or type(storyline.get("logline_zh")) is not str
+            or not storyline["logline_zh"].strip()
+            or type(storyline.get("dramatic_spine")) is not list
+            or len(storyline["dramatic_spine"]) != 4
+            or storyline.get("script_reviewed_by_owner") is not False
+            or storyline.get("brand_use_approved_for_render") is not False):
+        raise PromoPlanError("Missing or prematurely approved story arc")
     ordered = []
     seen = set()
     for i, shot in enumerate(shots):
@@ -84,12 +95,33 @@ def build_offline_citydiscount_promo_plan(candidate: dict) -> dict:
         if (type(shot.get("asset_roles")) is not list
                 or "approved_citydiscount_brand_identity" not in shot["asset_roles"]):
             raise PromoPlanError("Brand reference cannot be replaced by text alone")
+        view = shot.get("mascot_camera_view")
+        action = shot.get("mascot_expression_or_action_hint")
+        camera = shot.get("camera_direction_zh")
+        continuity = shot.get("continuity_instruction_zh")
+        valid_views = {"front", "side", "back", "three_quarter"}
+        valid_actions = valid_views | {
+            "happy", "wink", "sparkle", "jump", "thumbsup", "coin"
+        }
+        if (view not in valid_views or action not in valid_actions
+                or type(camera) is not str or not camera.strip()
+                or type(continuity) is not str or not continuity.strip()
+                or shot.get("storybeat") != (
+                    {0: "hook", 3: "reversal", 10: "resolution",
+                     11: "cta"}.get(i, shot.get("storybeat"))
+                )):
+            raise PromoPlanError("Incomplete visual continuity or dramatic turn")
         # Explicitly keep source-image prompt and guaranteed later text overlay apart:
         # generated video model has no need to render logotypes or Chinese text.
         ordered.append({
             "shot_id": sid, "start_ms": shot["start_ms"],
             "end_ms": shot["end_ms"],
             "scene_anchor": shot["scene_anchor"],
+            "storybeat": shot["storybeat"],
+            "mascot_camera_view": view,
+            "mascot_expression_or_action_hint": action,
+            "camera_direction_zh": camera,
+            "continuity_instruction_zh": continuity,
             "depends_on": deps,
             "video_background_prompt": shot["background_prompt_zh"],
             "postproduction_overlay_text": shot["on_screen_text_zh"],
@@ -103,6 +135,10 @@ def build_offline_citydiscount_promo_plan(candidate: dict) -> dict:
         "schema": "g4-citydiscount-promo-offline-plan.v1",
         "campaign_id": candidate["campaign_id"],
         "source_sha256": _canonical_sha(candidate),
+        "story_title_zh": storyline["title_zh"],
+        "story_logline_zh": storyline["logline_zh"],
+        "dramatic_spine": list(storyline["dramatic_spine"]),
+        "script_reviewed_by_owner": False,
         "purpose": "brand_first_motion_graphics",
         "shot_count": len(ordered), "duration_seconds": 60,
         "shots": ordered, "approval_gate": "blocked_pending_brand_assets_and_real_provider",

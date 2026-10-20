@@ -1,3 +1,13 @@
+# 2026-10-21 G4 / R4.4：CityDiscount 60 秒真实故事线与 12 镜制作稿（本 PR）
+
+**当前 G4 NOT_READY / G5 禁止。** 首片创意不再仅为 12 张营销说明卡：已改写 `config/pilots/citydiscount_first_promo_v1.json` 的**第二次创意修订**，主人公为 Owner 已反馈满意的奶油白深绿围巾小羊。60s 12×5s 原接口仍在，新增故事弧：0–15s 冲动发现 → 15–20s 卡片翻面/条件反转 → 20–45s 核对日期/门槛/限制/来源 → 45–60s 清醒选择和品牌结尾。每镜补齐摄影视角（来自已入库四角度源角色）、动作提示、拍摄指导、连续性、短旁白和 FFmpeg 后期字幕，真实优惠/日期/商家价格一律不编造。
+
+**实际可读制作单**：`docs/CITYDISCOUNT_FIRST_FILM_STORY.md`；权威内容还是既有 JSON，`promo_motion_graphics.py` 现在带出完整剧情弧、镜头指引到原离线计划，不写新的渲染管线。最小 CI 测试证明故事转折、4 摄影视角/10 PNG 角色、无媒体审批、改稿 invalidates source SHA。真实视频/旁白仍没有新生成。
+
+**下一步**：交 Owner 审批故事；优先小成本试 `s04` 翻卡镜头的真实效果，必须独立核对外部多图 API/价钱/素材权利/治理冲突（#188、#210）。Owner 已给总预算单次 ≤ USD 2、新西兰自然日累计 ≤ USD 5，但这不是实际运行回执，不是个人素材可外传的法律证明。CI/PR 未全绿前不得合并；本轮 0 新 paid calls，0 USD。
+
+---
+
 # 2026-10-21 G4 / R4.4：已审 W2 版本 → 实际 SQLite SeriesAsset → 图片候选记录（PR #213）
 
 本轮在现有 `local_reference_views.build_unapproved_shot_image_review` 增加可选 **read-only SQLite** 校验，先确认选定 Series 的每个 actor 和 scene 的真实数据库 `id/kind/version/specification_json SHA256` 与 W2 已锁定版本完全一致，再读取对应本地 PNG 字节。旧的不带 DB 测试路径保持兼容，但回执明确记为 `series_asset_sqlite_pins_verified=false`，不能再把测试清单冒充真实数据库版本。
