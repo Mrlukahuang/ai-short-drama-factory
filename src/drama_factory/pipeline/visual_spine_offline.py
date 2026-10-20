@@ -8,6 +8,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from drama_factory.pipeline.screenplay import Screenplay
+from drama_factory.pipeline.screenplay_visual_bridge import plan_screenplay_visual_references
+
 from drama_factory.pipeline.visual_production_plan import build_visual_production_plan
 from drama_factory.pipeline.visual_keyframe_graph import build_keyframe_graph, shot_frame_entry
 from drama_factory.pipeline.omni_media_envelope import (
@@ -26,16 +29,38 @@ def fake_episode_visual_replay(
     first_frame_required: bool = False,
     capability: OmniMediaCapability | None = None,
     now_epoch: int | None = None,
+    reviewed_screenplay: Screenplay | None = None,
 ) -> dict:
     """Execute a full 12-shot dry-run with actual local PNG byte validation.
 
     No Base64 or private paths are returned; receipts may be stored without
     exposing images. All billing/network/real-video outcomes remain null.
+    If supplied, a typed reviewed screenplay must match the complete W2 shot
+    order, cast, scene and deterministic continuity before any media is read.
     """
+    reviewed_plan = None
+    if reviewed_screenplay is not None:
+        if (not isinstance(reviewed_screenplay, Screenplay)
+                or type(w2_manifest) is not dict
+                or [s.shot_id for s in reviewed_screenplay.shots]
+                != w2_manifest.get("selected_shot_ids")
+                or type(shot_specs) is not dict
+                or any(type(spec) is not dict
+                       or type(spec.get("actor_views")) is not dict
+                       or type(spec.get("prop_pins")) is not list
+                       for spec in shot_specs.values())):
+            raise MediaAdmissionError("Reviewed screenplay shot scope mismatch")
+        reviewed_plan = plan_screenplay_visual_references(
+            reviewed_screenplay, w2_manifest, gallery,
+            actor_views={sid: spec["actor_views"] for sid, spec in shot_specs.items()},
+            prop_pins={sid: spec["prop_pins"] for sid, spec in shot_specs.items()},
+        )
     plan = build_visual_production_plan(
         w2_manifest, shot_specs, gallery,
         max_images_per_shot=(capability or OmniMediaCapability()).max_reference_images,
     )
+    if reviewed_plan is not None and reviewed_plan["plan_sha256"] != plan["plan_sha256"]:
+        raise MediaAdmissionError("Reviewed screenplay continuity or media pins mismatch")
     ids = [row["shot_id"] for row in plan["shots"]]
     if (type(prompts) is not dict or set(prompts) != set(ids)
             or type(grants_by_shot) is not dict or set(grants_by_shot) != set(ids)
