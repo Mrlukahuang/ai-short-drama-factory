@@ -56,18 +56,22 @@ def _case(tmp_path, cast_count, shot_count, series_id):
     plan = plan_screenplay_visual_references(
         screenplay, manifest, gallery, actor_views=views, prop_pins=props,
     )
-    # The FND-03 last frame of s01 may become the same-scene first frame of s02.
+    # An approved last frame is only allowed alongside an approved first frame.
+    # The s01 last frame may be inherited as the same-scene s02 first frame.
+    first_path = folder / "s01_first.png"
     last_path = folder / "s01_last.png"
+    first_sha = _image(first_path, series_id + "-first-frame")
     last_sha = _image(last_path, series_id + "-last-frame")
+    paths[first_sha] = first_path
     paths[last_sha] = last_path
     reviewed_frames = [{
         "shot_id": "s01",
-        "kind": "last",
+        "kind": role,
         "scene_id": manifest["shots"][0]["scene_id"],
-        "png_sha256": last_sha,
+        "png_sha256": sha,
         "human_reviewed": True,
         "reviewer": "SYNTHETIC_TEST_ONLY",
-    }]
+    } for role, sha in (("first", first_sha), ("last", last_sha))]
     graph = build_keyframe_graph(plan, reviewed_frames, first_frame_required=False)
     grants = {}
     for shot in plan["shots"]:
@@ -117,7 +121,8 @@ def test_two_distinct_series_reach_fake_provider_without_network(tmp_path, monke
         assert '"data":' not in json.dumps(data)
         assert "SYNTHETIC_TEST_ONLY" not in json.dumps(data)
     # An explicitly declared dependency inherits the previous reviewed end frame.
-    assert first["shots"][0]["request"]["media"][0]["role"] == "last_frame"
+    assert [m["role"] for m in first["shots"][0]["request"]["media"][:2]] == [
+        "first_frame", "last_frame"]
     assert first["shots"][1]["request"]["media"][0]["role"] == "first_frame"
     assert first == _replay(a) and second == _replay(b)
 
