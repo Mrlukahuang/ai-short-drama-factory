@@ -1,3 +1,11 @@
+# 2026-10-21 G4 / R4.4：已审 W2 版本 → 实际 SQLite SeriesAsset → 图片候选记录（PR #213）
+
+本轮在现有 `local_reference_views.build_unapproved_shot_image_review` 增加可选 **read-only SQLite** 校验，先确认选定 Series 的每个 actor 和 scene 的真实数据库 `id/kind/version/specification_json SHA256` 与 W2 已锁定版本完全一致，再读取对应本地 PNG 字节。旧的不带 DB 测试路径保持兼容，但回执明确记为 `series_asset_sqlite_pins_verified=false`，不能再把测试清单冒充真实数据库版本。
+
+使用已有 `build_bound_screenplay_video_plan` 创建真正 SQLite W2 manifest，并读取本地合成 PNG 的双演员 6 镜正/负例；伪版本、变更资产规格、串资产类别、外部数据库、图片先读等均阻断。**生产环境真实 Series 数据库仍需运营方指定并人工核查；这不是证明 Owner 实际生产 SQLite 已经登记小羊。** 无 DB 写入、新迁移、外部请求、权限自动升级或真实视频生成。需以 CI 和合并回执验证结果。#210 四视角/权利审批未完成，G4 NOT_READY / G5 禁止。
+
+---
+
 # 2026-10-21 增量：EpisodeDraft.reference_asset_ids → 版本化 FND 视觉计划 → Fake Provider 凭据
 
 **Stage: G4 / Req: R4.4 / G4 NOT_READY。** 在现有 `screenplay_visual_bridge.py` 引入可选、严格的 `EpisodeDraft` 引用列表校验：每镜引用必须按已审 Screenplay 的在镜演员 + W2 绑定场景 + 锁定道具精确排序；不得删、加、调序，不得改变原镜对白/动作，也不得给不在选择范围的镜头附加引用。原有兼容路径保持不变。
