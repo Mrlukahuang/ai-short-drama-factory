@@ -1,0 +1,127 @@
+{
+  "schema": "g4-local-operator-image-inventory.v1",
+  "stage": "G4",
+  "requirement": "R4.4",
+  "series_fixture": "citydiscount",
+  "local_relative_folder": "assets/citydiscount/v1/character_views",
+  "source": "owner_mac_file_listing_2026-10-20",
+  "binary_bytes_committed": false,
+  "images_content_verified_by_ci": false,
+  "model_submission_allowed": false,
+  "rights_independently_verified": false,
+  "operator_approved_for_model": false,
+  "roles": {
+    "front": "actor_view",
+    "side": "actor_view",
+    "back": "actor_view",
+    "three_quarter": "actor_view",
+    "happy": "expression",
+    "wink": "expression",
+    "sparkle": "expression",
+    "jump": "action",
+    "thumbsup": "action",
+    "coin": "action"
+  },
+  "images": [
+    {
+      "role": "back",
+      "filename": "mascot_back_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "454b168afdebc4094fce3d6dc3c16729bf2e00c0bb220b885d3a2fa231e84a6e",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "coin",
+      "filename": "mascot_coin_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "d2452a6f536656f5e628a5eaf0b0990102af66372baa49c6041e5ce9be600900",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "front",
+      "filename": "mascot_front_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "c29877e8c46be3ea1cfe27d23979213b37d690514b1a755fcfeb62e1648a1489",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "happy",
+      "filename": "mascot_happy_derived.png",
+      "width": 1205,
+      "height": 1305,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "0f30b3a5b1b7cd2b23945e9881b30f3f4e0cd9f509f5bc96a3e78fd1ff22faed",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "jump",
+      "filename": "mascot_jump_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "8b2f8f0aae8135e5cdc2fcabbce73995167d56ce683fdf97958ca5ffe525c491",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "side",
+      "filename": "mascot_side_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "0a6258e1d2b4f25444267d5b87ffebf1ce60121cfe06cf6c091b5dcfc032db68",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "sparkle",
+      "filename": "mascot_sparkle_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "d5e88f46c50bbd89ba4d3b9021e1672e69c199cd90f63414f44172aca15d7635",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "three_quarter",
+      "filename": "mascot_three_quarter_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "622339d1c5c4f167a9ec0e06c150bac70755ddacf5664dc5551eda8f143034c4",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "thumbsup",
+      "filename": "mascot_thumbsup_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "e943245032173f0895862dc158ecf373df65f54723aa6b8769d0939d2806bbff",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    },
+    {
+      "role": "wink",
+      "filename": "mascot_wink_derived.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "format": "PNG",
+      "source_sha256": "dda2a7e4f61c4d653fa63651e1f3e9c09f7b2a0a66bd73489f62384783c38133",
+      "verification": "owner_local_pillow_and_sha_report_only"
+    }
+  ]
+}
