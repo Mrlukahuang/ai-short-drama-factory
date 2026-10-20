@@ -14,3 +14,21 @@ The logo original SHA256 was previously checked: `19a6202331db9853d384ddabd30fbd
 **Purpose:** these are input fixtures to test the **existing reusable drama/video factory** asset intake → StoryBible → Screenplay → media references → VideoProvider → audio/FFmpeg/QA. No CityDiscount-only renderer, no production UI/service.
 
 **Permission:** repository upload and use as local engineering test fixtures do not independently prove broad content rights or give permission to transfer image bytes to Google/other video models. Actual provider calls, fees, publication, and G4 graduation require separate checks/approvals. No release claims can be made from this directory.
+
+
+## Operator-selected V1 camera and expression references (2026-10-20)
+
+Ten original, distinct RGBA PNG files are now versioned under `character_views/`.
+`character_views_inventory.json` pins exact SHA256, source dimensions and
+role for each of four camera angles and six action/expression states.
+`tests/test_g4_local_image_inventory.py` verifies checked-out **actual bytes**
+against those pins, decodes each PNG, and validates its separate derived
+RGB sanitized reference through the existing FND-02 media byte gate.
+
+Source image SHA256 and normalized RGB PNG SHA256 are **different** digests;
+neither is a signed legal rights declaration. Filenames and hashes do not
+independently prove that a pose visually matches its declared angle, that
+the pictures were cropped directly from the original sheet, or that an
+external model may receive any media. Before real video calls, a trusted
+operator must visually confirm view semantics, image rights, and obtain
+the existing signed per-shot media authorization. No auto-grant in CI.
