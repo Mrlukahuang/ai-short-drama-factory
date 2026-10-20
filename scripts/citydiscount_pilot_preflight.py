@@ -45,36 +45,73 @@ def _hash(path: Path) -> str:
 
 def inspect_owner_assets(campaign: dict, asset_manifest: dict,
                          asset_dir: Path) -> list[dict]:
+    """Git-tree-pinned fixture intake; does not grant remote model rights.
+
+    SHA256 for a newly uploaded 2MB+ image is computed from real checked-out
+    bytes. Git's SHA1 identifies the user-approved revision; no old-image
+    SHA256 may be substituted before byte readback.
+    """
     if (asset_manifest.get("schema") != "g4-citydiscount-owner-supplied-assets.v1"
             or asset_manifest.get("remote_model_use_granted") is not False
-            or asset_manifest.get("github_original_binary_upload_status") != "NOT_VERIFIED_NOT_COMMITTED"
+            or asset_manifest.get("github_original_binary_upload_status")
+                != "UPLOADED_TO_PR_BRANCH_SHA256_PENDING_LOCAL_READBACK"
             or type(asset_manifest.get("assets")) is not list
             or len(asset_manifest["assets"]) != 2
             or not isinstance(asset_dir, Path)):
         raise CityDiscountPilotGateError("Unknown or falsely approved asset manifest")
     style = campaign["style"]
     expected = {
-        "citydiscount-mascot-v1": style["mascot_source_sha256"],
-        "citydiscount-logo-v1": style["logo_source_sha256"],
+        "citydiscount-mascot-v1": (style["mascot_source_sha256"],
+                                   style["mascot_git_blob_sha1"]),
+        "citydiscount-logo-v1": (style["logo_source_sha256"], None),
     }
-    if set(a.get("asset_id") for a in asset_manifest["assets"]) != set(expected):
+    if {a.get("asset_id") for a in asset_manifest["assets"]} != set(expected):
         raise CityDiscountPilotGateError("Mascot/logo asset identity mismatch")
     validated = []
     for row in asset_manifest["assets"]:
         aid = row["asset_id"]
-        if row.get("sha256") != expected[aid]:
-            raise CityDiscountPilotGateError("Campaign uses different asset version")
+        known_sha, known_blob = expected[aid]
+        if (row.get("sha256") != known_sha or
+                (known_blob is not None and row.get("github_blob_sha1") != known_blob)):
+            raise CityDiscountPilotGateError("Campaign asset pin mismatch")
         filename = Path(row.get("repo_target", "")).name
-        if filename not in ("mascot_character_sheet.png", "citydiscount_logo.png"):
-            raise CityDiscountPilotGateError("Unknown canonical original asset name")
+        if filename not in ("mascot_character_sheet_v1.png", "citydiscount_logo_v1.png"):
+            raise CityDiscountPilotGateError("Unknown verified upload name")
         local = asset_dir / filename
         if (asset_dir.is_symlink() or local.is_symlink() or not local.is_file()
                 or local.stat().st_size != row["size_bytes"]
-                or _hash(local) != row["sha256"]):
-            raise CityDiscountPilotGateError("Required original source PNG is unavailable or mutated")
+                or local.stat().st_size > 8 * 1024 * 1024):
+            raise CityDiscountPilotGateError("Required uploaded source PNG unavailable or mutated")
+        data = local.read_bytes()
+        git_blob = hashlib.sha1(
+            b"blob " + str(len(data)).encode("ascii") + b"\\0" + data
+        ).hexdigest()
+        if git_blob != row.get("github_blob_sha1"):
+            raise CityDiscountPilotGateError("Uploaded file differs from pinned Git revision")
+        actual_sha = hashlib.sha256(data).hexdigest()
+        if known_sha is not None and actual_sha != known_sha:
+            raise CityDiscountPilotGateError("Uploaded file SHA256 mismatch")
+        try:
+            from io import BytesIO
+            from PIL import Image
+            with Image.open(BytesIO(data)) as img:
+                if img.format != "PNG" or getattr(img, "n_frames", 1) != 1:
+                    raise ValueError("Unexpected image")
+                width, height = img.size
+                if width < 1 or height < 1 or width * height > 12_000_000:
+                    raise ValueError("Oversized image")
+                img.verify()
+        except (OSError, ValueError):
+            raise CityDiscountPilotGateError("Invalid uploaded PNG image") from None
+        if ((row.get("pixel_width") is not None and row["pixel_width"] != width)
+                or (row.get("pixel_height") is not None and row["pixel_height"] != height)):
+            raise CityDiscountPilotGateError("Image dimensions differ from pinned version")
         validated.append({
-            "asset_id": aid, "sha256": row["sha256"], "source_bytes": row["size_bytes"],
-            "source_binary_verified_locally": True, "remote_model_use_approved": False,
+            "asset_id": aid, "sha256": actual_sha,
+            "git_blob_sha1": git_blob,
+            "source_bytes": len(data),
+            "source_binary_verified_locally": True,
+            "remote_model_use_approved": False,
         })
     return validated
 
@@ -89,6 +126,7 @@ def preflight(campaign: dict, assets: dict, assets_dir: Path) -> dict:
     for shot in campaign["shots"]:
         if (shot.get("character_id") != "citydiscount-mascot-v1"
                 or shot.get("character_reference_sha256") != campaign["style"]["mascot_source_sha256"]
+                or shot.get("character_reference_git_blob_sha1") != campaign["style"]["mascot_git_blob_sha1"]
                 or shot.get("brand_logo_reference_sha256") != campaign["style"]["logo_source_sha256"]):
             raise CityDiscountPilotGateError("Shot differs from pinned canonical mascot or logo")
     verified = inspect_owner_assets(campaign, assets, assets_dir)
