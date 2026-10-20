@@ -2,7 +2,7 @@
   "schema_version": "g4-citydiscount-first-promo.v1",
   "project": "CityDiscount",
   "campaign_id": "citydiscount-nz-first-brand-promo",
-  "revision": 2,
+  "revision": 3,
   "stage": "G4",
   "req": "R4.4",
   "purpose": "first_real_video_target_brand_promo",
@@ -16,63 +16,78 @@
     "fps_target": 30
   },
   "primary_audience": "新西兰本地华语消费人群",
-  "positioning": "本地优惠和消费选择的资讯整理、条件说明与对比，不是领券App或商家官方合作平台",
+  "positioning": "CityDiscount 主动替奥克兰居民寻找、核查条件并整理本地优惠资讯，帮大家节省搜索时间；不保证任何虚构优惠真实有效或确定的省钱金额。",
   "style": {
-    "id": "citydiscount_pop_art_candidate_v1",
-    "description": "沿用 CityDiscount 明亮漫画/贴纸式候选美术与后期定版文字，但主人公为同一只奶油白毛毡小羊（深绿色围巾）；固定毛毡微缩新西兰街角、暖光与贴纸视觉语言；图片仍需独立来源授权，不让生成模型画中文或假品牌商标",
-    "brand_visual_asset_sha256": null,
+    "id": "felt_diorama_citydiscount_treasure_hunt",
+    "description": "Owner指定：统一毛毡玩偶与奥克兰微缩城市场景、纤维与缝线清楚可见、自然暖光、轻微定格动作、温暖有趣寻宝冒险。吉祥物原外观不变；奥克兰天空塔、海港大桥、海湾、帆船分散出现。品牌文字/Logo、金币正面 CD 由可靠资产及后期定版确保，不信任生成模型拼字。",
+    "brand_visual_asset_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
     "style_asset_approved": false,
     "legacy_felt_diorama_global_default_unchanged": true
   },
   "controls": {
-    "sound": "Chinese original narration candidate; native speech fidelity not_verified; exact external TTS/use requires separate approval",
-    "headlines_and_brand_overlay": "compose in deterministic postprocess with approved typography; do not ask generative video to invent Chinese lettering or price",
+    "sound": "已由 Owner 提供的逐镜中文旁白与环境音指令；未生成真实配音。可用非语言小羊音效，音乐用木琴/尤克里里/拨弦等；旁白前置、音乐压低。",
+    "headlines_and_brand_overlay": "真实 Logo 与屏幕文字和 CD 金币正面标记，使用通过权利和资产精确校验后的原始素材在后期确定性定版；不得依赖模型准确拼出商标/汉字/金币字样。",
     "brand_name_claim": "CityDiscount 是内容资讯品牌，未证实领券、商家独家权益或App",
     "third_party_logos_and_trademarks": "must_be_rights_cleared",
-    "real_price_or_offer_terms": "forbidden_without_a dated verified primary source and per-shot approval",
+    "real_price_or_offer_terms": "只允许示意卡片；出现真实商家、价格、折扣幅度、实际活动时须逐条验真和单独素材许可。",
     "media_rights_and_remote_upload": "not_approved",
     "model_calls": 0,
     "real_paid_call_authorized": false,
     "publish_approved": false,
     "g4_exit_approved": false
   },
-  "source_context": "Owner message 2026-10-20: 首片由毛毡茶馆叙事改为CityDiscount宣传片。所含广告词是待审创意，并非核实的当前商家优惠。",
+  "source_context": "Owner supplied complete titled CityDiscount promo film script: 60s/12x5s, Auckland felt miniature treasure hunt, family weekend savings, original mascot, correct CD coin mark and final logo 3s. Creative owner-authored brief; execution/posting approvals stay separate.",
   "shots": [
     {
       "shot_id": "s01",
       "start_ms": 0,
       "end_ms": 5000,
       "duration_seconds": 5,
-      "storybeat": "hook",
-      "scene_anchor": "street_collage",
-      "background_prompt_zh": "一只奶油白针毡小羊，棕色眼睛、固定深绿色围巾，站在无商标的新西兰毛毡微缩街角。一张没有真实价格、数字或文字的闪亮虚构消费信息卡随风飘来，小羊抬头好奇，暖光与简洁漫画贴纸图形。画面内无字、无商标。",
-      "voiceover_zh": "一张看起来超划算的卡片，小羊心动了。",
-      "on_screen_text_zh": "看起来很划算？",
+      "shot_title_zh": "钱包的小烦恼",
+      "storybeat": "setup",
+      "scene_anchor": "felt_family_home",
+      "owner_visual_direction_zh": "毛毡小家里，一家人铺开周末清单：买菜、吃饭、出去玩。打开钱包，里面只有几枚金币，金币正面清楚带着 CD 标记。大家看看清单，再看看钱包。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。毛毡小家里，一家人铺开周末清单：买菜、吃饭、出去玩。打开钱包，里面只有几枚金币，金币面正面保留干净占位待后期准确叠加 CD 标识。大家看看清单，再看看钱包。",
+      "voiceover_zh": "在奥克兰，想把日子过丰富，钱包却总得算一算。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [],
       "asset_roles": [
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
         "approved_type_system",
-        "existing_mascot_png_pending_independent_media_authorization"
+        "family_design_pending"
       ],
+      "visible_roles": [
+        "family"
+      ],
+      "mascot_camera_view": null,
+      "mascot_expression_or_action_hint": null,
+      "camera_direction_zh": "桌面近景切钱包特写，停顿在 CD 标记金币",
+      "continuity_instruction_zh": "周末清单、钱包、统一的 CD 字样毛毡金币；下一镜吉祥物从同一桌沿登场",
+      "sfx_cues_zh": [
+        "摊开清单",
+        "钱包轻响"
+      ],
+      "music_beat_zh": "小烦恼：木琴稀疏节奏",
+      "coin_mark_required": true,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "front",
-      "mascot_expression_or_action_hint": "happy",
-      "camera_direction_zh": "低机位中景，轻缓推镜",
-      "continuity_instruction_zh": "小羊在街角首次看见尚未捡起的虚构卡片；卡片颜色和形状锁定为黄绿双色圆角卡。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s02",
       "start_ms": 5000,
       "end_ms": 10000,
       "duration_seconds": 5,
-      "storybeat": "rising_action",
-      "scene_anchor": "consumer_choices",
-      "background_prompt_zh": "同一只奶油白针毡小羊与同一条深绿色围巾，从毛毡街角走向悬浮的黄绿双色圆角无字卡，几张无商标食物和日用品插画作为抽象选择飘过；小羊踮脚接近卡片。保持角色五官、比例和配色不变，画面不生成任何文字。",
-      "voiceover_zh": "它差点只看封面，就做决定。",
-      "on_screen_text_zh": "只看标题就决定？",
+      "shot_title_zh": "寻宝员出发",
+      "storybeat": "mission",
+      "scene_anchor": "felt_family_home",
+      "owner_visual_direction_zh": "CityDiscount 吉祥物从桌边探出头，接住快要垂到地上的清单。它背上小包、拿起折扣探测器，胸前露出品牌 Logo，精神十足地出门。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。原有 CityDiscount 吉祥物从桌边探出头，接住快要垂到地上的清单。它背上小包、拿起折扣探测器，胸前有品牌标志后期贴图区域，精神十足地出门。",
+      "voiceover_zh": "找折扣这件事，交给 CityDiscount。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s01"
       ],
@@ -80,26 +95,41 @@
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
         "approved_type_system",
-        "existing_mascot_png_pending_independent_media_authorization"
+        "existing_mascot_png_pending_independent_media_authorization",
+        "family_design_pending"
       ],
+      "visible_roles": [
+        "mascot",
+        "family"
+      ],
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "桌沿低机位跟拍背包与探测器，小羊踏出门框",
+      "continuity_instruction_zh": "接上同一家庭清单；背包、探测器、胸前 CityDiscount Logo 须保持后续一致",
+      "sfx_cues_zh": [
+        "背包扣合",
+        "毛毡脚步"
+      ],
+      "music_beat_zh": "出发：拨弦渐快",
+      "coin_mark_required": false,
+      "logo_placement": "mascot_chest",
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "three_quarter",
-      "mascot_expression_or_action_hint": "jump",
-      "camera_direction_zh": "半侧身跟拍，轻快平移",
-      "continuity_instruction_zh": "接上一镜同一张黄绿圆角卡，卡片仍未翻面，小羊动作从好奇进入冲动。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s03",
       "start_ms": 10000,
       "end_ms": 15000,
       "duration_seconds": 5,
-      "storybeat": "rising_action",
-      "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "同一只深绿围巾的奶油白毛毡小羊侧脸，伸出小羊蹄即将拿起黄绿双色圆角虚构无字卡，卡片表面只有明亮几何图形，没有任何商家、价格、日期或商标。短暂悬停定格，有轻喜剧节奏。",
-      "voiceover_zh": "可它刚伸出手，就发现不对劲。",
-      "on_screen_text_zh": "等等！",
+      "shot_title_zh": "奥克兰藏着宝",
+      "storybeat": "city_map",
+      "scene_anchor": "auckland_felt_map",
+      "owner_visual_direction_zh": "镜头拉开：整座奥克兰是一张立体毛毡地图。天空塔、海港大桥、帆船和海湾依次出现。吉祥物站在地图前，探测器突然亮起，几个角落闪出小光点。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。镜头拉开：整座奥克兰是一张立体毛毡地图。天空塔、海港大桥、帆船和海湾依次出现。吉祥物站在地图前，探测器突然亮起，几个角落闪出小光点。",
+      "voiceover_zh": "我们跑遍城市，寻找藏在日常里的好优惠。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s02"
       ],
@@ -109,24 +139,37 @@
         "approved_type_system",
         "existing_mascot_png_pending_independent_media_authorization"
       ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "sparkle",
+      "camera_direction_zh": "由小羊背后升高到奥克兰微缩城市全景，逐个露出地标",
+      "continuity_instruction_zh": "地图朝向与天空塔/海港大桥/海湾和帆船空间关系固定；光点引到超市",
+      "sfx_cues_zh": [
+        "探测器滴滴",
+        "微弱闪光"
+      ],
+      "music_beat_zh": "寻宝开始：轻快木琴",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "side",
-      "mascot_expression_or_action_hint": "thumbsup",
-      "camera_direction_zh": "侧面近景，停顿一拍",
-      "continuity_instruction_zh": "卡片从空中靠近手边，镜头结束前一秒停住；为下一镜翻面埋钩子。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s04",
       "start_ms": 15000,
       "end_ms": 20000,
       "duration_seconds": 5,
-      "storybeat": "reversal",
-      "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "仍是同一张黄绿圆角虚构卡，缓缓翻到背面，只有没有数字的沙漏、钥匙孔、问号三个图形图标；同一只深绿色围巾的奶油白小羊向后一愣，眼睛睁大。所有图标仅作抽象提示，不指代真实优惠条件，禁止在视频背景里生成文字。",
-      "voiceover_zh": "原来卡片背面，还有一堆条件！",
-      "on_screen_text_zh": "优惠也有条件",
+      "shot_title_zh": "第一站，买菜",
+      "storybeat": "hunt_groceries",
+      "scene_anchor": "felt_supermarket",
+      "owner_visual_direction_zh": "吉祥物钻进毛毡超市货架之间，探测器“滴滴”响。它拨开一片巨大的毛毡菜叶，发现藏在后面的折扣标签，认真记进小本子。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。吉祥物钻进毛毡超市货架之间，探测器“滴滴”响。它拨开一片巨大的毛毡菜叶，发现藏在后面的折扣标签，认真记进小本子。",
+      "voiceover_zh": "一篮新鲜，找找更划算的买法。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s03"
       ],
@@ -136,24 +179,38 @@
         "approved_type_system",
         "existing_mascot_png_pending_independent_media_authorization"
       ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "货架低机位平移，菜叶遮挡转场至优惠示意标签",
+      "continuity_instruction_zh": "探测器、背包、记录本同款；折扣标签仅示意，不含具体未核实商家及金额",
+      "sfx_cues_zh": [
+        "探测器滴滴",
+        "毛毡菜叶沙沙",
+        "记录本翻页"
+      ],
+      "music_beat_zh": "发现线索：短亮音",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "three_quarter",
-      "mascot_expression_or_action_hint": "wink",
-      "camera_direction_zh": "卡片特写切角色反应近景",
-      "continuity_instruction_zh": "s03 定格的那张卡在 s04 翻面；首次出现三个抽象条件图标，构成故事反转。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s05",
       "start_ms": 20000,
       "end_ms": 25000,
       "duration_seconds": 5,
-      "storybeat": "investigation",
-      "scene_anchor": "info_cards",
-      "background_prompt_zh": "毛毡小羊正面固定深绿围巾，手持同一张翻面的黄绿圆角无字卡，用放大镜看抽象空白日历与沙漏图标；温暖桌面微缩场景，绝不生成实际日期或文字。",
-      "voiceover_zh": "第一件事，看看日期还算不算数。",
-      "on_screen_text_zh": "① 查日期",
+      "shot_title_zh": "第二站，美食",
+      "storybeat": "hunt_food",
+      "scene_anchor": "felt_corner_cafe",
+      "owner_visual_direction_zh": "街角咖啡店冒着毛线做的热气。吉祥物踮脚查看柜台，又绕到菜单旁，找到一个餐饮优惠。它开心地盖下一个小小的“发现”印章。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。街角咖啡店冒着毛线做的热气。吉祥物踮脚查看柜台，又绕到菜单旁，找到一个餐饮优惠。它开心地盖下一个小小的待后期定版的印章。",
+      "voiceover_zh": "一顿好吃，也值得替你多找一找。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s04"
       ],
@@ -163,24 +220,37 @@
         "approved_type_system",
         "existing_mascot_png_pending_independent_media_authorization"
       ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "thumbsup",
+      "camera_direction_zh": "街角咖啡店中景接柜台特写，盖章时快速切近景",
+      "continuity_instruction_zh": "同一折扣探测器与小本子；菜单图案不包含虚构具体价格或真实商家",
+      "sfx_cues_zh": [
+        "毛线蒸汽轻响",
+        "盖章声"
+      ],
+      "music_beat_zh": "盖章：明亮短音",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "front",
-      "mascot_expression_or_action_hint": "front",
-      "camera_direction_zh": "俯拍卡片与小羊抬头，慢推",
-      "continuity_instruction_zh": "小羊将 s04 的背面卡放到街角小桌上，开始逐项检查，卡片不能换色。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s06",
       "start_ms": 25000,
       "end_ms": 30000,
       "duration_seconds": 5,
-      "storybeat": "investigation",
-      "scene_anchor": "info_cards",
-      "background_prompt_zh": "同一只奶油白毛毡小羊、深绿围巾，在同一毛毡小桌边侧身查看同一张黄绿无字卡，抬起一个抽象钥匙形状的几何图标，表现有些选择需要资格；不显示会员服务真实条款或品牌名称。",
-      "voiceover_zh": "第二件事，有没有资格要求？",
-      "on_screen_text_zh": "② 看门槛",
+      "shot_title_zh": "第三站，购物",
+      "storybeat": "hunt_shopping",
+      "scene_anchor": "felt_shops",
+      "owner_visual_direction_zh": "吉祥物沿着商店橱窗一路寻找，忽然被折扣探测器拉向一堆柔软的购物袋。它翻出优惠卡，拿着小放大镜查看日期和条件。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。吉祥物沿着商店橱窗一路寻找，忽然被折扣探测器拉向一堆柔软的购物袋。它翻出优惠卡，拿着小放大镜查看日期和条件。",
+      "voiceover_zh": "发现优惠，再把条件看清楚。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s05"
       ],
@@ -190,24 +260,38 @@
         "approved_type_system",
         "existing_mascot_png_pending_independent_media_authorization"
       ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "wink",
+      "camera_direction_zh": "街边跟拍转购物袋特写，再切放大镜细看示意卡",
+      "continuity_instruction_zh": "保持小放大镜、背包与探测器一致；日期/条件只用抽象符号不伪造事实",
+      "sfx_cues_zh": [
+        "探测器提示音",
+        "购物袋摩擦",
+        "放大镜轻触"
+      ],
+      "music_beat_zh": "放慢一拍强调审慎",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "side",
-      "mascot_expression_or_action_hint": "side",
-      "camera_direction_zh": "小幅侧向推轨",
-      "continuity_instruction_zh": "保持同一张小桌与黄绿卡，小羊从日期线索移向资格线索。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s07",
       "start_ms": 30000,
       "end_ms": 35000,
       "duration_seconds": 5,
-      "storybeat": "investigation",
-      "scene_anchor": "info_cards",
-      "background_prompt_zh": "从背后看同一只奶油白针毡小羊，深绿围巾背面连贯，正在同一桌前比对黄绿圆角卡上的抽象边界符号和问号图形；留白明显，卡片无字，不捏造有效范围或限制条件。",
-      "voiceover_zh": "第三件事，还有哪些使用限制？",
-      "on_screen_text_zh": "③ 看限制",
+      "shot_title_zh": "第四站，出去玩",
+      "storybeat": "hunt_outing",
+      "scene_anchor": "felt_harbour",
+      "owner_visual_direction_zh": "海港边，背景可见大桥与帆船。吉祥物追着光点绕过长椅，在一张周末活动海报后找到新的优惠卡，开心地举过头顶。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。海港边，背景可见大桥与帆船。吉祥物追着光点绕过长椅，在一张周末活动海报后找到新的优惠卡，开心地举过头顶。",
+      "voiceover_zh": "连周末的小快乐，也一起找。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s06"
       ],
@@ -217,24 +301,38 @@
         "approved_type_system",
         "existing_mascot_png_pending_independent_media_authorization"
       ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "jump",
+      "camera_direction_zh": "沿海港长椅跟拍，海报后光点到举卡特写",
+      "continuity_instruction_zh": "海港大桥、帆船方位延续 s03；周末活动海报不含虚构真实活动时间及名称",
+      "sfx_cues_zh": [
+        "奔跑毛毡脚步",
+        "纸卡翻动",
+        "寻宝成功亮音"
+      ],
+      "music_beat_zh": "寻宝高潮：拨弦和木琴跳跃",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "back",
-      "mascot_expression_or_action_hint": "back",
-      "camera_direction_zh": "背后过肩视角，轻缓下移",
-      "continuity_instruction_zh": "小羊仍坐同一张桌前，背面视角凸显毛毡身体与围巾一致性。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s08",
       "start_ms": 35000,
       "end_ms": 40000,
       "duration_seconds": 5,
-      "storybeat": "investigation",
-      "scene_anchor": "info_cards",
-      "background_prompt_zh": "奶油白毛毡小羊、深绿围巾再次从正面出现，把一枚抽象放大镜与空白纸张图标放在同一张黄绿双色信息卡旁边；表现核查来源与更新信息的动作，不出现虚构日期、来源名称或平台 logo。",
-      "voiceover_zh": "还要弄清楚，消息从哪儿来的。",
-      "on_screen_text_zh": "④ 查来源",
+      "shot_title_zh": "把发现整理好",
+      "storybeat": "organise",
+      "scene_anchor": "mascot_workbench",
+      "owner_visual_direction_zh": "回到小工作台，吉祥物把收集来的优惠卡摊开：吃喝、购物、出游。逐张查看、分类，再放进一本带 CityDiscount Logo 的折扣册。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。回到小工作台，吉祥物把收集来的优惠卡摊开：吃喝、购物、出游。逐张查看、分类，再放进一本带 经过授权的品牌标识占位（实际标识后期定版） 的折扣册。",
+      "voiceover_zh": "东找一点，西找一点，再替你整理好。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s07"
       ],
@@ -244,24 +342,37 @@
         "approved_type_system",
         "existing_mascot_png_pending_independent_media_authorization"
       ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "俯拍工作台，分类卡片一排排归档，最后合上品牌折扣册",
+      "continuity_instruction_zh": "按买菜/美食/购物/出游分类；Logo 从真实资产后期定版，不让模型伪写字体",
+      "sfx_cues_zh": [
+        "卡片翻动",
+        "折扣册合页"
+      ],
+      "music_beat_zh": "节奏整齐、温暖",
+      "coin_mark_required": false,
+      "logo_placement": "discount_book_cover",
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "front",
-      "mascot_expression_or_action_hint": "sparkle",
-      "camera_direction_zh": "正面特写，手指指向空白图标",
-      "continuity_instruction_zh": "同一小桌和卡，四个检查步骤完成，但仍未表现真实商家核验成功。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s09",
       "start_ms": 40000,
       "end_ms": 45000,
       "duration_seconds": 5,
-      "storybeat": "organise",
-      "scene_anchor": "comparison_cards",
-      "background_prompt_zh": "同一只奶油白毛毡小羊、深绿围巾，以第三四分之三角度把同一张黄绿卡与两张纯色无字抽象信息卡排列成整齐顺序，旁边是无字沙漏、问号、放大镜图形；仅说明信息整理步骤，没有真实优惠、确认价格或已核实标记。",
-      "voiceover_zh": "把日期、条件、来源，都放在一起看。",
-      "on_screen_text_zh": "日期｜条件｜来源",
+      "shot_title_zh": "折扣来到身边",
+      "storybeat": "deliver",
+      "scene_anchor": "folding_auckland_map",
+      "owner_visual_direction_zh": "折扣册展开，变成立体奥克兰地图。不同类别的优惠像小旗子一样立起来，地图折成一张卡片，被吉祥物送到最初那家人的手里。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。折扣册展开，变成立体奥克兰地图。不同类别的优惠像小旗子一样立起来，地图折成一张卡片，被吉祥物送到最初那家人的手里。",
+      "voiceover_zh": "把城市各处的好折扣，带到你身边。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s08"
       ],
@@ -269,26 +380,42 @@
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
         "approved_type_system",
-        "existing_mascot_png_pending_independent_media_authorization"
+        "existing_mascot_png_pending_independent_media_authorization",
+        "family_design_pending"
       ],
+      "visible_roles": [
+        "mascot",
+        "family"
+      ],
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "thumbsup",
+      "camera_direction_zh": "折扣册到立体地图定格变形，最后卡片回到家庭桌面",
+      "continuity_instruction_zh": "与 s01 同一家人、同一毛毡家；城市场景小旗只表示分类不冒充实时存在优惠",
+      "sfx_cues_zh": [
+        "纸张折叠",
+        "旗子轻弹",
+        "交卡轻响"
+      ],
+      "music_beat_zh": "返家：音乐温暖上扬",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "three_quarter",
-      "mascot_expression_or_action_hint": "happy",
-      "camera_direction_zh": "斜上方俯拍，卡片整齐展开",
-      "continuity_instruction_zh": "卡片从散乱变整齐，完成调查动作，不出现任何已验证真实数据。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s10",
       "start_ms": 45000,
       "end_ms": 50000,
       "duration_seconds": 5,
-      "storybeat": "choice",
-      "scene_anchor": "consumer_choices",
-      "background_prompt_zh": "毛毡小羊以侧面角度，深绿色围巾保持一致，轻轻把一张信息不完整的纯色空白卡放在一旁，留下同一张黄绿卡继续查看；动作表达耐心比较而不是已成功购买，不出现付款、领券、打折或交易画面。",
-      "voiceover_zh": "不急着下手，看明白再比较。",
-      "on_screen_text_zh": "看清楚，再比较",
+      "shot_title_zh": "愿望慢慢实现",
+      "storybeat": "payoff",
+      "scene_anchor": "family_day_out",
+      "owner_visual_direction_zh": "一家人按照地图出门：购物袋里装上食材、一起分享美食、来到海边散步。用连续动作转场，让购物袋变成餐桌，再变成野餐篮。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。一家人按照地图出门：购物袋里装上食材、一起分享美食、来到海边散步。用连续动作转场，让购物袋变成餐桌，再变成野餐篮。",
+      "voiceover_zh": "该买的买，想吃的吃，周末也能出去走走。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s09"
       ],
@@ -296,26 +423,40 @@
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
         "approved_type_system",
-        "existing_mascot_png_pending_independent_media_authorization"
+        "family_design_pending"
       ],
+      "visible_roles": [
+        "family"
+      ],
+      "mascot_camera_view": null,
+      "mascot_expression_or_action_hint": null,
+      "camera_direction_zh": "匹配剪辑：购物袋→餐桌→野餐篮，最后切至海湾",
+      "continuity_instruction_zh": "同一家人、食材/美食/海边连贯；不显示未经核实的确切成交金额或商家权益",
+      "sfx_cues_zh": [
+        "购物袋轻响",
+        "餐具声",
+        "海风"
+      ],
+      "music_beat_zh": "家庭段落：尤克里里和暖弦",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "side",
-      "mascot_expression_or_action_hint": "thumbsup",
-      "camera_direction_zh": "缓慢拉远，动作收束",
-      "continuity_instruction_zh": "小羊没有买东西，只是把资料按是否值得继续核对分组，卡片未变形。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s11",
       "start_ms": 50000,
       "end_ms": 55000,
       "duration_seconds": 5,
-      "storybeat": "resolution",
-      "scene_anchor": "street_collage",
-      "background_prompt_zh": "同一只奶油白针毡小羊站回原来的新西兰微缩街角，深绿围巾、棕色眼睛与身形完全一致；小羊把黄绿双色圆角卡收进随身小袋，自信微笑，画面明亮干净，有开放式未来选择而非购买成功宣称。",
-      "voiceover_zh": "好选择，不光靠运气，也靠看仔细。",
-      "on_screen_text_zh": "发现｜理解｜比较",
+      "shot_title_zh": "省下来的小幸福",
+      "storybeat": "savings",
+      "scene_anchor": "felt_seaside_picnic",
+      "owner_visual_direction_zh": "海边野餐垫上，一家人翻开钱包，里面还留着几枚 CD 金币。孩子把其中一枚放进“下一次快乐”的毛毡储蓄罐。吉祥物坐在旁边，满足地晃着脚。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。海边野餐垫上，一家人翻开钱包，钱包还有几枚带待定版 CD 正面贴图的毛毡金币。孩子把其中一枚放进留待后期正确叠字的的毛毡储蓄罐。吉祥物坐在旁边，满足地晃着脚。",
+      "voiceover_zh": "省下来的，留给下一份小幸福。",
+      "on_screen_text_zh": "",
       "shot_dependencies": [
         "s10"
       ],
@@ -323,26 +464,42 @@
         "approved_citydiscount_brand_identity",
         "nz_local_visual_style",
         "approved_type_system",
-        "existing_mascot_png_pending_independent_media_authorization"
+        "existing_mascot_png_pending_independent_media_authorization",
+        "family_design_pending"
       ],
+      "visible_roles": [
+        "family",
+        "mascot"
+      ],
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "钱包与 CD 金币近景，跟随金币落进储蓄罐，最后拉到吉祥物",
+      "continuity_instruction_zh": "必须与 s01 同款钱包/CD 金币；储蓄罐文字后期叠加；金币代表故事比喻不承诺具体节省",
+      "sfx_cues_zh": [
+        "金币柔和轻碰",
+        "储蓄罐轻响",
+        "吉祥物满意轻笑"
+      ],
+      "music_beat_zh": "暖心收束：木琴轻柔延音",
+      "coin_mark_required": true,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "front",
-      "mascot_expression_or_action_hint": "happy",
-      "camera_direction_zh": "正面远中景，温暖光线收束",
-      "continuity_instruction_zh": "回到 s01 原街角，保持人物身份与色彩不变，用轻松表情完成故事闭环。"
+      "human_visual_review": "not_run"
     },
     {
       "shot_id": "s12",
       "start_ms": 55000,
       "end_ms": 60000,
       "duration_seconds": 5,
+      "shot_title_zh": "品牌定格",
       "storybeat": "cta",
-      "scene_anchor": "brand_ident",
-      "background_prompt_zh": "同一只奶油白针毡小羊戴固定深绿色围巾，在暖光毛毡微缩街角向镜头挥手；右上和底部留出干净大面积空白给后期贴上经批准的 CityDiscount 品牌标识、字幕与 CTA。背景画面不生成任何商标、文字、价格或真实店名。",
-      "voiceover_zh": "关注 CityDiscount，一起看懂本地选择。",
-      "on_screen_text_zh": "关注 CityDiscount",
+      "scene_anchor": "felt_auckland_skyline",
+      "owner_visual_direction_zh": "吉祥物站在前景，把一枚带 CD 标记的金币轻轻转向镜头。金币落到画面下方，露出完整 CityDiscount Logo；背景是柔和的奥克兰毛毡天际线。",
+      "background_prompt_zh": "统一毛毡微缩世界、手工纤维和暖光。吉祥物站在前景，把一枚金币正面预留准确 CD 标记后期贴图区域轻轻转向镜头。金币落到画面下方，露出完整 经过授权的品牌标识占位（实际标识后期定版）；背景是柔和的奥克兰毛毡天际线。",
+      "voiceover_zh": "CityDiscount，替你到处挖折扣，让生活多一点。",
+      "on_screen_text_zh": "CityDiscount\n替你到处挖折扣，让生活多一点。\n关注 CityDiscount\n下次消费前，先来找找折扣。",
       "shot_dependencies": [
         "s11"
       ],
@@ -352,32 +509,94 @@
         "approved_type_system",
         "existing_mascot_png_pending_independent_media_authorization"
       ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "coin",
+      "camera_direction_zh": "金币旋转正面近景→毛毡城市天际线与固定版式；最后 3 秒 Logo 完整清晰",
+      "continuity_instruction_zh": "CD 金币始终正面正确；品牌完整标识最后至少 3 秒，全部正字与 CTA 由后期确保",
+      "sfx_cues_zh": [
+        "金币柔和轻碰",
+        "品牌音乐收束"
+      ],
+      "music_beat_zh": "Logo 3 秒温暖尾音",
+      "coin_mark_required": true,
+      "logo_placement": "end_card",
+      "logo_hold_seconds": 3,
       "media_submission_approved": false,
       "real_model_result": "not_run",
-      "human_visual_review": "not_run",
-      "mascot_camera_view": "front",
-      "mascot_expression_or_action_hint": "thumbsup",
-      "camera_direction_zh": "正面定机位，末尾品牌安全区",
-      "continuity_instruction_zh": "s11 的小羊面向镜头致意；最后仅后期贴入真实已批准标识和文字，不使用模型伪造品牌 logo。"
+      "human_visual_review": "not_run"
     }
   ],
   "storyline": {
-    "title_zh": "小羊差点买错了",
-    "genre": "60秒原创毛毡小羊轻喜剧式品牌故事（非优惠事实报道）",
-    "logline_zh": "新西兰街角，小羊被一张闪亮的优惠卡吸引，差点凭标题做决定；翻过卡片才发现日期和条件，学会先查看、再比较，最后遇见 CityDiscount。",
+    "title_zh": "把奥克兰的好折扣，挖到你身边",
+    "logline_zh": "一家人周末清单很长，钱包只有几枚 CD 金币；CityDiscount 吉祥物背起包，用探测器穿越奥克兰寻找并整理买菜、吃喝、购物、出游的示意折扣，送回寻宝地图；一家人实现生活心愿，钱包还有 CD 金币留给下一次快乐。",
+    "genre": "品牌毛毡微缩城市寻宝动画",
     "dramatic_spine": [
-      "0–15秒：发现诱人卡片，差点冲动选择",
-      "15–20秒：卡片翻面，突然出现尚未核对的规则，故事反转",
-      "20–45秒：小羊检查日期、会员、限制、来源，把线索排列整齐",
-      "45–60秒：做出更清醒的选择，CityDiscount 作为消费信息入口亮相"
+      "0–10 秒：周末清单与钱包的小烦恼；CityDiscount 吉祥物主动接任务",
+      "10–35 秒：奥克兰寻宝，四站寻找买菜/美食/购物/出游示意折扣",
+      "35–45 秒：查看使用条件、分类整理，折扣册变地图并送回家庭",
+      "45–60 秒：一家人丰富周末、CD 金币有余、品牌 Logo 定格与关注 CTA"
     ],
-    "main_character": "一只奶油白针毡小羊、棕色眼睛、固定深绿色围巾；其外观按现有角色图片人工核验，不声称模型已使用图片",
-    "setting": "抽象化的新西兰毛毡微缩街角与桌面，辅以明亮贴纸式动态图形；不出现真实商家招牌",
-    "continuity": "同一只小羊、同一条深绿色围巾、同一张无品牌虚构信息卡；冲动拿卡→翻面→查条件→整理信息→再决定；每镜只出现本镜角色",
-    "narrator": "第三人称中文旁白，不把未验证台词伪称为已经合成的声音",
-    "brand_conflict_note": "此前 CityDiscount 漫画品牌候选与 AMEND-006 全局毛毡短剧规定可能冲突；本稿仅为首片候选，需 Owner 依 Issue #188 明确限定例外后才能真实提交/发布",
-    "offer_claims": "示例卡片一律虚构且不出现真实价格、商家、实际优惠、有效日期或伪造的来源证据",
+    "main_character": "CityDiscount 已有吉祥物，原始五官、配色、比例和配件识别特点不可改变；本地已有10张视角/动作 PNG，人审满意但图片外部传输许可仍按单独门禁。",
+    "family": "同一毛毡一家人（含孩子），s01/s02/s09/s10/s11 连续；尚未有实际角色定妆照与版本，生成前须固定并人工验收。",
+    "setting": "奥克兰毛毡微缩地图、天空塔、海港大桥、帆船、海湾、超市、街角咖啡店、商铺和海边野餐",
+    "continuity": "s01 的购物清单/钱包/CD金币在 s02、s09、s11 呼应；吉祥物背包/探测器/记录本、折扣册/地图、所有可辨认金币正面 CD 标志统一。",
+    "offer_claims": "优惠卡只使用示意内容，不虚构真实商家、当前价格、有效日期、商家合作或确定节省金额。",
+    "end_card_lines": [
+      "CityDiscount",
+      "替你到处挖折扣，让生活多一点。",
+      "关注 CityDiscount",
+      "下次消费前，先来找找折扣。"
+    ],
+    "sound_direction": {
+      "narration": "自然、亲切、轻快温暖中文旁白，像熟悉奥克兰生活的朋友；吉祥物不安排完整台词。",
+      "mascot_nonverbal": "发现优惠时轻呼、奔跑喘气、满意小笑声。",
+      "music": "轻快木琴、尤克里里、拨弦、柔和打击乐；开头俏皮、寻宝加速、野餐转暖、结尾标志音。",
+      "mix": "旁白优先，音乐 ducking，金币声柔和，不宣称已经合成声音。"
+    },
+    "end_action": "仅一个主要行动：关注 CityDiscount；发布时加入实际发布渠道已核对账号/网址/二维码。",
+    "story_supplied_by_owner": true,
     "script_reviewed_by_owner": false,
     "brand_use_approved_for_render": false
+  },
+  "brand_asset_requirements": {
+    "logo": {
+      "repo_manifest": "assets/citydiscount/v1/asset_manifest.json",
+      "asset_id": "citydiscount-logo-v1",
+      "source_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "placements": [
+        "s02:mascot_chest",
+        "s08:book_cover",
+        "s12:end_card"
+      ],
+      "final_min_hold_seconds": 3,
+      "render_method": "approved_exact_source_postproduction_or_verified_asset_compositing",
+      "rights_verified": false
+    },
+    "coin": {
+      "visible_shots": [
+        "s01",
+        "s11",
+        "s12"
+      ],
+      "face_mark": "CD",
+      "surface": "golden_felt_coin",
+      "canonical_coin_artwork_verified": false,
+      "render_method": "approved_exact_CD_coin_artwork_compositing_required"
+    },
+    "family": {
+      "needed": true,
+      "characters_include_child": true,
+      "consistent_across_shots": [
+        "s01",
+        "s02",
+        "s09",
+        "s10",
+        "s11"
+      ],
+      "version_locked": false
+    }
   }
 }
