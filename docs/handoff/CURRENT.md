@@ -1,3 +1,13 @@
+# 2026-10-21 G4 / R4.4：官方 Gemini Omni 参考图实时入口最小接线（本 PR）
+
+官方文档（2026-10-21 查阅）明确 `gemini-omni-1.1-flash` 的 Interactions API 支持 `input=[{"type":"image","data":"base64","mime_type":"image/png"},...,{"type":"text","text":"..."}]`，并支持竖屏9:16/360p。文档：https://ai.google.dev/gemini-api/docs/omni；资费：https://ai.google.dev/gemini-api/docs/pricing。现有 `google_omni_video.py` prompt-only 是真实的功能缺口，不能再声称当前 Omni 官方不支持图片。
+
+**Stage G4 / Req R4.4**：不写新 Provider；只在现有 GoogleOmniVideoProvider 新增 `generate_approved_reference_envelope`，直接使用已存在 `prepare_offline_omni_envelope` 校验出来的 FND 图片+文字 payload，调用原有**单次** Interactions.create/URI下载/ffprobe 链；旧 raw VideoRequest.reference_images **继续拒绝**，防未经 FND 的任意路径输入。新入口强制手动提供单镜头精确 fingerprint/shot ID 匹配、独立权利/外传/供应商数据条款三个布尔批准、declared NZ day 已支出及 run 预算 ≤USD2/日≤USD5、原有 `DRAMA_ENABLE_PAID_GENERATION=YES` 环境关闭默认值；请求图片 bytes SHA/顺序和 prompt/格式 fingerprint 复核，不把 image/base64 带入 receipt/日志。单请求不重试，`actual_fee_usd` 仍为 null：费用确认值并非供应商硬计费 cap。
+
+CI 使用 **真实 FND-02 operator HMAC 签署及本地 PNG 字节夹具 + Fake SDK 返回实际本地 FFmpeg MP4**，模拟成功与越权/改图/改序/改prompt/超预算失败，**没有真实 Google 网络调用**。不能把本地合成视频报告成新的小羊片段；也没有绕过 Owner #188/#210 的真实素材许可或本地真实账号账单检查。下一实际步骤：整理品牌/小羊/家庭/金币的合法使用权与官方账号保留条款，核验当天实际账单后执行最小一个真实镜头；任何不满足则禁止提交。G4 NOT_READY/G5 暂停。必须以 PR 本轮 CI/合并回执判定交付，不提前宣称成功。
+
+---
+
 # 2026-10-21 G4 / R4.4：正式 Owner 城市寻宝 CityDiscount 首片（创意修订 3）
 
 **本轮正式创意来自 Owner 原文**：`《把奥克兰的好折扣，挖到你身边》`，60 秒/12×5 秒。原《小羊差点买错了》创意修订 2 已**在原有权威文件** `config/pilots/citydiscount_first_promo_v1.json` 中被替换（Git 保留历史）；新稿按 s01 钱包→s02 吉祥物接任务→s03 奥克兰立体地图→s04–s07 四个优惠寻宝站（买菜/美食/购物/出游）→s08 分类核对→s09 折扣地图送到家→s10 家庭出行→s11 CD 金币余钱→s12 完整品牌收尾。全部 Owner 原始画面要求（`owner_visual_direction_zh`）、逐镜中文旁白、音效、音乐提示、机位、连续性均已入原 JSON；可读执行单 `docs/CITYDISCOUNT_FIRST_FILM_STORY.md`。
