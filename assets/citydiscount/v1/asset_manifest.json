@@ -1,0 +1,30 @@
+{
+  "schema": "g4-repository-reference-fixtures.v1",
+  "scope": "local_engineering_fixture_only",
+  "project": "CityDiscount",
+  "operator_selected_variant": "mascot_character_sheet_v1.png",
+  "model_submission_allowed": false,
+  "publish_approved": false,
+  "media_rights_independently_verified": false,
+  "assets": [
+    {
+      "asset_id": "citydiscount-mascot-v1",
+      "role": "actor_reference_sheet",
+      "relative_file": "mascot_character_sheet_v1.png",
+      "size_bytes": 2211254,
+      "git_blob_sha1": "a5665b80a8484d5124fb874576ff40372f5a7c06",
+      "source_sha256": null,
+      "source_sha256_status": "pending_checked_out_bytes_verification",
+      "supersedes_old_sha256": "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb"
+    },
+    {
+      "asset_id": "citydiscount-logo-v1",
+      "role": "brand_reference",
+      "relative_file": "citydiscount_logo_v1.png",
+      "size_bytes": 93326,
+      "git_blob_sha1": "903f96f235b5375fb540f3ad656ba39eea2b50e2",
+      "source_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "source_sha256_status": "previously_verified"
+    }
+  ]
+}
