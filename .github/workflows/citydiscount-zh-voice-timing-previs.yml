@@ -1,0 +1,72 @@
+name: CityDiscount 60s Chinese scratch VO rhythm (offline, no paid APIs)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/render_citydiscount_narration_timing.py
+      - tests/test_citydiscount_narration_timing.py
+      - .github/workflows/citydiscount-zh-voice-timing-previs.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/render_citydiscount_narration_timing.py
+      - .github/workflows/citydiscount-zh-voice-timing-previs.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  chinese-scratch-voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DRAMA_ENABLE_PAID_GENERATION: 'NO'
+      DRAMA_FACTORY_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ONLY local speech synthesizer and FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y espeak espeak-data ffmpeg
+      - name: Get previous verified real-assets video (not a model request)
+        uses: actions/download-artifact@v4
+        with:
+          name: citydiscount-60s-real-mascot-and-logo-review-NOT-FINAL
+          run-id: 39446712904
+          github-token: ${{ github.token }}
+          path: artifacts/v2
+      - name: Build 60s Owner original voice timing sample (robot voice NOT final)
+        run: |
+          python scripts/render_citydiscount_narration_timing.py \
+            --pilot config/pilots/citydiscount_first_promo_v1.json \
+            --animatic artifacts/v2/CityDiscount_60s_real_assets_PREVIS_NOT_FINAL.mp4 \
+            --expected-animatic-sha 9e993dd0772ad4e2fb503fc7e35027b50c9e822f2d7eadc1d853896ba516ed09 \
+            --out artifacts/chinese-voice-timing
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/chinese-voice-timing/receipt.json')
+          r=json.loads(p.read_text(encoding='utf-8'))
+          assert len(r['timed_lines']) == 12
+          assert r['new_paid_calls'] == 0
+          assert r['natural_voice_confirmed'] is False
+          assert r['publish_approved'] is False
+          assert r['g4_exit_approved'] is False
+          assert 59.7 <= float(r['media_technical_check']['format']['duration']) <= 60.3
+          assert Path('artifacts/chinese-voice-timing/'+r['mp4_name']).is_file()
+          PY
+      - name: Upload scratch Chinese preview and per-shot timecode receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: citydiscount-60s-CHINESE-SCRATCH-NOT-PUBLISHABLE
+          path: |
+            artifacts/chinese-voice-timing/CityDiscount_60s_CHINESE_VO_TIMING_PREVIS_NOT_FINAL.mp4
+            artifacts/chinese-voice-timing/receipt.json
+          retention-days: 7
+          if-no-files-found: error
