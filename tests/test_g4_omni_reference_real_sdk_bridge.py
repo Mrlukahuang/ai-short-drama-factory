@@ -74,8 +74,11 @@ def test_actual_FND_media_payload_can_enter_one_official_omni_image_interaction(
     ]
     assert receipt["actual_fee_usd"] is None
     assert path.read_bytes() == b"fake-sdk-mp4-receipt-bytes"
-    assert "data" not in str(receipt)
-    assert "base64" not in str(receipt)
+    assert all(k not in receipt for k in (
+        "data", "base64", "image_bytes", "request_payload",
+    ))
+    assert all(part["data"] not in str(receipt)
+               for part in envelope.request_payload["input"][:-1])
 
 
 def test_paid_and_independent_consent_gates_precede_sdk_and_files(tmp_path, monkeypatch):
