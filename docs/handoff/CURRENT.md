@@ -1,3 +1,15 @@
+# 2026-10-20 · 最新：通用短剧工厂优先，CityDiscount 仅 Pilot 01（未合并代码）
+
+**Stage: G4 · Req: R4.4 · Owner 最新指令：** “这个项目是用来测试和开发我们的短剧系统的，而不是为了生产video而做视频”。CityDiscount 仅第一组内容/资产测试，验收必须证明第二组无关题材也走同一 StoryBible→Screenplay→VideoProvider→FFmpeg/QA 合同，**不允许 CityDiscount-only 的第二套生产脚本**。
+
+- **角色版本确定：** Owner 2026-10-20 明确采用 **GitHub 上传的新版小羊 V1**，PR [#193](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/193) Draft 分支 `assets/citydiscount/v1/mascot_character_sheet_v1.png`（Git blob `a5665b80a8484d5124fb874576ff40372f5a7c06`，2,211,254 bytes）。旧小羊的 SHA256 `79e653ff...` 不再适用。GitHub connector 无法读取超1MB二进制，当前新图 SHA256 **待可信 checkout 真字节 readback**，PR #193 已将旧 SHA 标为 null、编入精确 blob 和实际文件名，运行时必须校验 Git blob+计算 SHA256；不需要 Owner 重传。Logo Git blob `903f96f235b5375fb540f3ad656ba39eea2b50e2`，原 SHA256 `19a62023...` 已证实。
+- **通用实现：[Issue #194](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/194)，[PR #195](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/195)**：新增独立 `pipeline/operator_storyboard_adapter.py`，将任何1–8人、30–90秒、1–12镜的人工创意卡复用已有 `StoryBible`、`FakeTextProvider`、`Screenplay`、`EpisodeDraft`、`build_screenplay_video_plan`，保留分镜 SHA、角色 speaker 校验、逐镜依赖和旁白/字幕分轨，绝不伪造已审核剧本、模型视频或真实音轨。测试用 CityDiscount 12×5秒+另一部两人车站故事6×5秒。不是 AI Writer 已实际生成故事，也不是 Omni 图片真实接入。
+- **CI 真实阻断：** PR #193 与 #195 的全部 scope / Python3.11/3.13 / offline-video / Fake artifact / local-libSQL check-runs 在 runner 启动阶段失败/取消，`fetch_workflow_job_steps=[]`、日志404 BlobNotFound，初次重跑后仍如此。**不能宣称代码通过；不能合并任何红 CI PR；不要无休止重试。** 已建 [需 Owner 检查 GitHub Actions issue #196](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/196)。根因未证实、不可私自关闭 Scope Guard。
+- **下一真正开发方向：** 在当前 Schema 上完成通用来源媒体版本入库→已批准 StoryBible→人工/真实 TextProvider 剧本→12镜导演表→FND01–03 视频图片引用（先 Fake、再另行真实授权）→现有 FFmpeg/QA；逐层真实证据，杜绝只输出假的11步 JSON 就称 MP4 成功。原 W1–W5/旧真视频不动。
+- **权限不变：** G4 `NOT_READY`、G5/W6 禁止。AMEND-006 旧双主角首片目标与新 CityDiscount 创意不同，只有 Owner 可以写 Active AMEND；新版小羊同意用于 repo 测试不等于允许外发至 Google 或授权收费模型。真人 ASR #177/视频预算 #188 独立待决定。本轮新增 paid model calls=0、API USD0。
+
+---
+
 # 最新权威状态：G4 首片方向切换 CityDiscount 宣传片，60秒12镜/离线合同已交付（2026-10-20 NZT）
 
 **Stage: G4 / Req: R4.4 / G4 NOT_READY。** Owner 在原12镜人工反馈和 FND-00–03 基础框架全CI通过后正式指示：“第一个视频方向改成一个生成我们citydiscount的宣传片”。这只改变**下一条新真实视频的创意目标**，不取消已有真实短剧素材/人审问题、旧FND基础框架，也不授权生成、上传、付款或发布。CityDiscount 是新西兰华语本地优惠资讯/消费比较品牌，不能宣传为已上线App、扫码领券或商家独家合作。
