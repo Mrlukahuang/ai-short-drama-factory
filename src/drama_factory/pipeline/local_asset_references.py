@@ -83,8 +83,14 @@ def _canonical_png(source: bytes) -> tuple[bytes, int, int, str]:
             upright = ImageOps.exif_transpose(img)
             # Fresh RGB pixels and new PNG remove EXIF/GPS, ICC, XMP,
             # animation and any original source filename metadata.
-            clean = Image.new("RGB", upright.size)
-            clean.paste(upright.convert("RGB"))
+            # Alpha must be flattened against an explicit matte before RGB.
+            # Plain RGBA.convert("RGB") drops alpha and turns transparent
+            # source pixels into arbitrary hidden RGB (often black), causing
+            # black boxes/halos around logos and felt character sheets.
+            rgba = upright.convert("RGBA")
+            matte = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+            matte.alpha_composite(rgba)
+            clean = matte.convert("RGB")
             clean.thumbnail((MAX_PREVIEW_SIDE, MAX_PREVIEW_SIDE),
                             Image.Resampling.LANCZOS)
             out = io.BytesIO()

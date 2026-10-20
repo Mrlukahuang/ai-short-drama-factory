@@ -58,8 +58,8 @@ def test_owner_uploaded_github_assets_are_byte_exact_and_new_mascot():
             expected_size=row["size_bytes"],
             expected_sha256=row.get("source_sha256"),
         )
-    assert checked["citydiscount-mascot-v1"] != (
-        "79e653ff555185df85df52b642fa3a606f92b688a2b83b6cb15d8dc4521602cb"
+    assert checked["citydiscount-mascot-v1"] == (
+        "9706eb126398d703e3750c4ac0ca0d296e618ae548ca05d5b1f9a3d99633bf92"
     )
     assert checked["citydiscount-logo-v1"] == (
         "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651"
