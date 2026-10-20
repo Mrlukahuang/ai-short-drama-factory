@@ -84,7 +84,7 @@ def inspect_owner_assets(campaign: dict, asset_manifest: dict,
             raise CityDiscountPilotGateError("Required uploaded source PNG unavailable or mutated")
         data = local.read_bytes()
         git_blob = hashlib.sha1(
-            b"blob " + str(len(data)).encode("ascii") + b"\\0" + data
+            b"blob " + str(len(data)).encode("ascii") + b"\0" + data
         ).hexdigest()
         if git_blob != row.get("github_blob_sha1"):
             raise CityDiscountPilotGateError("Uploaded file differs from pinned Git revision")
