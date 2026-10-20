@@ -1,3 +1,11 @@
+# 2026-10-21 下一项真实增量：PNG 源文件 → W2 逐镜人审候选图（本 PR）
+
+**Stage: G4 / Req: R4.4 / G4 NOT_READY。** 在现有 `local_reference_views.py` 补充 `build_unapproved_shot_image_review`：真正读取 repo checked-out 原始 RGBA PNG 字节并对来源 SHA 做复核，调用已经存在的 RGB 白底规范化逻辑，产生规范化 `png_sha256` 与 W2 角色 `asset_id/version/specification_sha256`、镜头 ID、scene version 的确定性待审批映射。真实小羊四视角经过同一通用逻辑按 12 镜选择；另一无关双演员 6 镜使用合成文件验证不含品牌硬编码。**这不是人工视角审核**。
+
+所有返回值始终保留 `angle_semantics_human_verified=false`、`rights_independently_verified=false`、`operator_approved_for_model=false`、`model_submission_allowed=false`；scene image 仍明确阻断，动作表情图片不冒充 front/side/back。CI 结果及合并情况以 PR 页面为准。不新增 DB、不发外部媒体、不改变真实模型 Provider；Owner 决策仍在 [#210](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/210)。下一步：审查候选视角与权利后才可能接正式授权图库及受控真实视频实验，不为无授权图库伪造 grant。
+
+---
+
 # 2026-10-21 续开发：Reviewed Screenplay → W2 → FND-01/02/03 → Fake Omni 双 Series 安全演练（PR #209）
 
 **Stage: G4 / Req: R4.4 / G4 NOT_READY，G5 禁止。** [PR #209](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/209) 在现有 `visual_spine_offline.fake_episode_visual_replay` 增加可选的**已审 Screenplay 全量镜头绑定校验**：先调用现有 Screenplay→W2→FND-01 bridge，强制镜头顺序一致并比对视觉计划 SHA，才允许读取媒体构造临时本地 envelope。旧离线调用保持兼容；不用另写视觉系统。
