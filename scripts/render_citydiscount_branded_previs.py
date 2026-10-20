@@ -198,7 +198,24 @@ def stage(index, images, logo, shot):
         d.rounded_rectangle((105,385,306,451),radius=9,fill="#b59a78",outline="#f8efda",width=3)
         place(im,logo,241,419,77,max_h=56)
     if index==12:
-        place(im,logo,204,451,245,max_h=115)
+        # Exact Owner end-card copy in four semantic lines, visible all 5s;
+        # original logo PNG is composited unmodified beneath the CTA.
+        d=ImageDraw.Draw(im)
+        d.rounded_rectangle((174,210,348,395),radius=12,
+                            fill="#fff6e8",outline="#bdad8b",width=3)
+        d.text((261,239),"CityDiscount",font=font(17,bold=True),
+               fill="#355c4f",anchor="mm")
+        d.text((261,265),"替你到处挖折扣",font=font(11),
+               fill="#71594a",anchor="mm")
+        d.text((261,284),"让生活多一点。",font=font(11),
+               fill="#71594a",anchor="mm")
+        d.text((261,317),"关注 CityDiscount",font=font(13,bold=True),
+               fill="#486e54",anchor="mm")
+        d.text((261,344),"下次消费前，",font=font(11),
+               fill="#71594a",anchor="mm")
+        d.text((261,362),"先来找找折扣。",font=font(11),
+               fill="#71594a",anchor="mm")
+        place(im,logo,220,448,212,max_h=86)
     # Text panels are a REVIEW layer, not brand final rendering.
     d=ImageDraw.Draw(im,"RGBA")
     d.rounded_rectangle((12,13,348,91),radius=13,fill=(27,61,52,225))
@@ -314,6 +331,8 @@ def main():
         "owner_reference_pngs_sent_to_model":0,
         "logo_original_source_sha256":logo_sha,
         "logo_placements":["s02","s08","s12"],
+        "s12_complete_brand_copy_visible_seconds":5,
+        "s12_owner_end_card_lines":script["storyline"]["end_card_lines"],
         "canonical_coin_artwork_approved":False,
         "family_design_approved":False,
         "owner_review_status":"pending",
