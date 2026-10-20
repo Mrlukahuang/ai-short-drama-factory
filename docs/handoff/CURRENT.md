@@ -1,3 +1,15 @@
+# 2026-10-21 G4 / R4.4：CityDiscount 第一次真实生成可执行入口——s03 奥克兰毛毡城市空镜（本 PR）
+
+前置已完成：Owner 正式12镜脚本 #215、Google Omni参考图SDK接线 #216。因真实吉祥物素材的独立权利审查和 provider 保留条款未完成（#210），本轮优先在**不向 Google 发送任何 Owner PNG/Logo**的前提下，拍出可用于 s03《奥克兰藏着宝》的毛毡微缩天空塔、海港大桥、帆船、海湾环境镜头。严格标记为**仅城市空镜 plate，不是包含吉祥物的完整 s03，也不是12镜成片**。
+
+新增实际付费执行链（而非重复 Fake 演练）：`scripts/citydiscount_s03_omni_once.py`、仅手动触发 `.github/workflows/citydiscount-s03-omni-once.yml`。先跑真实 Owner revision3 JSON SHA 验证、确定型只含公众奥克兰地标的英文 5 秒视觉提示词与无上传媒体声明；再在明确输入当天已花费账单并选择准确 `GENERATE_ONE_S03_PAID_PLATE` 时使用仓库既有 `GEMINI_API_KEY` Secret 和 `GoogleOmniVideoProvider.generate` 发起**单一** 360p 9:16 付费 Omni 请求，进入现有原始 MP4 下载及 FFprobe QA，成功才上传可观看 MP4+回执。生成失败不自动重试，保存安全恢复ID。默认 `PREVIEW_ONLY` 零费用。
+
+Owner 上限 USD2/次、NZ 当日USD5：本 workflow 每次保守预留 USD2，可执行前需手动输入已核实当日实花金额（小于等于USD3）且执行者核对 Google 账单；**这是人为声明/预留不是 Google 硬性计费上限**。官方 720p约USD0.10/秒，360p生成5秒预期更低但官方未保证最终总账单/时长；独立运行方承担账单核验。未确认账单或缺 Secret 不允许付费执行。
+
+本 PR 的 CI 只执行 `--paid` 禁止/错误账单/原剧本检测和零费 `PREVIEW_ONLY`；不会触发 GitHub 手动生成 workflow。真实生成状态在 Owner 真正手动点击并取得 Google run/artifact 之前维持 **NOT_RUN / 0 confirmed calls**。G4 NOT_READY/G5禁止；`s02` 小羊角色镜头继续在 #210 权利/素材门禁之后验证。
+
+---
+
 # 2026-10-21 G4 / R4.4：官方 Gemini Omni 参考图实时入口最小接线（本 PR）
 
 官方文档（2026-10-21 查阅）明确 `gemini-omni-1.1-flash` 的 Interactions API 支持 `input=[{"type":"image","data":"base64","mime_type":"image/png"},...,{"type":"text","text":"..."}]`，并支持竖屏9:16/360p。文档：https://ai.google.dev/gemini-api/docs/omni；资费：https://ai.google.dev/gemini-api/docs/pricing。现有 `google_omni_video.py` prompt-only 是真实的功能缺口，不能再声称当前 Omni 官方不支持图片。
