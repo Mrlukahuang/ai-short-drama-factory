@@ -1,3 +1,19 @@
+# 2026-10-21 最新：Owner 十张真实小羊多视角/动作 PNG 已入 main，来源 SHA 与 FND-02 离线字节验收全绿
+
+**Stage: G4 / Req: R4.4 / G4 NOT_READY，禁止进入 G5。** 本仓库仍以通用 AI 短剧工厂为目标；CityDiscount 只是首个公开工程测试样本，不是独立的品牌影片渲染器。
+
+**最新 main 依据（全部 PR 的六项 GitHub CI 全绿后合并）：**
+- [PR #204](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/204) → `4999581a7ac66f107fb7cd8144a4f2a09d45a781`：RGBA 使用明确白色底合成 RGB，避免透明角色图/Logo 黑底；Owner 的 Mac 复验 5 passed，1 个不阻断的 Starlette 弃用警告。
+- [PR #205](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/205) → `fef57454b3f0fd3c9ddabe144a5f3f5bb4e8a444`：通用本地多角度 SHA→角色版本映射，拒绝重复使用同一源图冒充多个视角；不自动批准给模型使用。
+- [PR #206](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/206) → `3ce27878e3114e3db0e61a2b8e3626f807b68259`：首批十张素材 Mac 清单登记（此时仅元信息）。
+- **[PR #207](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/207) → main `aabb1d7e66a9244113122b86317bae93eb33c98a`**：Owner 的实际十张 PNG 已从 Mac 推送到隔离分支，经 Python 3.11/3.13 CI 逐张验证仓库 checked-out 原始 SHA256、RGBA 解码/尺寸、RGB 规范化及 FND-02 的离线 PNG 字节门禁；6/6 checks SUCCESS。资产目录 `assets/citydiscount/v1/character_views/`，绑定清单 `character_views_inventory.json`，测试 `tests/test_g4_local_image_inventory.py`。四张摄影视角：front/side/back/three_quarter；六张表情/动作：happy/wink/sparkle/jump/thumbsup/coin。
+
+**明确的边界：** 这证明十张图真实存在、内容与 Owner 本机哈希一致且通用图片准入字节合同可用；不证明图像语义确为相应视角、不证明图片独立版权/外传权限、不表示为 Omni 签发了 FND-02 HMAC Grant，不存在真实付费视频提交或已完工 AI 影像。本轮模型调用数 0，新增费用 0 USD。当前 `model_submission_allowed=false`、`operator_approved_for_model=false`、`rights_independently_verified=false`。
+
+**下一项（[Issue #201](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/201)）**：对四个真实视角执行人工语义/视觉确认与素材权限审查，在现有通用 FND-01、FND-02 签名镜头媒体门禁及 FND-03 首末帧上仅做临时密钥、无外部模型调用的 Fake dry-run；禁止拿十张图自动对外发送或启动 G5。
+
+---
+
 # 2026-10-20 最新权威状态：通用双项目 Fake 视频产线已真实 FFmpeg 全绿；下一步图像参考接线
 
 **Stage: G4 / Req: R4.4 / G4 仍 NOT_READY，G5 禁止。** Owner 将本仓库主动切换为 **Public** 以恢复免费的 GitHub-hosted Actions CI，确认本项目用于**开发和验证通用 AI 短剧系统**，CityDiscount 只是第一套测试场景，**不得为了单条宣传片制造专属生产流水线**。公开后历史真实视频 Actions artifact/日志与用户上传的品牌素材可能被公开访问；未知是否旧日志泄密，不能宣称完整安全审计通过。真实账号密钥始终以 GitHub Secrets/本机隔离、不得输出。
