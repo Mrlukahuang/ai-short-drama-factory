@@ -71,6 +71,10 @@ def build_operator_storyboard_preview(
     for number, card in enumerate(shot_cards):
         if type(card) is not dict:
             raise StoryboardAdapterError("Invalid storyboard card")
+        if (card.get("paid_execution_authorized") is True
+                or card.get("media_submission_approved") is True
+                or card.get("operator_reviewed") is True):
+            raise StoryboardAdapterError("Untrusted shot card cannot grant production approval")
         name = card.get("shot_id")
         duration = card.get("duration_seconds")
         visible = card.get("character_ids")
