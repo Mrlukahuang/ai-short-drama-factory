@@ -1,3 +1,11 @@
+# 2026-10-21 增量：EpisodeDraft.reference_asset_ids → 版本化 FND 视觉计划 → Fake Provider 凭据
+
+**Stage: G4 / Req: R4.4 / G4 NOT_READY。** 在现有 `screenplay_visual_bridge.py` 引入可选、严格的 `EpisodeDraft` 引用列表校验：每镜引用必须按已审 Screenplay 的在镜演员 + W2 绑定场景 + 锁定道具精确排序；不得删、加、调序，不得改变原镜对白/动作，也不得给不在选择范围的镜头附加引用。原有兼容路径保持不变。
+
+成功校验时把 `episode_draft_sha256` 纳入现有 FND-01 视觉计划哈希，进而进入 FND-02 HMAC grant scope 和无媒体字节的 Fake Omni receipt。预期覆盖两独立 Series 的完整 12 镜、6 镜合成 PNG 安全演练；CI 和最终合并情况以实际 PR 为准。无需新 Worker/DB/Provider，不得把测试密钥当所有者授权；真小羊 #210 权利/视角仍待人工决策，不提交 Omni、不付费。
+
+---
+
 # 2026-10-21 下一项真实增量：PNG 源文件 → W2 逐镜人审候选图（本 PR）
 
 **Stage: G4 / Req: R4.4 / G4 NOT_READY。** 在现有 `local_reference_views.py` 补充 `build_unapproved_shot_image_review`：真正读取 repo checked-out 原始 RGBA PNG 字节并对来源 SHA 做复核，调用已经存在的 RGB 白底规范化逻辑，产生规范化 `png_sha256` 与 W2 角色 `asset_id/version/specification_sha256`、镜头 ID、scene version 的确定性待审批映射。真实小羊四视角经过同一通用逻辑按 12 镜选择；另一无关双演员 6 镜使用合成文件验证不含品牌硬编码。**这不是人工视角审核**。
