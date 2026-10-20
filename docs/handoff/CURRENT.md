@@ -1,3 +1,14 @@
+# 最新权威状态：G4 首片方向切换 CityDiscount 宣传片，60秒12镜/离线合同已交付（2026-10-20 NZT）
+
+**Stage: G4 / Req: R4.4 / G4 NOT_READY。** Owner 在原12镜人工反馈和 FND-00–03 基础框架全CI通过后正式指示：“第一个视频方向改成一个生成我们citydiscount的宣传片”。这只改变**下一条新真实视频的创意目标**，不取消已有真实短剧素材/人审问题、旧FND基础框架，也不授权生成、上传、付款或发布。CityDiscount 是新西兰华语本地优惠资讯/消费比较品牌，不能宣传为已上线App、扫码领券或商家独家合作。
+
+- **创意/离线代码已入main**：[CityDiscount Issue #190](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/190) 与 [PR #191](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/191)：GitHub CI **6/6 SUCCESS**，Python3.11/3.13各 **932 passed、176 skipped**，squash合并 `a7f5a862a55c58649d951a2cb2e47a7a77cc7702`。新增 [60秒12镜分镜JSON](../../config/pilots/citydiscount_first_promo_v1.json)、[CityDiscount品牌片简报](../pilots/CITYDISCOUNT_FIRST_PROMO_BRIEF.md)、`pipeline/promo_motion_graphics.py` **零演员/品牌动效纯离线profile** 和相关合同/广告事实门禁测试。9:16、12×5秒、中文旁白、本地优惠/价格条件/信息来源、漫画/街头涂鸦视觉；正式中文标题/Logo/CTA由后期定版叠加，不由视频模型捏造。
+- **框架基础继续有效**：FND-00–03 PR #182/#184/#187/#189已合并；真实 `google_omni_video.py` 仍 prompt-only。CityDiscount promo profile 目前只产生离线分镜计划，**尚未直接经W2双演员FND-01合同或W3后期生成影片**。不得为适应格式伪造演员或跳过来源/权限门禁；需要下一独立薄适配层把promo shot、brand reference和graphic overlay交给已有Provider与FFmpeg后期，有Fake与CI才算可生产。
+- **下一决策与测试**：[Issue #188](https://github.com/Mrlukahuang/ai-short-drama-factory/issues/188) 已由旧茶馆真A/B更新为CityDiscount首片真测试。Owner需按仓库规定正式处理AMEND-006历史双主角毛毡定位的首片例外（PR#191是Proposed AMEND，未改Active）、提供有使用权的CityDiscount Logo/品牌视觉/真实CTA，核查Google Omni当前SDK/限额/费用和图片外发许可；最多2–3镜独立真实试生成后才可决定60秒整片。旧USD5权不可复用。#177 Gemini/ASR独立待授权。
+- **真实完成边界**：本轮**无CityDiscount MP4**、无模型真实上传/生成、无新费用；真实模型参考图改善、实际账单、G4内容与发布均未证明。G4 NOT_READY，G5/W6禁止。
+
+---
+
 # 最新权威状态：G4/FND-00–03 完整离线视觉生产框架已合并并统一测试，等待未来经授权的真实 A/B（2026-10-19 NZT）
 
 **Stage: G4 / Req: R4.4（R4.3 自动 QA 独立）/ G4 NOT_READY。** Owner 12镜真人未签字反馈后明确要求：“先把整体都搭建好，跟着开源视频代码，然后再统一测试”，停止逐镜 Prompt 修补。GitHub 主线源码级高热度开源对照和完整视觉产线已落地。**这不是 G4 发布/退出或额外模型/素材上传批准。**
