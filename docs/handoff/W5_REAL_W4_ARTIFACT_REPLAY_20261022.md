@@ -1,0 +1,38 @@
+# W5 / G4 — Original + W1-FAKE REAL historical W3 artifacts → existing W4 CLI offline smoke
+
+Stage: G4 · Req: R4.4/R4.3 contract · Work package: W5 evidence closure
+
+## Why this run is different
+
+Existing W3 evidence has validated **two real generated 12-shot technical videos**, original and W1-FAKE repaired. W4 source code already implements `load_w3_bundle/assess_bundle`, but W5 Issue #179 requires **real direct execution of the W4 CLI on those exact two historical GitHub artifacts** rather than inferring it from unit tests or hash-only baseline emulation.
+
+No new product orchestration, provider feature, SDK secret, media generation, database migration or UI. Use the existing W4 CLI, not a new evaluator.
+
+## Frozen original bytes and versions
+
+From [W3 standard handoff](W3_EVIDENCE_20261019.md) and old [Actions run #39141517448](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39141517448):
+
+| Input | Original | W1-FAKE |
+|---|---|---|
+| GitHub artifact ID | 12142320238 | 12141772943 |
+| Source MP4 SHA256 | `d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7` | `de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f` |
+| `09_render.json` SHA256 | `364016304d078e11730b858956002eb7236cdf5282bc92dfa5f80a99cdada1ad` | `3296b63bf88f154a43efba6a8ad895243331de22a8633a7474f68b178677ecf4` |
+| Subtitle `draft-captions.srt` SHA256 | `c6fa289f4a63192ea72d83c31dba86771fae10ee09a6ee68413ad78f7a259db6` | same |
+
+Operator independent double check in current session: both source ZIPs downloaded from the exact Actions run, each MP4/SRT/09 receipt SHA matched, original FFprobe: 360×640, 60.177333s, H264/AAC/mov_text. Existing old 12-shot footage, *not CityDiscount s02/s05*.
+
+## Enforced REAL W4 execution (not yet a claim of success until Actions run completes)
+
+The workflow `.github/workflows/g4-w5-real-w4-artifact-smoke.yml` on PR and merge:
+
+1. Downloads two exact artifacts from Run #39141517448 with GitHub's read-only Actions token; no Provider credentials.
+2. Re-verifies frozen MP4, render receipt and SRT SHA pins. Physically FFmpeg-decodes existing two 60.18 second MP4s.
+3. Executes `scripts/review_gpt_episode_offline.py` **once against both** W3 artifact directories. No `--reviews-json`, `--reviewer` or credential file. Does not forge human review.
+4. Checks W4 report: `technical_qa=pass`, `content_qa=fail`, `release_qa=blocked`, zero usable human-attested shots, **9 unknown + 3 historical negatives s03/s07/s09** in both versions. s07 must differ between original and W1-FAKE; the other 11 original clips must be unchanged. W1-FAKE s07 still not content-fixed.
+5. Uploads **report JSON only**, never source MP4, audio, private images or provider keys; saves true W4 JSON report SHA. If exact W3 artifacts have expired or required evidence is missing, workflow fails CLOSED rather than silently substituting Fake files.
+
+This is a W5 technical evidence increment, **not W4 creative sign-off**, live Gemini scoring, real Chinese ASR, human content/voice QA, rights/release, or G4 exit. Historical actual provider billing is still unknown. Zero new paid requests (the GitHub Actions runner itself consumes normal CI resources).
+
+## Next blocked decisions
+
+Owner must independently decide human shot review of 12 actual clips; approve/authorize any third-party face/voice analysis, reconcile provider invoices and publication/brand rights. Stage G4 stays **NOT_READY**, G5 paused. This record should be updated with the actual PR/run/conclusion/report SHA only after real W4 Actions execution; do not prefill a passed result.
