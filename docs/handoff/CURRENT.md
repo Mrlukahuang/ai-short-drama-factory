@@ -1,3 +1,13 @@
+# 2026-10-21 G4/R4.4：CityDiscount s02 真 Omni 原版小羊奔跑工作流（待Owner手动触发）
+
+Owner 已明确确认对原版吉祥羊PNG享有使用权，准许本次传给 Gemini Omni，预算单次USD2/NZ当日USD5。**本 PR 是真正的“Run workflow → 一次真实视频 → 下载MP4”的程序入口，不代表本次PR执行了任何付费调用。** 新 `.github/workflows/citydiscount-s02-omni-reference-once.yml` 默认 PREVIEW_ONLY，手动切换付费时必须分别勾选原图权利、Google外传、Google保留/服务条款已独立接受、实际NZ日Google账单及未入账用量已核对，并填真实 `nz_spend_today_usd`。先前s03费用曾无法查询；账单未知时不以0冒充，应阻断收费请求。当前聊天的权利/外传授权不能自动代表接受 Google 保留条款或费用真实已核查。
+
+程序 `scripts/citydiscount_s02_omni_reference_once.py` 重新 SHA 验证当前小羊 `front` RGBA 并局部 RGB标准化、不重绘眼睛；复用 FND-02原有 HMAC 单镜 reference envelope/SDK `generate_approved_reference_envelope`，只给 `gemini-omni-1.1-flash` 发一个真实图像+提示词，返回并校验真实MP4；模型只支持9:16 360p，因此FFmpeg **不拉伸主体**转换为真正1080×1440 3:4（模糊填充左右背景），并明确这不是模型原生1080p。用GitHub Actions上传原始和3:4输出、receipt、单次provider task ID；失败绝不自动重生或重复付费。
+
+离线CI Fake provider 不收费。**当前仍是工作流构建/待CI状态，未运行付费模型，尚无真正会跑的 s02 MP4**。片尾Logo与真实s05挖掘后续执行，G4 NOT_READY/G5禁止。操作见 `docs/CITYDISCOUNT_S02_REAL_TRIAL.md`。
+
+---
+
 # 2026-10-21 G4/R4.4：原版吉祥羊眼睛＋正式Logo 四镜精准审核
 
 ## Owner 最新视觉反馈（2026-10-21）——按原版小羊处理
