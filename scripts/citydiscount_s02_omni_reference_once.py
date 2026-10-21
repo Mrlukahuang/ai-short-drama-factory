@@ -312,7 +312,8 @@ def run_s02(*,output_dir:Path,spent_today_usd:str,
         raise VideoCallDisabled("No real media bytes returned; refuse fake success")
     # Do NOT label technically-successful character footage creative approved.
     receipt.update({
-        "model_calls":1,"output_media":"real_omni_video_downloaded",
+        "model_calls":1,"source_pngs_transmitted":1,
+        "output_media":"real_omni_video_downloaded",
         "source_video_real_model":True,
         "source_video_sha256":_sha(source.read_bytes()),
         "source_video_media_qa":_ffprobe(source),
