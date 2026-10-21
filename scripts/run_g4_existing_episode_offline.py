@@ -13,6 +13,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import sqlite3
 
 from drama_factory.db import Database
 from drama_factory.models import EpisodeDraft
@@ -38,7 +39,7 @@ def _safe_existing(path: Path, *, ext: str | tuple[str, ...]) -> Path:
     return path
 
 
-def _inputs(manifest_path: Path) -> list[dict]:
+def _inputs(manifest_path: Path, *, allow_empty: bool = False) -> list[dict]:
     manifest = _safe_existing(manifest_path, ext=".json")
     if not 10 <= manifest.stat().st_size <= _MAX_MANIFEST:
         raise G4ReplayDenied("Bounded local shot manifest required")
@@ -49,7 +50,7 @@ def _inputs(manifest_path: Path) -> list[dict]:
     if (type(doc) is not dict or set(doc) != {"schema", "shots"}
             or doc["schema"] != "g4-existing-real-shot-inputs.v1"
             or type(doc["shots"]) is not list
-            or not 1 <= len(doc["shots"]) <= 12):
+            or not (0 if allow_empty else 1) <= len(doc["shots"]) <= 12):
         raise G4ReplayDenied("Existing real-shot manifest contract invalid")
     source = []
     for shot in doc["shots"]:
@@ -73,11 +74,17 @@ def _inputs(manifest_path: Path) -> list[dict]:
     return source
 
 
-def run_existing_episode_preview(
+def _approved_scope(
     *, database_path: Path, production_id: str, series_id: str,
-    shot_manifest_path: Path, output_root: Path, allow_placeholders: bool = False,
-) -> dict:
-    """Offline one-command G4 technical draft + sanitized receipt, NOT release."""
+    shot_manifest_path: Path, output_root: Path, allow_placeholders: bool,
+    allow_empty: bool = False,
+) -> tuple[Path, Path, list[dict], EpisodeDraft]:
+    """Read current approved production without DB initialization/migration.
+
+    The read-only SQLite connection has no write privileges. In particular
+    no migration, production-state update or model call may happen while
+    inspecting inputs (even if the manifest is corrupt or shots are absent).
+    """
     if (type(production_id) is not str or not _PROD.fullmatch(production_id)
             or type(series_id) is not str or not _SERIES.fullmatch(series_id)
             or type(allow_placeholders) is not bool):
@@ -89,15 +96,20 @@ def run_existing_episode_preview(
     if root.exists() and not root.is_dir():
         raise G4ReplayDenied("Existing local output is not a directory")
 
-    selections = _inputs(shot_manifest_path)
-    # No new databases/productions/approvals are invented; this uses the
-    # existing locally-created project/approved production and its real draft.
-    db = Database(database_path)
-    row = db.one(
-        """SELECT p.status, e.project_id, e.body_json
-           FROM productions p JOIN episodes e ON p.episode_id=e.id
-           WHERE p.id=?""", (production_id,),
-    )
+    selections = _inputs(shot_manifest_path, allow_empty=allow_empty)
+    try:
+        # Crucially DO NOT construct Database() here: its __init__ may
+        # initialize/upgrade SQLite. The read-only URI fails if missing.
+        with sqlite3.connect(database_path.as_uri() + "?mode=ro", uri=True) as connection:
+            connection.row_factory = sqlite3.Row
+            connection.execute("PRAGMA query_only=ON")
+            row = connection.execute(
+                """SELECT p.status, e.project_id, e.body_json
+                   FROM productions p JOIN episodes e ON p.episode_id=e.id
+                   WHERE p.id=?""", (production_id,),
+            ).fetchone()
+    except sqlite3.Error:
+        raise G4ReplayDenied("Existing SQLite read-only inspection failed") from None
     if (row is None or row["project_id"] != series_id
             or row["status"] not in ("ready_for_video_generation", "offline_preview_finished")):
         raise G4ReplayDenied("Existing production must match series and pass both review gates")
@@ -108,11 +120,90 @@ def run_existing_episode_preview(
     if (len(episode.shots) > 12 or episode.target_duration_seconds > 90
             or episode.target_duration_seconds < 1):
         raise G4ReplayDenied("Existing G4 technical-preview size limits exceeded")
+    return database_path, root, selections, episode
 
-    # All SHAs and receipts checked BEFORE renderer can write any output.
+
+def preflight_existing_episode(
+    *, database_path: Path, production_id: str, series_id: str,
+    shot_manifest_path: Path, output_root: Path, allow_placeholders: bool = False,
+) -> dict:
+    """Safe no-write/no-render/no-Provider inventory even with ZERO clips.
+
+    The report is a snapshot of current local inputs, NOT a grant/approval
+    or instruction to automatically purchase the missing shots.
+    """
+    _, _, selections, episode = _approved_scope(
+        database_path=database_path, production_id=production_id,
+        series_id=series_id, shot_manifest_path=shot_manifest_path,
+        output_root=output_root, allow_placeholders=allow_placeholders,
+        allow_empty=True,
+    )
+    order = [shot.shot_id for shot in episode.shots]
+    if selections:
+        _, intake = admit_existing_real_shots(
+            episode, selections, require_full_episode=False,
+        )
+        present = intake["selected_real_shot_ids"]
+        missing = intake["missing_real_shot_ids"]
+        source_report_sha = intake["report_sha256"]
+    else:
+        present, missing, source_report_sha = [], order, None
+    complete = not missing
+    outcome = {
+        "schema": "g4-existing-episode-readonly-preflight.v1",
+        "series_id": series_id,
+        "production_id": production_id,
+        "episode_sha256": hashlib.sha256(
+            episode.model_dump_json().encode("utf-8")
+        ).hexdigest(),
+        "ordered_expected_shot_ids": order,
+        "validated_existing_real_shot_ids": present,
+        "missing_real_shot_ids": missing,
+        "expected_real_shot_count": len(order),
+        "existing_real_shot_count": len(present),
+        "complete_source_coverage": complete,
+        "render_scope": "full_real_only" if not allow_placeholders else "internal_partial_preview",
+        "render_ready_under_selected_scope": complete or (
+            allow_placeholders and bool(present)
+        ),
+        "recommended_next_action": (
+            "review_existing_sources_then_manually_run_offline_render"
+            if complete else
+            "supply_and_pin_missing_existing_real_shots_no_automatic_generation"
+        ),
+        "source_handoff_report_sha256": source_report_sha,
+        "status": "ready_for_offline_technical_render" if complete else "blocked_missing_real_shots",
+        "sqlite_opened_read_only": True,
+        "sqlite_initialization_or_migration": False,
+        "technical_preview_written": False,
+        "provider_calls": 0,
+        "source_actual_vendor_invoices_verified": False,
+        "human_review_status": "not_run",
+        "publish_approved": False,
+        "g4_exit_approved": False,
+    }
+    outcome["report_sha256"] = hashlib.sha256(json.dumps(
+        outcome, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")).hexdigest()
+    return outcome
+
+
+def run_existing_episode_preview(
+    *, database_path: Path, production_id: str, series_id: str,
+    shot_manifest_path: Path, output_root: Path, allow_placeholders: bool = False,
+) -> dict:
+    """Offline one-command G4 technical draft + sanitized receipt, NOT release."""
+    database_path, root, selections, episode = _approved_scope(
+        database_path=database_path, production_id=production_id,
+        series_id=series_id, shot_manifest_path=shot_manifest_path,
+        output_root=output_root, allow_placeholders=allow_placeholders,
+    )
+    # Check ALL source MP4s and SHA/receipts BEFORE Database() initializes
+    # or W3 attempts any write to the operator-selected local SQLite file.
     clips, handoff = admit_existing_real_shots(
         episode, selections, require_full_episode=not allow_placeholders,
     )
+    db = Database(database_path)
     rendered = render_approved_preview(
         db, production_id, root, source_clips=clips,
     )
@@ -181,9 +272,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-root", required=True, type=Path)
     parser.add_argument("--allow-placeholders", action="store_true",
                         help="Internal technical preview ONLY. Incomplete movie is not real.")
+    parser.add_argument("--preflight-only", action="store_true",
+                        help="Read-only missing-shot inventory; NO SQLite/render writes or paid calls.")
     args = parser.parse_args(argv)
     try:
-        report = run_existing_episode_preview(
+        entrypoint = preflight_existing_episode if args.preflight_only else run_existing_episode_preview
+        report = entrypoint(
             database_path=args.database, production_id=args.production_id,
             series_id=args.series_id, shot_manifest_path=args.shot_manifest,
             output_root=args.output_root,
