@@ -111,3 +111,21 @@ def test_synthetic_single_call_sdk_path_cannot_auto_retry(tmp_path,monkeypatch):
     with pytest.raises(VideoCallDisabled,match="overwrite"):
         s05.run_s05(output_dir=tmp_path/"synthetic",provider=sdk,convert_video=False,**paid)
     assert sdk.n==1
+
+
+def test_s05_workflow_checks_and_archives_the_real_python_output_path():
+    """Prevent paid-generation SUCCESS followed by a false red CI file check.
+
+    Runs locally/offline only: no Google SDK request, no source upload,
+    no modification of produced media. All three places MUST agree.
+    """
+    from pathlib import Path
+    root=Path(__file__).resolve().parents[1]
+    script=(root/"scripts/citydiscount_s05_omni_reference_once.py").read_text("utf-8")
+    workflow=(root/".github/workflows/citydiscount-s05-omni-reference-once.yml").read_text("utf-8")
+    name="s05_1080x1440_3x4_NOT_FINAL.mp4"
+    assert ('output_dir/"'+name+'"') in script
+    assert workflow.count("artifacts/s05-real/"+name)==3
+    assert "s05_owner_1080x1440_3x4_NOT_FINAL.mp4" not in workflow
+    assert 'if: always()' in workflow
+    assert "s05_raw_omni_9x16.mp4" in workflow

@@ -1,3 +1,11 @@
+# 2026-10-22 G4/R4.4｜Shot 05 已真实生成；CI 打包文件名误判红灯
+
+Owner手动运行 [s05 Action #39596195021](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39596195021)：真实 Google Omni reference call **1 次成功**（相同原版吉祥羊 PNG）、来源 MP4 **360×640 / 5.013秒**、ffmpeg 3:4版本 **1080×1440 / 5秒** 均成功完成。失败仅来自工作流末尾 **检查/Artifact路径拼写错**：脚本实际输出 `s05_1080x1440_3x4_NOT_FINAL.mp4`；CI却找 `s05_owner_1080x1440_3x4_NOT_FINAL.mp4`。当前红色不代表生成失败；**严禁重新调用付费生成或 rerun 全部 job**。原 Artifact #12343403535 上传了真实源 360p、receipt但因拼写错遗漏了3:4转制文件。总指挥已下载、SHA校验源MP4并在本地无需新Google费用重做3:4；重新编码哈希可能因 FFmpeg 环境不同，不能冒称原Runner字节完全相同。
+
+本 PR 只统一 workflow 三处路径、测试严格比对输出文件名和检查/上传路径，零新付费。实际帧抽检呈现原版大眼小羊在毛毡蔬果市集用铲挖土、约3秒出现一枚金币、4秒后拿起金币；模型生出一块未经核准的可读商店招牌（类似“Chechules”），金币面依然没有官方CD字样；两次铲土连贯性/个数仍需Owner主观复核，不宣称已最终验收。真实费用未知，用户运行本次时填写的 `SPEND=0` 只是运营者开跑前自填余额，不等于当前Google账单0。**本镜无需再次付费重拍，先看已存在的视频**。G4 NOT_READY/G5冻结。
+
+---
+
 # 2026-10-22 G4/R4.4：Shot 05 Google Omni 360p 真小羊挖金币试拍（待 Owner 触发）
 
 Owner 已看过 Shot 02 真正 5 秒 360p 奔跑视频（GitHub Actions #39583047905），接受当前动作/轻微转场硬；明确优先以 360p 省钱完成后续镜头，**下一实际镜头是 Shot 05**，而不是重复 s02。新增 `scripts/citydiscount_s05_omni_reference_once.py` 和 `.github/workflows/citydiscount-s05-omni-reference-once.yml`；完全复用之前 CI 验证且实际付费成功的 s02：原版大眼小羊 PNG SHA校验、FND-02一次性图像reference+HMAC operator grant、单次 Google SDK提交、无需重试的真实MP4和本地FFmpeg等比3:4转码。本镜s05强制四动作时间槽：第1铲0s／第2铲1.5s／一枚金币3s／收金币4s。金色模型金币不拼字，**真正 CD 图案需独立审核后期确定性叠加，不能冒充已完成 Logo**。仅原生360p 9:16并保留真实原视频，后期转1080×1440 3:4不是原生1080p。

@@ -100,9 +100,9 @@ jobs:
         if: ${{ inputs.confirmation == 'GENERATE_ONE_S05_PAID_WITH_OWNER_IMAGE' }}
         run: |
           test -s artifacts/s05-real/s05_raw_omni_9x16.mp4
-          test -s artifacts/s05-real/s05_owner_1080x1440_3x4_NOT_FINAL.mp4
+          test -s artifacts/s05-real/s05_1080x1440_3x4_NOT_FINAL.mp4
           ffprobe -v error -show_entries format=duration:stream=width,height,codec_type -of json \
-            artifacts/s05-real/s05_owner_1080x1440_3x4_NOT_FINAL.mp4
+            artifacts/s05-real/s05_1080x1440_3x4_NOT_FINAL.mp4
           python - <<'PY'
           import json
           from pathlib import Path
@@ -132,6 +132,6 @@ jobs:
             artifacts/s05-real/receipt.json
             artifacts/s05-real/s05_raw_omni_9x16.mp4
             artifacts/s05-real/s05_raw_omni_9x16.recovery.json
-            artifacts/s05-real/s05_owner_1080x1440_3x4_NOT_FINAL.mp4
+            artifacts/s05-real/s05_1080x1440_3x4_NOT_FINAL.mp4
           retention-days: 7
           if-no-files-found: warn
