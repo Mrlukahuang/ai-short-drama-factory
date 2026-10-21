@@ -164,9 +164,10 @@ def test_malformed_private_path_and_wrong_contract_refused_without_model(client,
     with pytest.raises(G4ReplayDenied,match="Linked"):
         _inputs(symlink)
     if args is not None:
-        status=main([
-            "--database",str(db.path),"--production-id",run,
-            "--series-id",project,"--shot-manifest",str(file),
-            "--output-root",str(tmp_path/"block-output"),
-        ])
-        assert status==2
+        with pytest.raises(SystemExit) as blocked:
+            main([
+                "--database",str(db.path),"--production-id",run,
+                "--series-id",project,"--shot-manifest",str(file),
+                "--output-root",str(tmp_path/"block-output"),
+            ])
+        assert blocked.value.code == 2
