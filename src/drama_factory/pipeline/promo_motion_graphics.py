@@ -38,8 +38,6 @@ def _build_coin_hunt_3x4(candidate: dict) -> dict:
     current production script is revision 4 and must NEVER silently inherit
     the original 9:16 aspect or an unsupported provider source ratio.
     """
-    if type(candidate) is dict and candidate.get("schema_version") == SCHEMA_3X4:
-        return _build_coin_hunt_3x4(candidate)
     if (type(candidate) is not dict
             or candidate.get("schema_version") != SCHEMA_3X4
             or candidate.get("project") != "CityDiscount"
