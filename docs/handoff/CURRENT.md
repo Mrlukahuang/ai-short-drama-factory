@@ -1,3 +1,11 @@
+# 2026-10-22 G4/R4.4：Shot 05 Google Omni 360p 真小羊挖金币试拍（待 Owner 触发）
+
+Owner 已看过 Shot 02 真正 5 秒 360p 奔跑视频（GitHub Actions #39583047905），接受当前动作/轻微转场硬；明确优先以 360p 省钱完成后续镜头，**下一实际镜头是 Shot 05**，而不是重复 s02。新增 `scripts/citydiscount_s05_omni_reference_once.py` 和 `.github/workflows/citydiscount-s05-omni-reference-once.yml`；完全复用之前 CI 验证且实际付费成功的 s02：原版大眼小羊 PNG SHA校验、FND-02一次性图像reference+HMAC operator grant、单次 Google SDK提交、无需重试的真实MP4和本地FFmpeg等比3:4转码。本镜s05强制四动作时间槽：第1铲0s／第2铲1.5s／一枚金币3s／收金币4s。金色模型金币不拼字，**真正 CD 图案需独立审核后期确定性叠加，不能冒充已完成 Logo**。仅原生360p 9:16并保留真实原视频，后期转1080×1440 3:4不是原生1080p。
+
+手动入口详 `docs/CITYDISCOUNT_S05_REAL_TRIAL.md`。零费用 PREVIEW_ONLY 允许 UNKNOWN 账单；付费必须运营者真正核实 NZ当天Google用量、独立接受Google服务/留存条款并勾选权利与传输授权；USD2单次USD5 NZ日是工作流运营限额**不是Google硬性账单上限**，已消费的 s02 真正价钱仍要查询实际Google账单。**本开发PR只做软件+offline Fake CI，并不等于已发生付费、真实s05 MP4、内容批准或G4退出。** G4 NOT_READY，G5暂停。
+
+---
+
 # 2026-10-21 G4/R4.4：CityDiscount s02 真 Omni 原版小羊奔跑工作流（待Owner手动触发）
 
 Owner 已明确确认对原版吉祥羊PNG享有使用权，准许本次传给 Gemini Omni，预算单次USD2/NZ当日USD5。**本 PR 是真正的“Run workflow → 一次真实视频 → 下载MP4”的程序入口，不代表本次PR执行了任何付费调用。** 新 `.github/workflows/citydiscount-s02-omni-reference-once.yml` 默认 PREVIEW_ONLY，手动切换付费时必须分别勾选原图权利、Google外传、Google保留/服务条款已独立接受、实际NZ日Google账单及未入账用量已核对，并填真实 `nz_spend_today_usd`。先前s03费用曾无法查询；账单未知时不以0冒充，应阻断收费请求。当前聊天的权利/外传授权不能自动代表接受 Google 保留条款或费用真实已核查。
