@@ -82,9 +82,14 @@ def _money(text: str) -> Decimal:
 def _preflight(*, spent_today_usd: str, paid: bool, confirmation: str,
                rights_confirmed: bool, google_transfer_confirmed: bool,
                google_terms_accepted: bool, invoice_verified: bool) -> tuple[dict,dict]:
-    spent = _money(spent_today_usd)
-    if spent + MAX_RESERVE_USD > MAX_NZ_DAY_USD:
-        raise VideoCallDisabled("USD 2 reserve exceeds remaining USD 5 NZ-day budget")
+    if isinstance(spent_today_usd, str) and spent_today_usd.strip().upper() == "UNKNOWN":
+        if paid:
+            raise VideoCallDisabled("Paid generation blocked: NZ-day Google spending UNKNOWN")
+        spent = None  # A preview may run without an invoice, never a paid call.
+    else:
+        spent = _money(spent_today_usd)
+        if spent + MAX_RESERVE_USD > MAX_NZ_DAY_USD:
+            raise VideoCallDisabled("USD 2 reserve exceeds remaining USD 5 NZ-day budget")
     if confirmation not in {PREVIEW,PAID}:
         raise VideoCallDisabled("Unrecognized explicit single-shot intent")
     if paid and confirmation != PAID:
@@ -120,7 +125,7 @@ def _preflight(*, spent_today_usd: str, paid: bool, confirmation: str,
         "reframe_method":"aspect-preserving fore; blurred full-bleed side extension",
         "not_native_1080p_model":True,
         "max_run_usd_operator_reserve":str(MAX_RESERVE_USD),
-        "nz_day_before_run_operator_declared_usd":str(spent),
+        "nz_day_before_run_operator_declared_usd":str(spent) if spent is not None else "UNKNOWN",
         "google_hard_invoice_cap":False,
         "prior_invoice_reconciled_by_operator":invoice_verified,
         "provider_billing_unverified":True,
