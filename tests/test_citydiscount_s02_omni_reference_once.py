@@ -127,3 +127,16 @@ def test_invalid_source_image_hash_blocks_reference_buildup(monkeypatch,tmp_path
     monkeypatch.setattr(s02,"INVENTORY",corrupted)
     with pytest.raises(VideoCallDisabled,match="changed"):
         s02.prepare_one_shot(**DEF)
+
+def test_unknown_old_google_invoice_allows_only_free_preview(tmp_path):
+    args={**DEF,"spent_today_usd":"UNKNOWN"}
+    envelope,receipt=s02.prepare_one_shot(**args)
+    assert envelope is None
+    assert receipt["nz_day_before_run_operator_declared_usd"] == "UNKNOWN"
+    assert receipt["model_calls"]==0
+    with pytest.raises(VideoCallDisabled,match="UNKNOWN"):
+        s02.prepare_one_shot(**{**args,"paid":True,
+            "confirmation":s02.PAID,
+            "rights_confirmed":True,
+            "google_transfer_confirmed":True,
+            "google_terms_accepted":True,"invoice_verified":True})
