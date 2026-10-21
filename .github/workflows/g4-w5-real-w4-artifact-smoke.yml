@@ -99,11 +99,47 @@ jobs:
             "original":(12142320238,"d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7"),
             "w1_fake":(12141772943,"de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f")
           }
+          # The original W5 machine-readable acceptance inventory ALREADY
+          # exists. Do not invent a separate competing G4 verdict.
+          inventory_path=Path("docs/handoff/G4_ACCEPTANCE_20261019.json")
+          inventory_bytes=inventory_path.read_bytes()
+          inventory=json.loads(inventory_bytes)
+          assert inventory["schema"]=="g4-w5-acceptance-inventory.v1"
+          assert inventory["project"]=="Mrlukahuang/ai-short-drama-factory"
+          assert inventory["stage"]=="G4" and inventory["work_package"]=="W5"
+          assert inventory["verdict"]=="NOT_READY"
+          assert inventory["g4_exited"] is False
+          assert inventory["publish_approved"] is False
+          assert inventory["g5_authorized"] is False
+          assert inventory["real_media_w5_replay"]["source_run"]==39141517448
+          assert inventory["real_media_w5_replay"]["execution_status"]=="verified_real_artifact_local_cli_run"
+          assert inventory["contract_status"]["real_W4_existing_artifact_review_cli"]=="verified"
+          assert inventory["contract_status"]["real_one_command_approved_script_to_shots_post_qa"]=="not_verified"
+          assert inventory["kpis"]["usable_shots"]["attested_usable_shots"]==0
+          assert inventory["kpis"]["usable_shots"]["unknown_shots"]==9
+          assert inventory["kpis"]["cost_per_qualified_minute"]["actual_usd_per_qualified_minute"] is None
+          assert inventory["kpis"]["human_operator_hours"]["measured_end_to_end_hours"] is None
+          assert inventory["money"]["actual_prior_provider_invoice_usd"] is None
+          assert inventory["r4_3_full_requirement"]=="not_run"
+          frozen={x["version"]:x for x in inventory["real_media_w5_replay"]["files"]}
+          assert set(frozen)==set(expected)
+          for version,(artifact,sha) in expected.items():
+            assert frozen[version]["artifact_id"]==artifact
+            assert frozen[version]["mp4_sha256"]==sha
+            assert frozen[version]["verified_usable_shots"]==0
+            assert frozen[version]["human_attested_count"]==0
+            assert frozen[version]["known_needs_repair"]==["s03","s07","s09"]
+            assert frozen[version]["unknown_shot_count"]==9
+            assert frozen[version]["technical_qa"]=="pass"
+            assert frozen[version]["content_qa"]=="fail"
+            assert frozen[version]["release_qa"]=="blocked"
           for version,(artifact,sha) in expected.items():
             path=root/f"{version}-content-qa.json"
             assert path.is_file()
             q=json.loads(path.read_text("utf-8"))
             assert (q["contract"],q["version"],q["artifact_id"],q["final_mp4_sha256"])==("g4-w4-content-review.v1",version,artifact,sha)
+            assert q["report_sha256"]==frozen[version]["report_sha256"]
+            assert hashlib.sha256(path.read_bytes()).hexdigest()==frozen[version]["report_file_sha256"]
             assert len(q["shots"])==12
             assert (q["human_review_attested_count"],q["usable_shot_count"],q["known_needs_repair_count"],q["unknown_shot_count"])==(0,0,3,9)
             assert (q["technical_qa"],q["content_qa"],q["release_qa"])==("pass","fail","blocked")
@@ -124,6 +160,10 @@ jobs:
           receipt={
             "schema":"g4-w5-existing-W3-to-W4-actual-media-smoke.v1",
             "origin_run_id":39141517448,
+            "authoritative_w5_acceptance_schema":inventory["schema"],
+            "authoritative_w5_acceptance_sha256":hashlib.sha256(inventory_bytes).hexdigest(),
+            "authoritative_w5_acceptance_verdict":"NOT_READY",
+            "real_media_w4_report_hashes_match_w5_inventory":True,
             "actual_historical_mp4s_checked":2,
             "w4_existing_cli_executed_on_actual_artifacts":True,
             "new_model_calls":0,"new_model_cost_usd":"0",
