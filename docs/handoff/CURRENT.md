@@ -1,3 +1,11 @@
+# 2026-10-22 G4/R4.4｜通用真实镜头输入 → 既有 W3 成片 → W4 技术审查零费闭环
+
+前置 **PR #226 已合并**，main `8625d84b2fc600f5bde2b7270edcd7a2a7467a90`：通用已生成真实MP4按独立SHA与provider receipt匹配成既有 `source_clips`，缺镜头明确标注，不重生/不碰现有系统。本轮**不再开发CityDiscount单镜**，只新增 CI 强制真实 FFmpeg E2E：实测`admit_existing_real_shots(EpisodeDraft,...)`提供给既有 `render_approved_preview(db,run,...source_clips)`，必须先经过API script/characters双审批，再以FFmpeg生成真实H264+AAC+字幕MP4、W4技术验收，部分镜头仍明确 placeholder、全真已有镜头才不含placeholder、重复调用重用缓存且没有SDK/收费调用；缺图/receipt篡改必须在落盘和审批状态变化前阻断。两个独立测试型Episode执行，非真实顾客素材、非真实Google模型调用；不能从Fake E2E推断真人内容通过。
+
+交付路径 `tests/test_g4_existing_real_shot_w3_integration.py`，CI `offline-video` 强制测试不得skip；不改W1–W5业务源码、不建UI/DB新表/调度。G4 NOT_READY/G5冻结；Owner需未来真人音轨/内容及账单验收，CityDiscount旧镜头不需再次付费。
+
+---
+
 # 2026-10-22 G4/R4.4｜转回通用短剧工厂：已有真实镜头 → 同一成片/审片入口
 
 **Owner 最新指令**：CityDiscount 只用于验证通用短剧系统，不再反复打磨 s05 的 Woolworths 招牌或 logo coin，不再继续新付费镜头；**优先加速通用工程**。核验 main `bc9933b9ea44ba11e14a6af47f3ab367f6a6e24c`、W1–W5/G4标准交接、Issue #201/#188/#179 之后发现：上游 `EpisodeDraft`/W2引用、Google真正图像参考 SDK、既有W3本地 FFmpeg + W4人工审查已交付；但 s02/s05真实来源/receipt仍需人工各自拼接，不应再次开发 CityDiscount 专用渲染器。
