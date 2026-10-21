@@ -33,7 +33,13 @@ def test_only_true_original_mascot_and_logo_are_verifiable():
     assert logo.size[0]>100 and logo.size[1]>100
 
 
-def test_actual_five_selected_source_boards_draw_with_exact_3_4_frame(tmp_path):
+def test_actual_five_selected_source_boards_draw_with_exact_3_4_frame(tmp_path, monkeypatch):
+    # Plain Python CI intentionally has no CJK font package. Rendering contract
+    # stays fully tested with a local Unicode-capable placeholder here, while
+    # the dedicated ACTIONS media job renders the true Noto CJK typography.
+    from PIL import ImageFont
+    monkeypatch.setattr(studio, "font_family",
+                        lambda size, bold=False: ImageFont.load_default(size=size))
     receipt=studio.render(tmp_path/"review")
     assert receipt["owner_selection"]==["s02","s05","s06","s07","s12"]
     assert receipt["target_pixel_size"]==[1080,1440]
