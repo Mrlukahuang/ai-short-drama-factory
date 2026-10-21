@@ -120,7 +120,7 @@ jobs:
           DRAMA_ENABLE_PAID_GENERATION: 'NO'
         run: |
           python -c "import shutil; assert shutil.which('ffmpeg') and shutil.which('ffprobe')"
-          pytest -q tests/test_g4_existing_real_shot_handoff.py -rs
+          pytest -q tests/test_g4_existing_real_shot_handoff.py tests/test_g4_existing_real_shot_w3_integration.py -rs
 
       - name: Create playable 6-second MP4 (no API keys)
         env:
