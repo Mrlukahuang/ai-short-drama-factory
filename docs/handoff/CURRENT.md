@@ -1,3 +1,17 @@
+# 2026-10-21 G4/R4.4：原版吉祥羊眼睛＋正式Logo 四镜精准审核
+
+## Owner 最新视觉反馈（2026-10-21）——按原版小羊处理
+
+- **Stage G4 / Req R4.4**，沿用 PR #220 在 main `f889494d` 已锁定的当前 rev4 12镜/1080×1440/3:4 计划。
+- Owner 明确说「**2–8 里面只需要 2、5、6、7**」、「小羊好像眼睛小了」、「**12 要用 CityDiscount 的标**」。
+- **这轮具体制作选择**：仅对原 12 镜中的 **s02、s05、s06、s07** 制作重点 3:4 原版吉祥物视觉样张，不引入其他新的独立寻宝站；另独立制作 **s12 正式 Logo 片尾**。原 12 镜剧情未被擅自删减，正式新片仍为 60s / 12 镜；不把部分样张当完整12镜。
+- **身份与眼睛**：严格引用仓库 `assets/citydiscount/v1/character_views` 内用户已有的 `front`、`three_quarter` PNG 原图，使用源字节 SHA 验证。仅裁透明边 + 等比例缩放合成，**绝不重画/缩小眼睛或套用 AI 相似小羊**；常态角色占画高约20%，不超27%。
+- **Logo**：s12 从 `assets/citydiscount/v1/citydiscount_logo_v1.png` 载入真实图片，验 SHA `19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651`，不由模型绘制品牌英文。完整 CTA 为文本；最终生产版需保证真实Logo至少3秒，当前只有静态片尾板，不谎称完成5秒动态成片。
+- 工程交付：`scripts/render_citydiscount_3x4_priority_boards.py` **复用现有 `render_citydiscount_branded_previs.owned_assets`** 而不是新造一套logo/人物资产校验；新专用 0成本 Actions `citydiscount-3x4-priority-boards.yml`。输出9张**实际1080×1440**静态帧（s05、s07 各分为第一铲／第二铲／一枚金币，其他各一帧）、单张总览 JPG 和包含源 SHA、无云提交、无发布许可的 receipt.json。**它们是 2D 静态审核版式，不是 AI 3D 动态小羊/最终影片；背景是本地针毡示意绘画，不是在线真实优惠。**
+- 不重新调用收费 Omni，上一真实视频账单仍 UNKNOWN。没有授权新的原图外传，G4 NOT_READY / G5暂停。
+
+---
+
 # 2026-10-21｜G4/R4.4｜CityDiscount 1080×1440 (3:4) 现行第一版创意（Owner 确认）
 
 **最新版可用数据源**：`config/pilots/citydiscount_coin_hunt_1080x1440_v2.json`，创意修订 4；完整人读分镜 `docs/CITYDISCOUNT_COIN_HUNT_1080x1440_PRODUCTION.md`。**旧版 rev3 `citydiscount_first_promo_v1.json` 只用作历史 9:16 回放和先前 CI 测试，不再作为最新版镜头生成/音乐剪辑依据**。
