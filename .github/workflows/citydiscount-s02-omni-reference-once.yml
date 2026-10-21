@@ -11,9 +11,10 @@ on:
           - PREVIEW_ONLY
           - GENERATE_ONE_S02_PAID_WITH_OWNER_IMAGE
       nz_spend_today_usd:
-        description: "Actual reconciled NZ-calendar-day Google charges BEFORE this run (USD). Never enter 0 if unknown."
+        description: "For PREVIEW_ONLY enter UNKNOWN if not billed; for PAID enter independently verified NZ-day USD spend, never a guess."
         required: true
         type: string
+        default: 'UNKNOWN'
       rights_confirmed:
         description: "Owner confirms rights for canonical sheep image"
         required: true
