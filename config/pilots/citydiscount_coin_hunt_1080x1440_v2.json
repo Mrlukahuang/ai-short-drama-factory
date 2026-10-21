@@ -1,0 +1,718 @@
+{
+  "schema_version": "g4-citydiscount-first-promo.v2",
+  "project": "CityDiscount",
+  "campaign_id": "citydiscount-auckland-little-sheep-coin-hunt-3x4",
+  "revision": 4,
+  "stage": "G4",
+  "req": "R4.4",
+  "purpose": "first_real_video_target_brand_promo",
+  "status": "creative_proposal_offline_only",
+  "format": {
+    "width": 1080,
+    "height": 1440,
+    "aspect_ratio": "3:4",
+    "total_duration_seconds": 60,
+    "shot_count": 12,
+    "fps_target": 24,
+    "orientation": "portrait",
+    "final_output_exact_pixels": true,
+    "provider_source_aspect_ratio": "not_assumed_3_4_supported",
+    "postproduction_rule": "Use felt inpaint/extended frame or correctly supervised crop if model output lacks 3:4; never stretch people, logos or CD coin art; verify 1080x1440 via ffprobe."
+  },
+  "primary_audience": "新西兰本地华语消费人群",
+  "positioning": "CityDiscount 主动替奥克兰居民寻找、核查条件并整理本地优惠资讯，帮大家节省搜索时间；不保证任何虚构优惠真实有效或确定的省钱金额。",
+  "style": {
+    "id": "citydiscount_all_felt_miniature_3x4_small_canonical_sheep",
+    "description": "严格全部针毡3D微缩世界：街道、屋顶、天空、云朵、食物、货架、人物、金币、铲子和道具均能看到毛毡纤维/线脚，温暖木质灯光，定格动画质感。小羊 MUST match actual owned mascot PNG (10 checked-in angles/emotions) rather than AI invented look. Small cute sheep typically 15–22% frame height, max 27% except s11 handoff close-up. All scenes 1080×1440 portrait, no other aspect or pixel dimensions pass delivery. Exact official logo and CD coin mark inserted from validated originals in postproduction, no AI re-spelling.",
+    "brand_visual_asset_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+    "style_asset_approved": false,
+    "legacy_felt_diorama_global_default_unchanged": true,
+    "owner_visual_direction_approved": true,
+    "final_3x4_film_approved": false
+  },
+  "controls": {
+    "sound": "Owner接受纯音乐或Omni原生自然中文/英文试验，禁止eSpeak作为对外候选；本稿指定 music+sfx ONLY / no voice recording yet.",
+    "headlines_and_brand_overlay": "真实 Logo 与屏幕文字和 CD 金币正面标记，使用通过权利和资产精确校验后的原始素材在后期确定性定版；不得依赖模型准确拼出商标/汉字/金币字样。",
+    "brand_name_claim": "CityDiscount 是内容资讯品牌，未证实领券、商家独家权益或App",
+    "third_party_logos_and_trademarks": "must_be_rights_cleared",
+    "real_price_or_offer_terms": "三场代表系统已存在的抓取源类别，不出现未经当前逐条验证的商家、价格、折扣、过期活动、合作关系，示意图不得被宣传成实时优惠。",
+    "media_rights_and_remote_upload": "not_approved",
+    "model_calls": 0,
+    "real_paid_call_authorized": false,
+    "publish_approved": false,
+    "g4_exit_approved": false
+  },
+  "source_context": "Owner confirmed 2026-10-21: all 12 scenes in exact portrait 1080x1440, 3:4; tiny original cute CityDiscount sheep runs across Auckland; THREE illustrative settings correspond to verified scraper/rule types: supermarket, GrabOne restaurants, Cheapies shopping; two distinct digging actions, then one CD coin per stop; tired running montage, brings a pile of coins to felt family, happily runs away; all city, people, objects are needle-felt. No explicit price/real merchant offer is authorized.",
+  "shots": [
+    {
+      "shot_id": "s01",
+      "start_ms": 0,
+      "end_ms": 5000,
+      "duration_seconds": 5,
+      "shot_title_zh": "心愿清单",
+      "storybeat": "setup",
+      "scene_anchor": "felt_family_home",
+      "owner_visual_direction_zh": "奥克兰毛毡小家里，爸爸妈妈和孩子打开长长的采购、吃喝和周末愿望清单，钱包里只有少量带CD字样的金币；窗外是针毡城市。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 奥克兰毛毡小家里，爸爸妈妈和孩子打开长长的采购、吃喝和周末愿望清单，钱包里只有少量带brand coin emblem pending precise postproduction字样的金币；窗外是针毡城市。",
+      "voiceover_zh": "奥克兰的好生活，总有很多小愿望。",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "family_design_pending"
+      ],
+      "visible_roles": [
+        "family"
+      ],
+      "mascot_camera_view": null,
+      "mascot_expression_or_action_hint": null,
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "固定家中家庭三人衣服与发型，首次展示预算隐喻",
+      "sfx_cues_zh": [
+        "清单展开",
+        "钱包轻响"
+      ],
+      "music_beat_zh": "柔和的木琴引入",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run"
+    },
+    {
+      "shot_id": "s02",
+      "start_ms": 5000,
+      "end_ms": 10000,
+      "duration_seconds": 5,
+      "shot_title_zh": "小羊拿铲子出发",
+      "storybeat": "mission",
+      "scene_anchor": "felt_city_street",
+      "owner_visual_direction_zh": "真正 CityDiscount 吉祥小羊从桌边探出头，比家具和门框小得多，戴上小包、提起小小毛毡铲子，一蹦一跳飞奔上街。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 真正 CityDiscount 吉祥小羊从桌边探出头，比家具和门框小得多，戴上小包、提起小小毛毡铲子，一蹦一跳飞奔上街。",
+      "voiceover_zh": "找好折扣，小羊出发啦！",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s01"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization",
+        "family_design_pending"
+      ],
+      "visible_roles": [
+        "mascot",
+        "family"
+      ],
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "同一件绿色小羊配件和小铲子，原版外形；品牌Logo后期贴在背包/围巾上",
+      "sfx_cues_zh": [
+        "背包扣合",
+        "小羊脚步跳跃"
+      ],
+      "music_beat_zh": "寻宝主题启动",
+      "coin_mark_required": false,
+      "logo_placement": "mascot_bag_or_scarf",
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run"
+    },
+    {
+      "shot_id": "s03",
+      "start_ms": 10000,
+      "end_ms": 15000,
+      "duration_seconds": 5,
+      "shot_title_zh": "城市跑跑地图",
+      "storybeat": "city_map",
+      "scene_anchor": "felt_auckland_city",
+      "owner_visual_direction_zh": "小小吉祥羊在微缩奥克兰街道奔跑；毛毡天空塔、海港大桥、海湾、帆船和云朵形成远近层次。毛毡城市里亮起三个金币线索光点。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小小吉祥羊在微缩奥克兰街道奔跑；毛毡天空塔、海港大桥、海湾、帆船和云朵形成远近层次。毛毡城市里亮起三个金币线索光点。",
+      "voiceover_zh": "奥克兰这么大，宝藏藏在哪儿？",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s02"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "jump",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "用已验收真实 s03 城市场景仅作风格参考，既有旧视频为9:16 360p，必须重构3:4",
+      "sfx_cues_zh": [
+        "奔跑脚步",
+        "叮叮提示音"
+      ],
+      "music_beat_zh": "轻快木琴扬起",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run"
+    },
+    {
+      "shot_id": "s04",
+      "start_ms": 15000,
+      "end_ms": 20000,
+      "duration_seconds": 5,
+      "shot_title_zh": "第一站，买菜",
+      "storybeat": "supermarket_arrival",
+      "scene_anchor": "felt_supermarket_street",
+      "owner_visual_direction_zh": "原版小羊跑到全毛毡的超市和蔬果摊，毛毡果蔬、购物篮和货架都是微缩立体，看到地上一处柔软的小土堆，欢快停下举起铲子。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 原版小羊跑到全毛毡的超市和蔬果摊，毛毡果蔬、购物篮和货架都是微缩立体，看到地上一处柔软的小土堆，欢快停下举起铲子。",
+      "voiceover_zh": "第一站，买菜的好发现！",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s03"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "这是已存在的 MON_SUPERMARKET 栏目灵感，不是具体真实限时优惠",
+      "sfx_cues_zh": [
+        "急停脚步",
+        "铲子提起"
+      ],
+      "music_beat_zh": "发现前的短悬念",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run"
+    },
+    {
+      "shot_id": "s05",
+      "start_ms": 20000,
+      "end_ms": 25000,
+      "duration_seconds": 5,
+      "shot_title_zh": "挖两下，第一枚！",
+      "storybeat": "supermarket_dig",
+      "scene_anchor": "felt_supermarket_street",
+      "owner_visual_direction_zh": "小羊在蔬果摊旁连续用小铲子挖第一下、再挖第二下，泥土像毛毡球一样弹起，第二下才露出一枚正面清楚带 CD 的毛毡金币；小羊开心收下。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小羊在蔬果摊旁连续用小铲子挖第一下、再挖第二下，泥土像毛毡球一样弹起，第二下才露出一枚正面清楚带 brand coin emblem pending precise postproduction 的毛毡金币；小羊开心收下。",
+      "voiceover_zh": "一铲，再一铲！挖到了！",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s04"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "coin",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "两铲必须两次分明，只有一枚新金币，正面CD由核准独立图案后期合成",
+      "sfx_cues_zh": [
+        "铲土第一声",
+        "铲土第二声",
+        "一枚金币叮"
+      ],
+      "music_beat_zh": "第一枚发现亮音",
+      "coin_mark_required": true,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run",
+      "action_phases": [
+        {
+          "relative_ms": 0,
+          "event": "first_shovel_dig"
+        },
+        {
+          "relative_ms": 1500,
+          "event": "second_shovel_dig"
+        },
+        {
+          "relative_ms": 3000,
+          "event": "single_CD_coin_found"
+        },
+        {
+          "relative_ms": 4000,
+          "event": "pack_coin_and_depart"
+        }
+      ],
+      "coins_newly_found": 1
+    },
+    {
+      "shot_id": "s06",
+      "start_ms": 25000,
+      "end_ms": 30000,
+      "duration_seconds": 5,
+      "shot_title_zh": "第二站，咖啡美食",
+      "storybeat": "restaurant_arrival",
+      "scene_anchor": "felt_auckland_cafe",
+      "owner_visual_direction_zh": "小羊抱着金币穿街跑到奥克兰毛毡街角咖啡店，桌子、咖啡热气、可颂和客人全部毛毡，原版小羊只有场景一小部分高，望向另一处土堆。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小羊抱着金币穿街跑到奥克兰毛毡街角咖啡店，桌子、咖啡热气、可颂和客人全部毛毡，原版小羊只有场景一小部分高，望向另一处土堆。",
+      "voiceover_zh": "第二站，咖啡和美食！",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s05"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "GrabOne Auckland restaurant-cafe 处理器只作抽象场景来源，不出现具体商家价格",
+      "sfx_cues_zh": [
+        "飞快脚步",
+        "杯碟轻响"
+      ],
+      "music_beat_zh": "音乐加速一点",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run"
+    },
+    {
+      "shot_id": "s07",
+      "start_ms": 30000,
+      "end_ms": 35000,
+      "duration_seconds": 5,
+      "shot_title_zh": "再挖两下，第二枚！",
+      "storybeat": "restaurant_dig",
+      "scene_anchor": "felt_auckland_cafe",
+      "owner_visual_direction_zh": "小羊在咖啡店露台花箱边挥铲两次：第一下泥土扬起、第二下亮光一闪，挖出且仅挖出一枚 CD 金币。它飞快将金币放进愈来愈鼓的毛毡袋。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小羊在咖啡店露台花箱边挥铲两次：第一下泥土扬起、第二下亮光一闪，挖出且仅挖出一枚 brand coin emblem pending precise postproduction 金币。它飞快将金币放进愈来愈鼓的毛毡袋。",
+      "voiceover_zh": "挖一下，挖两下，又一枚！",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s06"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "coin",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "动作完全同一吉祥羊/同一铲；第二枚 CD 金币的字样不由模型拼写",
+      "sfx_cues_zh": [
+        "铲土第一声",
+        "铲土第二声",
+        "金币叮"
+      ],
+      "music_beat_zh": "成功与快速转场",
+      "coin_mark_required": true,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run",
+      "action_phases": [
+        {
+          "relative_ms": 0,
+          "event": "first_shovel_dig"
+        },
+        {
+          "relative_ms": 1500,
+          "event": "second_shovel_dig"
+        },
+        {
+          "relative_ms": 3000,
+          "event": "single_CD_coin_found"
+        },
+        {
+          "relative_ms": 4000,
+          "event": "pack_coin_and_depart"
+        }
+      ],
+      "coins_newly_found": 1
+    },
+    {
+      "shot_id": "s08",
+      "start_ms": 35000,
+      "end_ms": 40000,
+      "duration_seconds": 5,
+      "shot_title_zh": "第三站，购物发现",
+      "storybeat": "shopping_arrival",
+      "scene_anchor": "felt_auckland_shops",
+      "owner_visual_direction_zh": "小小羊继续在全毛毡的奥克兰购物街奔跑；毛毡服装、礼物盒、购物袋和店铺橱窗，路边又发现一处软毛毡土堆。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小小羊继续在全毛毡的奥克兰购物街奔跑；毛毡服装、礼物盒、购物袋和店铺橱窗，路边又发现一处软毛毡土堆。",
+      "voiceover_zh": "第三站，购物好发现！",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s07"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "side",
+      "mascot_expression_or_action_hint": "wink",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "参考 Cheapies NZ 优惠社区抓取源，不引用未经查证的即时商家优惠",
+      "sfx_cues_zh": [
+        "急促脚步",
+        "购物袋布料声"
+      ],
+      "music_beat_zh": "第三次寻宝节奏",
+      "coin_mark_required": false,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run"
+    },
+    {
+      "shot_id": "s09",
+      "start_ms": 40000,
+      "end_ms": 45000,
+      "duration_seconds": 5,
+      "shot_title_zh": "两铲，第三枚 CD！",
+      "storybeat": "shopping_dig",
+      "scene_anchor": "felt_auckland_shops",
+      "owner_visual_direction_zh": "原版小羊拿小铲在毛毡橱窗前挖第一下、第二下，只有第二下才挖出第三枚金黄色针毡 CD 金币，金币弹到它怀里；它摇摇晃晃背起鼓鼓的币袋。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 原版小羊拿小铲在毛毡橱窗前挖第一下、第二下，只有第二下才挖出第三枚金黄色针毡 brand coin emblem pending precise postproduction 金币，金币弹到它怀里；它摇摇晃晃背起鼓鼓的币袋。",
+      "voiceover_zh": "两下就找到！第三枚！",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s08"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "front",
+      "mascot_expression_or_action_hint": "sparkle",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "三处来源类别已齐，第三枚且仅此一枚；徽章使用准确CD样式后期定版",
+      "sfx_cues_zh": [
+        "铲土第一声",
+        "铲土第二声",
+        "金币叮咚"
+      ],
+      "music_beat_zh": "寻宝高潮",
+      "coin_mark_required": true,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run",
+      "action_phases": [
+        {
+          "relative_ms": 0,
+          "event": "first_shovel_dig"
+        },
+        {
+          "relative_ms": 1500,
+          "event": "second_shovel_dig"
+        },
+        {
+          "relative_ms": 3000,
+          "event": "single_CD_coin_found"
+        },
+        {
+          "relative_ms": 4000,
+          "event": "pack_coin_and_depart"
+        }
+      ],
+      "coins_newly_found": 1
+    },
+    {
+      "shot_id": "s10",
+      "start_ms": 45000,
+      "end_ms": 50000,
+      "duration_seconds": 5,
+      "shot_title_zh": "东跑西跑，好累呀",
+      "storybeat": "exhausted_city_montage",
+      "scene_anchor": "felt_auckland_routes",
+      "owner_visual_direction_zh": "奥克兰针毡街道快速连续蒙太奇：小羊从超市冲到海港、咖啡店、购物街，满头细小毛毡汗珠，喘着气，脚下小短腿仍努力飞奔，怀里抱着沉甸甸的 CD 金币堆。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 奥克兰针毡街道快速连续蒙太奇：小羊从超市冲到海港、咖啡店、购物街，满头细小毛毡汗珠，喘着气，脚下小短腿仍努力飞奔，怀里抱着沉甸甸的 brand coin emblem pending precise postproduction 金币堆。",
+      "voiceover_zh": "东找找，西跑跑，小羊都累啦。",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s09"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "jump",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "小羊体型仍小，3枚成功获得金币可作为代表，不展示虚假的充值/返现数额",
+      "sfx_cues_zh": [
+        "加速脚步",
+        "软喘气",
+        "金币碰响"
+      ],
+      "music_beat_zh": "先热闹后小顿挫",
+      "coin_mark_required": true,
+      "logo_placement": null,
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run"
+    },
+    {
+      "shot_id": "s11",
+      "start_ms": 50000,
+      "end_ms": 55000,
+      "duration_seconds": 5,
+      "shot_title_zh": "把金币交给一家人",
+      "storybeat": "family_delivery",
+      "scene_anchor": "felt_family_harbour_home",
+      "owner_visual_direction_zh": "在毛毡奥克兰海港边，同一毛毡爸爸妈妈和孩子伸出手，小小羊满头汗、微微喘气，把一大堆正面标CD的毛毡金币递过去。全家开心，小羊笑得眯眼，转身一蹦一跳跑走。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 在毛毡奥克兰海港边，同一毛毡爸爸妈妈和孩子伸出手，小小羊满头汗、微微喘气，把一大堆正面标brand coin emblem pending precise postproduction的毛毡金币递过去。全家开心，小羊笑得眯眼，转身一蹦一跳跑",
+      "voiceover_zh": "把努力找到的好优惠，送给大家！",
+      "on_screen_text_zh": "",
+      "shot_dependencies": [
+        "s10"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization",
+        "family_design_pending"
+      ],
+      "visible_roles": [
+        "mascot",
+        "family"
+      ],
+      "mascot_camera_view": "three_quarter",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；暖光针毡世界，重点保留小羊铲子和金币完整可见",
+      "continuity_instruction_zh": "家庭角色统一真实定妆仍未完成；一大堆金币只是品牌寻宝寓意不是保证省钱金额",
+      "sfx_cues_zh": [
+        "金币温柔叮响",
+        "家人轻笑",
+        "小羊跑掉"
+      ],
+      "music_beat_zh": "温暖、满足",
+      "coin_mark_required": true,
+      "logo_placement": "coin_delivery_bag",
+      "logo_hold_seconds": 0,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run",
+      "owner_required_departure": "after coin delivery, little sheep joyfully runs away"
+    },
+    {
+      "shot_id": "s12",
+      "start_ms": 55000,
+      "end_ms": 60000,
+      "duration_seconds": 5,
+      "shot_title_zh": "CityDiscount 品牌定格",
+      "storybeat": "cta",
+      "scene_anchor": "felt_auckland_logo_end",
+      "owner_visual_direction_zh": "奥克兰毛毡夕阳与天空塔、海港大桥做柔软背景，远处很小的原版吉祥羊抱空了金币袋开心跑远；正前方用核准原始 CityDiscount Logo 后期定版，清晰停留至少3秒，展示关注号召。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 奥克兰毛毡夕阳与天空塔、海港大桥做柔软背景，远处很小的原版吉祥羊抱空了金币袋开心跑远；正前方用核准原始 CityDiscount Logo 后期定版，清晰停留至少3秒，展示关注号召。",
+      "voiceover_zh": "CityDiscount，替你到处挖折扣，让生活多一点。",
+      "on_screen_text_zh": "CityDiscount\n替你到处挖折扣，让生活多一点。\n关注 CityDiscount\n下次消费前，先来找找折扣。",
+      "shot_dependencies": [
+        "s11"
+      ],
+      "asset_roles": [
+        "approved_citydiscount_brand_identity",
+        "nz_local_visual_style",
+        "approved_type_system",
+        "existing_mascot_png_pending_independent_media_authorization"
+      ],
+      "visible_roles": [
+        "mascot"
+      ],
+      "mascot_camera_view": "back",
+      "mascot_expression_or_action_hint": "happy",
+      "camera_direction_zh": "3:4镜头，角色最高不超过画面高度27%；静态品牌版式+远景小羊",
+      "continuity_instruction_zh": "Logo/CTA必须后期精确印刷，4行文字不让AI模型绘制，停留至少3秒",
+      "sfx_cues_zh": [
+        "最后几声小羊脚步",
+        "品牌清脆叮声"
+      ],
+      "music_beat_zh": "暖心品牌收束",
+      "coin_mark_required": true,
+      "logo_placement": "end_card",
+      "logo_hold_seconds": 3,
+      "media_submission_approved": false,
+      "real_model_result": "not_run",
+      "human_visual_review": "not_run"
+    }
+  ],
+  "storyline": {
+    "title_zh": "小羊满城挖折扣｜CityDiscount 奥克兰毛毡寻宝",
+    "logline_zh": "在一座全毛毡的奥克兰微缩城市，原版小小 CityDiscount 吉祥羊背着包和小铲子，先后在买菜超市、咖啡美食、折扣购物三种真实抓取源所代表的场景中，各挖两铲才找到一枚 CD 金币。小羊穿街走巷累得直喘，却终于抱着一大堆金币交给快乐的一家人，又开心地蹦蹦跳跳跑开。",
+    "genre": "品牌毛毡微缩城市寻宝动画",
+    "dramatic_spine": [
+      "0–15秒：毛毡一家人和城市的折扣愿望；小小吉祥羊拿小铲子从奥克兰地图出发",
+      "15–45秒：三种真实来源类别作为微缩3D情景，每一站都明确『挖第一铲→挖第二铲→发现一枚CD金币→跑下站』",
+      "45–55秒：小羊背着越来越重的金币满城跑、气喘吁吁，仍把金币带给一家人；全家开心，小羊笑着跑走",
+      "55–60秒：品牌 Logo 后期准确合成，固定停留至少3秒，单一行动关注 CityDiscount"
+    ],
+    "main_character": "CityDiscount 已有吉祥物，原始五官、配色、比例和配件识别特点不可改变；本地已有10张视角/动作 PNG，人审满意但图片外部传输许可仍按单独门禁。",
+    "family": "同一毛毡一家人（含孩子），s01/s02/s09/s10/s11 连续；尚未有实际角色定妆照与版本，生成前须固定并人工验收。",
+    "setting": "奥克兰毛毡微缩地图、天空塔、海港大桥、帆船、海湾、超市、街角咖啡店、商铺和海边野餐",
+    "continuity": "All-felt; original small lamb face/green accessories, same little shovel, same bag (becomes progressively full), same three distinct source-category scenes, only single CD coin per excavation success, long Auckland walking trail; felt family same actors s01/s11; no fake cash-rebate guarantee.",
+    "offer_claims": "优惠卡只使用示意内容，不虚构真实商家、当前价格、有效日期、商家合作或确定节省金额。",
+    "end_card_lines": [
+      "CityDiscount",
+      "替你到处挖折扣，让生活多一点。",
+      "关注 CityDiscount",
+      "下次消费前，先来找找折扣。"
+    ],
+    "sound_direction": {
+      "narration": "Music-first Owner preference: NO espeak; native Omni sound or natural voice may be separately auditioned later, without assuming paid permission.",
+      "mascot_nonverbal": "可爱的毡鞋脚步、呼吸、挖土两声、发现CD金币清脆叮声、疲惫喘气、最后满足咯咯笑",
+      "music": "轻快拨弦、木琴、暖和打击乐；三站音乐递进，加速蒙太奇，温暖家庭交付，品牌结尾清晰",
+      "mix": "优先音乐与寻宝音效；暂不含机器人旁白，正式配音可后期替换。"
+    },
+    "end_action": "仅一个主要行动：关注 CityDiscount；发布时加入实际发布渠道已核对账号/网址/二维码。",
+    "story_supplied_by_owner": true,
+    "script_reviewed_by_owner": false,
+    "brand_use_approved_for_render": false,
+    "scene_type": "Three authentic SOURCE TYPES, not real confirmed offers: Supermarket Monday rules from nz-social-trend-radar, GrabOne Auckland restaurants-bars-cafes handler, Cheapies NZ deal scraper. Example goods are creative stand-ins, never current offers."
+  },
+  "brand_asset_requirements": {
+    "logo": {
+      "repo_manifest": "assets/citydiscount/v1/asset_manifest.json",
+      "asset_id": "citydiscount-logo-v1",
+      "source_sha256": "19a6202331db9853d384ddabd30fbdf738f139fd8721638eed54fde193011651",
+      "placements": [
+        "s02:mascot_bag_or_scarf",
+        "s11:coin_delivery_bag",
+        "s12:end_card"
+      ],
+      "final_min_hold_seconds": 3,
+      "render_method": "approved_exact_source_postproduction_or_verified_asset_compositing",
+      "rights_verified": false
+    },
+    "coin": {
+      "visible_shots": [
+        "s05",
+        "s07",
+        "s09",
+        "s10",
+        "s11",
+        "s12"
+      ],
+      "face_mark": "CD",
+      "surface": "golden_felt_coin",
+      "canonical_coin_artwork_verified": false,
+      "render_method": "approved_exact_CD_coin_artwork_compositing_required"
+    },
+    "family": {
+      "needed": true,
+      "characters_include_child": true,
+      "consistent_across_shots": [
+        "s01",
+        "s11"
+      ],
+      "version_locked": false
+    }
+  },
+  "production_requirements": {
+    "exact_frame_size_px": [
+      1080,
+      1440
+    ],
+    "frame_ratio": "3:4",
+    "frame_delivery": "all 12 scene stills, contact sheet thumbnails, animatic and final MP4 frames use exact 1080×1440; contact sheet overall need not be 1080×1440 as compilation only",
+    "all_visible_material": "needle felt fabric including all people, buildings, signs, trees, earth, clouds, product objects, shovel and gold coin material",
+    "canonical_mascot": "checked_in_pngs_only; use real images as reference/cutout; reject new lamb identity or oversized sheep",
+    "mascot_height_fraction_target": [
+      0.15,
+      0.22
+    ],
+    "mascot_height_fraction_max": 0.27,
+    "digging_actions_per_stop": 2,
+    "coins_discovered_per_stop": 1,
+    "active_scene_categories": [
+      "supermarket",
+      "restaurant_cafe",
+      "community_shopping"
+    ],
+    "source_evidence_repository": "Mrlukahuang/nz-social-trend-radar",
+    "source_evidence_ref": "809329f63ac20b06d4d0ee3b31c9fa9a1b72de55",
+    "visual_examples_are_illustrative": true,
+    "not_live_offers": true,
+    "no_paid_model_calls": true,
+    "source_to_scene": [
+      {
+        "scene": "supermarket",
+        "source_type": "MON_SUPERMARKET category rules",
+        "evidence": "docs/plans/issue-281-col-k-source-writer-inventory.md",
+        "example": "毛毡蔬菜水果货架与采购篮；不出现未经确认的店牌/促销价",
+        "safety": "historical rules are not proof of active deals"
+      },
+      {
+        "scene": "restaurant_cafe",
+        "source_type": "GrabOne Auckland restaurants-bars-cafes handler",
+        "evidence": "system1_pipeline/fetchers/dynamic_handlers/grabone_handler.py",
+        "example": "毛毡咖啡、可颂、甜点和微缩露台；无商品/商家价格",
+        "safety": "not a partnership or current deal"
+      },
+      {
+        "scene": "community_shopping",
+        "source_type": "Cheapies NZ dynamic deal handler",
+        "evidence": "system1_pipeline/fetchers/dynamic_handlers/cheapies_handler.py",
+        "example": "毛毡零售商店里的礼物、购物袋、家居百货；只寓意优惠线索",
+        "safety": "source may include expired deals; none claimed active"
+      }
+    ],
+    "production_audio": "instrumental_and_sfx_only",
+    "real_animation_shots_completed": 0,
+    "existing_real_city_plate": "s03 in original 9:16 360x640 only; scene style approved but cannot assert it meets 1080x1440 or contains actual animated sheep",
+    "new_draft_media_never_claimed_final": true
+  }
+}
