@@ -21,7 +21,15 @@ From [W3 standard handoff](W3_EVIDENCE_20261019.md) and old [Actions run #391415
 
 Operator independent double check in current session: both source ZIPs downloaded from the exact Actions run, each MP4/SRT/09 receipt SHA matched, original FFprobe: 360×640, 60.177333s, H264/AAC/mov_text. Existing old 12-shot footage, *not CityDiscount s02/s05*.
 
-## Enforced REAL W4 execution (not yet a claim of success until Actions run completes)
+## Enforced REAL W4 execution — verified success on GitHub Actions
+
+[PR #230](https://github.com/Mrlukahuang/ai-short-drama-factory/pull/230) merged main `1384406a0e991c6776a92799a0750b7c52a23c12`. **Actual direct real-media W4 execution PASS** on PR head [Run #39625584995](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39625584995); all seven check-runs completed SUCCESS. This is independent of earlier local hash-only reports and was repeated in a true GitHub hosted runner. Earlier [Run #39625063733](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39625063733) also succeeded, and produced [report-only Artifact #12356388684](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39625063733/artifacts/12356388684). The first W5 workflow CI attempt lacked ffmpeg on runner; fixed by reusing the existing hash-pinned offline FFmpeg wheel. No new provider calls.
+
+Actual direct existing W4 CLI reports matched **exactly** the prior W5 inventory baseline:
+- Original `report_sha256=e8a6218d4f260e378d83cf886ecb1aebd972fc82ad41777aa777a8103cda9195`.
+- W1-FAKE `report_sha256=e1b2a69e4dc54bcfef45fd5efcdaf04a97fffed794f6eb7509f8f68c3fcaec10`.
+
+The authoritative W5 machine-readable exit report **already exists** at [G4_ACCEPTANCE_20261019.json](G4_ACCEPTANCE_20261019.json) and remains `NOT_READY`. Follow-up G4/W5 CI adds a **cross-check from the freshly executed real W4 JSON back to this frozen acceptance inventory**, including true report-file SHA, preventing later contradictory acceptance summaries. We deliberately do **not** create a new acceptance system.
 
 The workflow `.github/workflows/g4-w5-real-w4-artifact-smoke.yml` on PR and merge:
 
@@ -35,4 +43,4 @@ This is a W5 technical evidence increment, **not W4 creative sign-off**, live Ge
 
 ## Next blocked decisions
 
-Owner must independently decide human shot review of 12 actual clips; approve/authorize any third-party face/voice analysis, reconcile provider invoices and publication/brand rights. Stage G4 stays **NOT_READY**, G5 paused. This record should be updated with the actual PR/run/conclusion/report SHA only after real W4 Actions execution; do not prefill a passed result.
+Owner must independently decide human shot review of 12 actual clips; approve/authorize any third-party face/voice analysis, reconcile provider invoices and publication/brand rights. Stage G4 stays **NOT_READY**, G5 paused. PR, Actions runs and both actual W4 report SHA are now recorded above; content and release gates are still blocked, not promoted.

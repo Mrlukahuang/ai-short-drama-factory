@@ -4,6 +4,7 @@ The EXTERNAL workflow, not this static unit test, actually downloads W3
 media and runs the real W4 CLI. Never let a Fake fixture become proof.
 """
 from pathlib import Path
+import json
 
 
 def test_w5_real_artifact_workflow_exact_pins_existing_cli_and_zero_provider_secrets():
@@ -53,3 +54,37 @@ def test_w5_real_artifact_workflow_exact_pins_existing_cli_and_zero_provider_sec
     assert "--reviews-json" not in workflow
     assert "--reviewer-key-file" not in workflow
     assert "workflow_dispatch:" in workflow
+
+
+def test_w5_existing_acceptance_inventory_is_source_of_truth_not_a_new_fake_pass():
+    root=Path(__file__).resolve().parents[1]
+    workflow=(root/".github/workflows/g4-w5-real-w4-artifact-smoke.yml").read_text("utf-8")
+    document=json.loads((root/"docs/handoff/G4_ACCEPTANCE_20261019.json").read_text("utf-8"))
+    assert document["schema"]=="g4-w5-acceptance-inventory.v1"
+    assert document["verdict"]=="NOT_READY"
+    assert document["publish_approved"] is False
+    assert document["g4_exited"] is False
+    assert document["g5_authorized"] is False
+    assert document["real_media_w5_replay"]["source_run"]==39141517448
+    assert document["real_media_w5_replay"]["execution_status"]=="verified_real_artifact_local_cli_run"
+    assert document["contract_status"]["real_W4_existing_artifact_review_cli"]=="verified"
+    assert document["contract_status"]["real_one_command_approved_script_to_shots_post_qa"]=="not_verified"
+    assert document["kpis"]["usable_shots"]["attested_usable_shots"]==0
+    assert document["kpis"]["usable_shots"]["unknown_shots"]==9
+    assert document["kpis"]["cost_per_qualified_minute"]["actual_usd_per_qualified_minute"] is None
+    assert document["money"]["actual_prior_provider_invoice_usd"] is None
+    assert document["r4_3_full_requirement"]=="not_run"
+    assert "docs/handoff/G4_ACCEPTANCE_20261019.json" in workflow
+    assert 'q["report_sha256"]==frozen[version]["report_sha256"]' in workflow
+    assert 'frozen[version]["report_file_sha256"]' in workflow
+    assert '"authoritative_w5_acceptance_verdict":"NOT_READY"' in workflow
+    frozen={row["version"]:row for row in document["real_media_w5_replay"]["files"]}
+    assert set(frozen)=={"original","w1_fake"}
+    for version,row in frozen.items():
+        assert row["report_sha256"] in (
+            "e8a6218d4f260e378d83cf886ecb1aebd972fc82ad41777aa777a8103cda9195",
+            "e1b2a69e4dc54bcfef45fd5efcdaf04a97fffed794f6eb7509f8f68c3fcaec10",
+        )
+        assert row["human_attested_count"]==0
+        assert row["verified_usable_shots"]==0
+        assert row["release_qa"]=="blocked"
