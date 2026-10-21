@@ -29,9 +29,9 @@ class G4ReplayDenied(ValueError):
     """Do not expose private source paths or provider/scene data in errors."""
 
 
-def _safe_existing(path: Path, *, ext: str) -> Path:
+def _safe_existing(path: Path, *, ext: str | tuple[str, ...]) -> Path:
     path = Path(path).absolute()
-    if path.suffix != ext or any(part.is_symlink() for part in (path, *path.parents)):
+    if path.suffix not in ((ext,) if isinstance(ext, str) else ext) or any(part.is_symlink() for part in (path, *path.parents)):
         raise G4ReplayDenied("Linked or invalid local input rejected")
     if not path.is_file():
         raise G4ReplayDenied("Required existing local input not found")
@@ -82,7 +82,7 @@ def run_existing_episode_preview(
             or type(series_id) is not str or not _SERIES.fullmatch(series_id)
             or type(allow_placeholders) is not bool):
         raise G4ReplayDenied("Exact existing series/production IDs and preview scope required")
-    database_path = _safe_existing(Path(database_path), ext=".db")
+    database_path = _safe_existing(Path(database_path), ext=(".db", ".sqlite3"))
     root = Path(output_root).absolute()
     if any(part.is_symlink() for part in (root, *root.parents)):
         raise G4ReplayDenied("Linked local render directory denied")
