@@ -16,9 +16,14 @@ def test_w5_real_artifact_workflow_exact_pins_existing_cli_and_zero_provider_sec
     assert "actions: read" in workflow
     assert "DRAMA_ENABLE_PAID_GENERATION: 'NO'" in workflow
     assert "39141517448" in workflow
-    for term in (
+    # Exact GitHub artifact DISPLAY NAMES are only exposed by Actions;
+    # W3 frozen handoff records artifact IDs and media SHA, not the names.
+    for name in (
         "gpt-real-12shot-caption-DRAFT-39141517448",
         "gpt-W3-repaired-provenance-39141517448",
+    ):
+        assert name in workflow
+    for term in (
         "12142320238", "12141772943",
         "d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7",
         "de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f",
