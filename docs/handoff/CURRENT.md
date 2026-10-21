@@ -1,3 +1,11 @@
+# 2026-10-22 G4/R4.4｜已批准实片安全复用的“离线一次命令”补齐
+
+Owner 已确认 CityDiscount 仅测试通用短剧工厂，优先推进工程而非单镜画质。前置 PR #226 / #227 已合并、全部门禁通过：任何题材 `EpisodeDraft` 的真实 MP4 + 外部独立 SHA + 自报 provider receipt 通过原 `media_ingest` 和 `render_approved_preview`，原 W4 technical QA 支持部分/完整镜头重用。**本轮新增最小 CLI** `scripts/run_g4_existing_episode_offline.py`：操作者一次输入**已存在**本地 SQLite、已审批 production id、来源清单及输出目录，先核对 `EpisodeDraft` 原有 script+character 审批、source MP4+receipt+独立SHA，再重用 W3 本地 FFmpeg 和 W4 技术二次解码；生成 H264/AAC/mov_text 技术预览和无秘密/来源路径的审核回执。**默认必须完整全部已产生的实片，否则阻断**；内部测试显式 `--allow-placeholders` 只能出标明缺镜头的技术草稿，不等于 real episode complete。没有新增一套 orchestration/DB/UI/provider，W1–W5原代码未修改，CI真实 FFmpeg 强制 no-skip。
+
+CLI 会复用原 `Database` + W3 preview 状态写入，**不是生产数据库只读操作**：须由操作者先在本地备份副本测试，未授权本次不触碰生产数据库。绝无付费自动重试，供应商真实费用仍未知，R4.3/真实人审/版权/中文声线等仍阻断 G4 退出，G5继续暂停。操作手册 `docs/G4_EXISTING_EPISODE_OFFLINE_ONE_COMMAND.md`。本轮无任何新增 CityDiscount 视频/金币/Woolworths付费生成。
+
+---
+
 # 2026-10-22 G4/R4.4｜通用真实镜头输入 → 既有 W3 成片 → W4 技术审查零费闭环
 
 前置 **PR #226 已合并**，main `8625d84b2fc600f5bde2b7270edcd7a2a7467a90`：通用已生成真实MP4按独立SHA与provider receipt匹配成既有 `source_clips`，缺镜头明确标注，不重生/不碰现有系统。本轮**不再开发CityDiscount单镜**，只新增 CI 强制真实 FFmpeg E2E：实测`admit_existing_real_shots(EpisodeDraft,...)`提供给既有 `render_approved_preview(db,run,...source_clips)`，必须先经过API script/characters双审批，再以FFmpeg生成真实H264+AAC+字幕MP4、W4技术验收，部分镜头仍明确 placeholder、全真已有镜头才不含placeholder、重复调用重用缓存且没有SDK/收费调用；缺图/receipt篡改必须在落盘和审批状态变化前阻断。两个独立测试型Episode执行，非真实顾客素材、非真实Google模型调用；不能从Fake E2E推断真人内容通过。
