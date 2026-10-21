@@ -114,6 +114,14 @@ jobs:
           python -c "import shutil; assert shutil.which('ffmpeg') and shutil.which('ffprobe'), 'Real ffmpeg/ffprobe required'"
           pytest -q tests/test_g4_generic_two_series_real_offline_e2e.py -rs
 
+      - name: Enforce reusable G4 existing REAL shot SHA/receipt handoff with FFmpeg (no skips)
+        env:
+          DRAMA_FACTORY_OFFLINE: '1'
+          DRAMA_ENABLE_PAID_GENERATION: 'NO'
+        run: |
+          python -c "import shutil; assert shutil.which('ffmpeg') and shutil.which('ffprobe')"
+          pytest -q tests/test_g4_existing_real_shot_handoff.py -rs
+
       - name: Create playable 6-second MP4 (no API keys)
         env:
           DRAMA_FACTORY_OFFLINE: '1'
