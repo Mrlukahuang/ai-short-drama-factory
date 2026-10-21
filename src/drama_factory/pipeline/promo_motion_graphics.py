@@ -211,6 +211,8 @@ def build_offline_citydiscount_promo_plan(candidate: dict) -> dict:
     Brand and media rights approval remains outside this creative contract.
     A truthful offline storyboard is not equivalent to a rendered video.
     """
+    if type(candidate) is dict and candidate.get("schema_version") == SCHEMA_3X4:
+        return _build_coin_hunt_3x4(candidate)
     if (type(candidate) is not dict
             or candidate.get("schema_version") != SCHEMA
             or candidate.get("project") != "CityDiscount"
