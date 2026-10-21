@@ -53,7 +53,7 @@
       "storybeat": "setup",
       "scene_anchor": "felt_family_home",
       "owner_visual_direction_zh": "奥克兰毛毡小家里，爸爸妈妈和孩子打开长长的采购、吃喝和周末愿望清单，钱包里只有少量带CD字样的金币；窗外是针毡城市。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 奥克兰毛毡小家里，爸爸妈妈和孩子打开长长的采购、吃喝和周末愿望清单，钱包里只有少量带brand coin emblem pending precise postproduction字样的金币；窗外是针毡城市。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 奥克兰毛毡小家里，爸爸妈妈和孩子打开长长的采购、吃喝和周末愿望清单，钱包里只有少量带brand coin emblem pending precise postproduction字样的金币；窗外是针毡城市。",
       "voiceover_zh": "奥克兰的好生活，总有很多小愿望。",
       "on_screen_text_zh": "",
       "shot_dependencies": [],
@@ -91,7 +91,7 @@
       "storybeat": "mission",
       "scene_anchor": "felt_city_street",
       "owner_visual_direction_zh": "真正 CityDiscount 吉祥小羊从桌边探出头，比家具和门框小得多，戴上小包、提起小小毛毡铲子，一蹦一跳飞奔上街。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 真正 CityDiscount 吉祥小羊从桌边探出头，比家具和门框小得多，戴上小包、提起小小毛毡铲子，一蹦一跳飞奔上街。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 真正 CityDiscount 吉祥小羊从桌边探出头，比家具和门框小得多，戴上小包、提起小小毛毡铲子，一蹦一跳飞奔上街。",
       "voiceover_zh": "找好折扣，小羊出发啦！",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -133,7 +133,7 @@
       "storybeat": "city_map",
       "scene_anchor": "felt_auckland_city",
       "owner_visual_direction_zh": "小小吉祥羊在微缩奥克兰街道奔跑；毛毡天空塔、海港大桥、海湾、帆船和云朵形成远近层次。毛毡城市里亮起三个金币线索光点。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 小小吉祥羊在微缩奥克兰街道奔跑；毛毡天空塔、海港大桥、海湾、帆船和云朵形成远近层次。毛毡城市里亮起三个金币线索光点。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小小吉祥羊在微缩奥克兰街道奔跑；毛毡天空塔、海港大桥、海湾、帆船和云朵形成远近层次。毛毡城市里亮起三个金币线索光点。",
       "voiceover_zh": "奥克兰这么大，宝藏藏在哪儿？",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -173,7 +173,7 @@
       "storybeat": "supermarket_arrival",
       "scene_anchor": "felt_supermarket_street",
       "owner_visual_direction_zh": "原版小羊跑到全毛毡的超市和蔬果摊，毛毡果蔬、购物篮和货架都是微缩立体，看到地上一处柔软的小土堆，欢快停下举起铲子。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 原版小羊跑到全毛毡的超市和蔬果摊，毛毡果蔬、购物篮和货架都是微缩立体，看到地上一处柔软的小土堆，欢快停下举起铲子。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 原版小羊跑到全毛毡的超市和蔬果摊，毛毡果蔬、购物篮和货架都是微缩立体，看到地上一处柔软的小土堆，欢快停下举起铲子。",
       "voiceover_zh": "第一站，买菜的好发现！",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -213,7 +213,7 @@
       "storybeat": "supermarket_dig",
       "scene_anchor": "felt_supermarket_street",
       "owner_visual_direction_zh": "小羊在蔬果摊旁连续用小铲子挖第一下、再挖第二下，泥土像毛毡球一样弹起，第二下才露出一枚正面清楚带 CD 的毛毡金币；小羊开心收下。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 小羊在蔬果摊旁连续用小铲子挖第一下、再挖第二下，泥土像毛毡球一样弹起，第二下才露出一枚正面清楚带 brand coin emblem pending precise postproduction 的毛毡金币；小羊开心收下。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小羊在蔬果摊旁连续用小铲子挖第一下、再挖第二下，泥土像毛毡球一样弹起，第二下才露出一枚正面清楚带 brand coin emblem pending precise postproduction 的毛毡金币；小羊开心收下。",
       "voiceover_zh": "一铲，再一铲！挖到了！",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -273,7 +273,7 @@
       "storybeat": "restaurant_arrival",
       "scene_anchor": "felt_auckland_cafe",
       "owner_visual_direction_zh": "小羊抱着金币穿街跑到奥克兰毛毡街角咖啡店，桌子、咖啡热气、可颂和客人全部毛毡，原版小羊只有场景一小部分高，望向另一处土堆。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 小羊抱着金币穿街跑到奥克兰毛毡街角咖啡店，桌子、咖啡热气、可颂和客人全部毛毡，原版小羊只有场景一小部分高，望向另一处土堆。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小羊抱着金币穿街跑到奥克兰毛毡街角咖啡店，桌子、咖啡热气、可颂和客人全部毛毡，原版小羊只有场景一小部分高，望向另一处土堆。",
       "voiceover_zh": "第二站，咖啡和美食！",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -313,7 +313,7 @@
       "storybeat": "restaurant_dig",
       "scene_anchor": "felt_auckland_cafe",
       "owner_visual_direction_zh": "小羊在咖啡店露台花箱边挥铲两次：第一下泥土扬起、第二下亮光一闪，挖出且仅挖出一枚 CD 金币。它飞快将金币放进愈来愈鼓的毛毡袋。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 小羊在咖啡店露台花箱边挥铲两次：第一下泥土扬起、第二下亮光一闪，挖出且仅挖出一枚 brand coin emblem pending precise postproduction 金币。它飞快将金币放进愈来愈鼓的毛毡袋。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小羊在咖啡店露台花箱边挥铲两次：第一下泥土扬起、第二下亮光一闪，挖出且仅挖出一枚 brand coin emblem pending precise postproduction 金币。它飞快将金币放进愈来愈鼓的毛毡袋。",
       "voiceover_zh": "挖一下，挖两下，又一枚！",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -373,7 +373,7 @@
       "storybeat": "shopping_arrival",
       "scene_anchor": "felt_auckland_shops",
       "owner_visual_direction_zh": "小小羊继续在全毛毡的奥克兰购物街奔跑；毛毡服装、礼物盒、购物袋和店铺橱窗，路边又发现一处软毛毡土堆。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 小小羊继续在全毛毡的奥克兰购物街奔跑；毛毡服装、礼物盒、购物袋和店铺橱窗，路边又发现一处软毛毡土堆。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 小小羊继续在全毛毡的奥克兰购物街奔跑；毛毡服装、礼物盒、购物袋和店铺橱窗，路边又发现一处软毛毡土堆。",
       "voiceover_zh": "第三站，购物好发现！",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -413,7 +413,7 @@
       "storybeat": "shopping_dig",
       "scene_anchor": "felt_auckland_shops",
       "owner_visual_direction_zh": "原版小羊拿小铲在毛毡橱窗前挖第一下、第二下，只有第二下才挖出第三枚金黄色针毡 CD 金币，金币弹到它怀里；它摇摇晃晃背起鼓鼓的币袋。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 原版小羊拿小铲在毛毡橱窗前挖第一下、第二下，只有第二下才挖出第三枚金黄色针毡 brand coin emblem pending precise postproduction 金币，金币弹到它怀里；它摇摇晃晃背起鼓鼓的币袋。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 原版小羊拿小铲在毛毡橱窗前挖第一下、第二下，只有第二下才挖出第三枚金黄色针毡 brand coin emblem pending precise postproduction 金币，金币弹到它怀里；它摇摇晃晃背起鼓鼓的币袋。",
       "voiceover_zh": "两下就找到！第三枚！",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -473,7 +473,7 @@
       "storybeat": "exhausted_city_montage",
       "scene_anchor": "felt_auckland_routes",
       "owner_visual_direction_zh": "奥克兰针毡街道快速连续蒙太奇：小羊从超市冲到海港、咖啡店、购物街，满头细小毛毡汗珠，喘着气，脚下小短腿仍努力飞奔，怀里抱着沉甸甸的 CD 金币堆。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 奥克兰针毡街道快速连续蒙太奇：小羊从超市冲到海港、咖啡店、购物街，满头细小毛毡汗珠，喘着气，脚下小短腿仍努力飞奔，怀里抱着沉甸甸的 brand coin emblem pending precise postproduction 金币堆。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 奥克兰针毡街道快速连续蒙太奇：小羊从超市冲到海港、咖啡店、购物街，满头细小毛毡汗珠，喘着气，脚下小短腿仍努力飞奔，怀里抱着沉甸甸的 brand coin emblem pending precise postproduction 金币堆。",
       "voiceover_zh": "东找找，西跑跑，小羊都累啦。",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -514,7 +514,7 @@
       "storybeat": "family_delivery",
       "scene_anchor": "felt_family_harbour_home",
       "owner_visual_direction_zh": "在毛毡奥克兰海港边，同一毛毡爸爸妈妈和孩子伸出手，小小羊满头汗、微微喘气，把一大堆正面标CD的毛毡金币递过去。全家开心，小羊笑得眯眼，转身一蹦一跳跑走。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 在毛毡奥克兰海港边，同一毛毡爸爸妈妈和孩子伸出手，小小羊满头汗、微微喘气，把一大堆正面标brand coin emblem pending precise postproduction的毛毡金币递过去。全家开心，小羊笑得眯眼，转身一蹦一跳跑",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 在毛毡奥克兰海港边，同一毛毡爸爸妈妈和孩子伸出手，小小羊满头汗、微微喘气，把一大堆正面标brand coin emblem pending precise postproduction的毛毡金币递过去。全家开心，小羊笑得眯眼，转身一蹦一跳跑",
       "voiceover_zh": "把努力找到的好优惠，送给大家！",
       "on_screen_text_zh": "",
       "shot_dependencies": [
@@ -558,7 +558,7 @@
       "storybeat": "cta",
       "scene_anchor": "felt_auckland_logo_end",
       "owner_visual_direction_zh": "奥克兰毛毡夕阳与天空塔、海港大桥做柔软背景，远处很小的原版吉祥羊抱空了金币袋开心跑远；正前方用核准原始 CityDiscount Logo 后期定版，清晰停留至少3秒，展示关注号召。",
-      "background_prompt_zh": "3:4 full needle felt miniature scene, small canonical CityDiscount sheep, no rendered readable signage or logo, exact brand overlays later. 奥克兰毛毡夕阳与天空塔、海港大桥做柔软背景，远处很小的原版吉祥羊抱空了金币袋开心跑远；正前方用核准原始 CityDiscount Logo 后期定版，清晰停留至少3秒，展示关注号召。",
+      "background_prompt_zh": "3:4 felt miniature; original small CityDiscount sheep, big clear eyes, exact logo and CD lettering applied in post. 奥克兰毛毡夕阳与天空塔、海港大桥做柔软背景，远处很小的原版吉祥羊抱空了金币袋开心跑远；正前方用核准原始 CityDiscount Logo 后期定版，清晰停留至少3秒，展示关注号召。",
       "voiceover_zh": "CityDiscount，替你到处挖折扣，让生活多一点。",
       "on_screen_text_zh": "CityDiscount\n替你到处挖折扣，让生活多一点。\n关注 CityDiscount\n下次消费前，先来找找折扣。",
       "shot_dependencies": [
