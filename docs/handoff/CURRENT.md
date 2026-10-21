@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜既有一键入口新增零写入整集预检（流水线优先）
+
+接 Owner 明确“流水线优先”指令，在 main `b69b3e673cd9c181fc633758e6c8dd6e68c53fa0` 已合并 PR #226–#228 技术交接基础上，只给 **同一个** `scripts/run_g4_existing_episode_offline.py` 增加 `--preflight-only`。开工前核查没有新开放 PR/改动受冻路径、W1–W5保持完成；CityDiscount仅Pilot，单镜视频/Logo/Woolworths暂停。新的预检不调用 `Database()`（该现有构造器可能创建/迁移SQLite），而用 **SQLite URI mode=ro + PRAGMA query_only** 读取当前已批准production和EpisodeDraft，逐镜复用已有SHA/receipt/mp4真实性*自报*完整性检查：0条来源可列全镜头缺口，partial/full可列准确已验证与缺失的shot_id。无数据库写、无视频渲染、无Provider调用、无输出目录写入；不凭空把未付费生成的镜头判为已有。**正常的真FFmpeg成片命令仍会写技术预览状态，保持明确区分。** 默认只有全部镜头齐备可技术合成； `--allow-placeholders` 仅内部测试草稿且不能发布。完整W3/W4和G4权限/账单/配音/人工QA门禁不变。新回归覆盖0/partial/full、错误SHA、CLI无写、库不存在fail-closed，并接入已存在 `offline-video` CI强制执行。见 `docs/G4_EXISTING_EPISODE_OFFLINE_ONE_COMMAND.md`。
+
+---
+
 # 2026-10-22 G4/R4.4｜已批准实片安全复用的“离线一次命令”补齐
 
 Owner 已确认 CityDiscount 仅测试通用短剧工厂，优先推进工程而非单镜画质。前置 PR #226 / #227 已合并、全部门禁通过：任何题材 `EpisodeDraft` 的真实 MP4 + 外部独立 SHA + 自报 provider receipt 通过原 `media_ingest` 和 `render_approved_preview`，原 W4 technical QA 支持部分/完整镜头重用。**本轮新增最小 CLI** `scripts/run_g4_existing_episode_offline.py`：操作者一次输入**已存在**本地 SQLite、已审批 production id、来源清单及输出目录，先核对 `EpisodeDraft` 原有 script+character 审批、source MP4+receipt+独立SHA，再重用 W3 本地 FFmpeg 和 W4 技术二次解码；生成 H264/AAC/mov_text 技术预览和无秘密/来源路径的审核回执。**默认必须完整全部已产生的实片，否则阻断**；内部测试显式 `--allow-placeholders` 只能出标明缺镜头的技术草稿，不等于 real episode complete。没有新增一套 orchestration/DB/UI/provider，W1–W5原代码未修改，CI真实 FFmpeg 强制 no-skip。
