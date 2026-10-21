@@ -1,3 +1,9 @@
+# 2026-10-22 G4/W5｜真实 W4 GitHub 回放与原有 W5 退出清单强关联（零费用）
+
+Owner：继续开发，流水线优先；CityDiscount只是通用系统Pilot。过渡文件已生成供新会话继任，开工前重新只读核查 main：`1384406a0e991c6776a92799a0750b7c52a23c12`，PR #230合并且7/7 check-run成功。**真实 12镜原版/W1-FAKE 历史 Artifact 运行旧W4 CLI已获真实GitHub Runner证据**（[run39625584995](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39625584995)、两版本报告 SHA 和 W5 2026-10-19 验收基线完全相同）。核查发现已有 `docs/handoff/G4_ACCEPTANCE_20261019.{md,json}`完整 W5 原始机器盘点，**绝不再造新一份审计/退出门系统**。本轮只在既有W5真实媒体工作流里新增对**原有** W5 JSON `NOT_READY`、报表 SHA/文件SHA、账单未知、人审0、R4.3未运行、G5禁止的 fail-closed 交叉核查；新证据回执携带原盘点 SHA，防止“技术PASS=发布PASS”的历史漂移。同步把 `W5_REAL_W4_ARTIFACT_REPLAY_20261022.md` 原来的“尚待Run”更新为实际成功证据。CI仍然无Google模型调用、无真实资料新上传（仅W4报告）、不动冻结 W1–W5源码、不碰 SQLite/治理文件。G4 NOT_READY，G5暂停；下一需 Owner 真人内容/中文对白/实际发票及 #177 的第三方评分授权。
+
+---
+
 # 2026-10-22 G4/W5｜真实12镜历史素材直接重跑已有W4审片程序（零API）
 
 响应 Owner“继续，流水线优先”指令，最新 main `3aa98406000202efe6719e7b71f9ba0e38517629`。只读核对 W5 Issue #179、W3/W4 frozen handoff，发现一个具体未闭证据：W4 CLI虽然代码/单测通过，**尚未对W3两个真实原片版本直接执行**。本轮从 GitHub Run #39141517448 独立下载原版 Artifact #12142320238 与 W1-FAKE #12141772943，MP4/SRT/09_render各自 SHA 已本地再次确认完全一致；原始60.177333秒 H264/AAC/mov_text。新增 `.github/workflows/g4-w5-real-w4-artifact-smoke.yml` 在 PR 和合并后用GitHub只读Actions token重新取**exact source**、校验SHA、FFmpeg实解码，调用**现有** `scripts/review_gpt_episode_offline.py` 出两个版本独立报告，禁止伪造真人评分：需严格得到 `technical=pass; content=fail; release=blocked`、人审0、已知负例 s03/s07/s09、其他9镜 unknown，W1-FAKE只改s07 SHA。只上传QA JSON，不把真正媒体再次公开。无 Gemini/ASR、Secret或额外付费模型，不碰冻结W1–W5源码、数据库/UI、治理文件；CI失红不得报告通过。详 `docs/handoff/W5_REAL_W4_ARTIFACT_REPLAY_20261022.md`；实际Run结果须等CI真实执行再另补证据。
