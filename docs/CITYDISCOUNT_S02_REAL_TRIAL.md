@@ -11,7 +11,7 @@ Stage: G4  ·  Req: R4.4  ·  仅 s02 一镜，非整片发布
 - `confirmation = PREVIEW_ONLY`：只校验严格 Owner 当前创意 rev4、原版小羊源 PNG SHA、账单申报格式和 3:4 交付策略，不外传任何源图，也不产生收费。
 - `confirmation = GENERATE_ONE_S02_PAID_WITH_OWNER_IMAGE`：**一条** Google Omni 真实模型请求。读取仓库已经由 Owner 提供的原版 `character_views/mascot_front_derived.png`，重新按源 SHA 验证，以白色/奶油色不透明背景的 RGB PNG（不重绘眼睛，仅裁透明边/保比例尺寸变换）送给 Google。引用当前 rev4 的第02镜英文提示词（小羊确实跑，始终小巧，眼睛大、脸型不变，所有场景毛毡）。模型目前请求为 **360p 9:16**，真实 MP4 下载后**仅在本地**用 FFmpeg 原比例显示人物并对空余左右区域模糊延伸，输出真实的 **1080×1440 (3:4) H.264**。**不是模型原生1080p/3:4，不可假装细节是原生1080p**。
 
-**人工付费前必须真实确认**：当前新西兰本地自然日、Google 上一条真实 s03 调用（和本地当天其他真实调用）的已发生/待入账用量可核实，填准 `nz_spend_today_usd`；如果未知，不能硬填 `0`。`rights_confirmed` / `google_transfer_confirmed` 源自 Owner 本次明确图片所有权与 Google 传输授权，但仍要在手动表单明确勾选；`google_terms_accepted` 指已独立阅读并接受 Google 相关图像数据处理与保留/服务条款；`invoice_verified` 指账单及已用量真实核对。四个缺一不可，工作流直接拒绝收费。必须有仓库 Actions Secret `GEMINI_API_KEY`（不打印）。
+**人工付费前必须真实确认**：当前新西兰本地自然日、Google 上一条真实 s03 调用（和本地当天其他真实调用）的已发生/待入账用量可核实，填准 `nz_spend_today_usd`；如果当前账单仍未知，**先选 PREVIEW_ONLY 并把金额填 `UNKNOWN`**，这不会上传图片或扣费；要选付费模式，必须先核对账单，再填写真实已花金额（不能猜填 `0`）。`rights_confirmed` / `google_transfer_confirmed` 源自 Owner 本次明确图片所有权与 Google 传输授权，但仍要在手动表单明确勾选；`google_terms_accepted` 指已独立阅读并接受 Google 相关图像数据处理与保留/服务条款；`invoice_verified` 指账单及已用量真实核对。四个缺一不可，工作流直接拒绝收费。必须有仓库 Actions Secret `GEMINI_API_KEY`（不打印）。
 
 **重要费用边界**：脚本预留最多 `USD 2`、新西兰日 `USD 5` 的**运营申报检验**，Google 供应商 **没有与此脚本绑定的硬账单上限**。真实实际扣费必须在 Google Billing 查到后再认定；`actual_fee_usd=null` 保持 UNKNOWN，绝不填 0。不能保证失败调用不计费，也不自动重试。
 
