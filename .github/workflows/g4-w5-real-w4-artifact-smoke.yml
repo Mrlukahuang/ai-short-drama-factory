@@ -1,0 +1,123 @@
+name: W5 authentic W3 W4 offline artifact replay (zero API)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/g4-w5-real-w4-artifact-smoke.yml'
+      - 'tests/test_g4_w5_real_w4_artifact_contract.py'
+  push:
+    branches: [main]
+    paths: ['.github/workflows/g4-w5-real-w4-artifact-smoke.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  existing-w4-real-artifact:
+    name: Execute existing W4 CLI on two actual W3 MP4 artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DRAMA_FACTORY_OFFLINE: '1'
+      DRAMA_ENABLE_PAID_GENERATION: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline-only project
+        run: python -m pip install -e '.[test]'
+      - name: Download both exact previously generated W3 artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/w5/original artifacts/w5/w1_fake
+          gh run download 39141517448 --repo Mrlukahuang/ai-short-drama-factory --name gpt-real-12shot-caption-DRAFT-39141517448 --dir artifacts/w5/original
+          gh run download 39141517448 --repo Mrlukahuang/ai-short-drama-factory --name gpt-W3-repaired-provenance-39141517448 --dir artifacts/w5/w1_fake
+          test -s artifacts/w5/original/09_render.json
+          test -s artifacts/w5/w1_fake/09_render.json
+      - name: Enforce frozen source hashes and physically decode existing MP4s
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' \
+            d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7 artifacts/w5/original/gpt-episode-caption-draft.mp4 \
+            de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f artifacts/w5/w1_fake/gpt-episode-caption-draft.mp4 \
+            364016304d078e11730b858956002eb7236cdf5282bc92dfa5f80a99cdada1ad artifacts/w5/original/09_render.json \
+            3296b63bf88f154a43efba6a8ad895243331de22a8633a7474f68b178677ecf4 artifacts/w5/w1_fake/09_render.json \
+            c6fa289f4a63192ea72d83c31dba86771fae10ee09a6ee68413ad78f7a259db6 artifacts/w5/original/draft-captions.srt \
+            c6fa289f4a63192ea72d83c31dba86771fae10ee09a6ee68413ad78f7a259db6 artifacts/w5/w1_fake/draft-captions.srt \
+            | sha256sum -c -
+          command -v ffmpeg
+          for v in original w1_fake; do
+            ffmpeg -hide_banner -loglevel error -i "artifacts/w5/$v/gpt-episode-caption-draft.mp4" -map 0:v:0 -map 0:a:0 -f null -
+          done
+      - name: Use EXISTING W4 offline CLI on BOTH actual W3 artifact versions
+        run: |
+          python scripts/review_gpt_episode_offline.py \
+            --original-dir artifacts/w5/original \
+            --fake-dir artifacts/w5/w1_fake \
+            --original-sha d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7 \
+            --fake-sha de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f \
+            --original-artifact-id 12142320238 \
+            --fake-artifact-id 12141772943 \
+            --output-dir artifacts/w5-reports
+      - name: Block false G4 completion and create audit receipt without media
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path("artifacts/w5-reports")
+          results={}
+          expected={
+            "original":(12142320238,"d4208ccb7b4353e184eb7d003125a010e20f8dedf7a3a9bc0eee85a0e4f041f7"),
+            "w1_fake":(12141772943,"de6d623523d8537461571b66508ee997a28e10fed23cd927900c3f8370a6df2f")
+          }
+          for version,(artifact,sha) in expected.items():
+            path=root/f"{version}-content-qa.json"
+            assert path.is_file()
+            q=json.loads(path.read_text("utf-8"))
+            assert (q["contract"],q["version"],q["artifact_id"],q["final_mp4_sha256"])==("g4-w4-content-review.v1",version,artifact,sha)
+            assert len(q["shots"])==12
+            assert (q["human_review_attested_count"],q["usable_shot_count"],q["known_needs_repair_count"],q["unknown_shot_count"])==(0,0,3,9)
+            assert (q["technical_qa"],q["content_qa"],q["release_qa"])==("pass","fail","blocked")
+            assert q["publish_approved"] is False and q["g4_exited"] is False
+            assert q["gemini_adjacent_shot_scoring"]=="not_run" and q["asr_status"]=="not_run"
+            assert sorted(x["shot_id"] for x in q["shots"] if x["disposition"]=="needs_repair")==["s03","s07","s09"]
+            results[version]={
+              "artifact_id":artifact,"media_sha256":sha,"w4_report_sha256":q["report_sha256"],
+              "w4_json_sha256":hashlib.sha256(path.read_bytes()).hexdigest(),
+              "technical_qa":"pass","content_qa":"fail","release_qa":"blocked",
+              "human_review_attested_count":0,"usable_shot_count":0,"unknown_shot_count":9
+            }
+          o=json.loads((root/"original-content-qa.json").read_text("utf-8"))
+          f=json.loads((root/"w1_fake-content-qa.json").read_text("utf-8"))
+          assert f["parent_final_mp4_sha256"]==o["final_mp4_sha256"]
+          for i in range(12):
+            assert (o["shots"][i]["shot_video_sha256"]!=f["shots"][i]["shot_video_sha256"]) == (i==6)
+          receipt={
+            "schema":"g4-w5-existing-W3-to-W4-actual-media-smoke.v1",
+            "origin_run_id":39141517448,
+            "actual_historical_mp4s_checked":2,
+            "w4_existing_cli_executed_on_actual_artifacts":True,
+            "new_model_calls":0,"new_model_cost_usd":"0",
+            "historical_provider_invoice_usd":None,
+            "human_content_review_performed":False,
+            "publication_approved":False,"g4_exited":False,
+            "results":results,
+          }
+          (root/"w5-real-artifacts-receipt.json").write_text(json.dumps(receipt,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+          print("W5_REAL_ARTIFACTS_W4_BLOCKED_CORRECTLY")
+          PY
+      - name: Upload QA reports ONLY — no video, audio, images or secrets
+        uses: actions/upload-artifact@v4
+        with:
+          name: w5-existing-real-w4-reports-only
+          path: |
+            artifacts/w5-reports/original-content-qa.json
+            artifacts/w5-reports/w1_fake-content-qa.json
+            artifacts/w5-reports/w5-real-artifacts-receipt.json
+          if-no-files-found: error
+          retention-days: 14
