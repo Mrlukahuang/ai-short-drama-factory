@@ -24,6 +24,28 @@
 
 此处 SHA 是格式示例，非有效凭据；实际运行前必须换成真的64位哈希。所有相对文件路径以清单所在目录为起点。只接受本地 regular `.mp4`、大小受限 JSON receipt 和输入源 SHA；拒绝 symlink、重复/外部镜头、伪造 reference 状态、错误哈希、缺审批与超时长。
 
+## 先做真正只读的整集预检（推荐的第一步）
+
+**本轮新增 `--preflight-only`，不创建任何输出目录、不调用FFmpeg渲染器、不修改SQLite、不初始化数据库表。** 它用 SQLite `mode=ro` 打开已有数据库，核查同一 Production 已通过剧本与角色审批、已提交镜头的真实本地视频SHA／自报模型receipt／时长，返回每一镜是否已存在及缺口。
+
+用同一个命令增加 `--preflight-only`：
+
+```bash
+python scripts/run_g4_existing_episode_offline.py \
+  --database /trusted/local/factory.sqlite3 \
+  --series-id proj_1234567890abcd \
+  --production-id run_1234567890abcd \
+  --shot-manifest /trusted/local/sources.json \
+  --output-root /trusted/local/g4-review \
+  --preflight-only
+```
+
+即使当前 **0 条实片**，本模式仍可接受 `{"schema":"g4-existing-real-shot-inputs.v1","shots":[]}`，只读返回全量 `missing_real_shot_ids`。任意已提交镜头内容或sha被篡改则拒绝预检，不以“缺失”吞掉错误。
+
+`status=blocked_missing_real_shots` 只是镜头未齐，**不会**自动付费生成；`status=ready_for_offline_technical_render` 只表示可将全部已校验素材送去技术成片，**不表示版权、真实中文配音、人工质量或发布门已通过**。清单报告携带 `validated_existing_real_shot_ids`、`missing_real_shot_ids`、`render_ready_under_selected_scope`、`sqlite_opened_read_only=true`，不携带本机文件路径、API Key、视频内容或供应商原始隐私字段。
+
+默认只有全部真实镜头通过才可继续运行下面的成片命令。若操作者只是做内部不完整草稿，可在预检/成片命令**显式**加入 `--allow-placeholders`，即使某几镜没有视频，结果仍永久标示不齐、不发布。**实际成片命令仍会更新所选的本地SQLite预览状态，不能与本只读模式混淆。**
+
 ## 一次命令运行
 
 ```bash
