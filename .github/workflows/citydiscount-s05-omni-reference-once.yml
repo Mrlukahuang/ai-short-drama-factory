@@ -1,0 +1,137 @@
+name: CityDiscount s05 REAL sheep double dig (manual Google Omni, may incur cost)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "PREVIEW_ONLY ($0) or GENERATE_ONE_S05_PAID_WITH_OWNER_IMAGE (one billable model request)"
+        required: true
+        type: choice
+        options:
+          - PREVIEW_ONLY
+          - GENERATE_ONE_S05_PAID_WITH_OWNER_IMAGE
+      nz_spend_today_usd:
+        description: "For PREVIEW_ONLY enter UNKNOWN if not billed; for PAID enter independently verified NZ-day USD spend, never a guess."
+        required: true
+        type: string
+        default: 'UNKNOWN'
+      rights_confirmed:
+        description: "Owner confirms rights for canonical sheep image"
+        required: true
+        type: boolean
+        default: false
+      google_transfer_confirmed:
+        description: "Owner authorizes transferring source image to Google for this one s05"
+        required: true
+        type: boolean
+        default: false
+      google_terms_accepted:
+        description: "Owner has independently reviewed/accepted applicable Google retention and service terms"
+        required: true
+        type: boolean
+        default: false
+      invoice_verified:
+        description: "Owner has independently reconciled current NZ-day Google charges, not assumed zero"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: citydiscount-real-s05-one-paid-owner-image
+  cancel-in-progress: false
+
+jobs:
+  citydiscount-s05:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure FFmpeg and FFprobe
+        run: |
+          if ! command -v ffmpeg || ! command -v ffprobe; then
+            sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+          fi
+      - name: Install existing Google video SDK + local PNG dependencies
+        run: python -m pip install -e '.[test,google-video]'
+      - name: Strict PREVIEW_ONLY no Google calls or image upload
+        env:
+          DRAMA_ENABLE_PAID_GENERATION: 'NO'
+          SPEND: ${{ inputs.nz_spend_today_usd }}
+        run: |
+          python scripts/citydiscount_s05_omni_reference_once.py \
+            --confirmation PREVIEW_ONLY \
+            --nz-spend-today-usd "$SPEND" \
+            --out artifacts/s05-preview
+          test -s artifacts/s05-preview/receipt.json
+      - name: Block paid run without separate rights, provider-retention, invoice and secret
+        if: ${{ inputs.confirmation == 'GENERATE_ONE_S05_PAID_WITH_OWNER_IMAGE' }}
+        env:
+          RIGHTS: ${{ inputs.rights_confirmed }}
+          TRANSFER: ${{ inputs.google_transfer_confirmed }}
+          TERMS: ${{ inputs.google_terms_accepted }}
+          BILL: ${{ inputs.invoice_verified }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          test "$RIGHTS" = 'true' || { echo "::error::Source rights not confirmed"; exit 1; }
+          test "$TRANSFER" = 'true' || { echo "::error::Owner image transfer not authorized"; exit 1; }
+          test "$TERMS" = 'true' || { echo "::error::Google provider retention terms not independently accepted"; exit 1; }
+          test "$BILL" = 'true' || { echo "::error::NZ-day Google bill/usage not verified"; exit 1; }
+          test -n "$GEMINI_API_KEY" || { echo "::error::GEMINI_API_KEY missing"; exit 1; }
+      - name: ONE real 360p double-dig animation + nonstretched 3:4 postproduction
+        if: ${{ inputs.confirmation == 'GENERATE_ONE_S05_PAID_WITH_OWNER_IMAGE' }}
+        env:
+          DRAMA_ENABLE_PAID_GENERATION: 'YES'
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SPEND: ${{ inputs.nz_spend_today_usd }}
+        run: |
+          python scripts/citydiscount_s05_omni_reference_once.py \
+            --confirmation GENERATE_ONE_S05_PAID_WITH_OWNER_IMAGE \
+            --nz-spend-today-usd "$SPEND" \
+            --rights-confirmed --google-transfer-confirmed \
+            --google-terms-accepted --invoice-verified \
+            --out artifacts/s05-real
+      - name: Verify actual original video and true 1080x1440 delivery
+        if: ${{ inputs.confirmation == 'GENERATE_ONE_S05_PAID_WITH_OWNER_IMAGE' }}
+        run: |
+          test -s artifacts/s05-real/s05_raw_omni_9x16.mp4
+          test -s artifacts/s05-real/s05_owner_1080x1440_3x4_NOT_FINAL.mp4
+          ffprobe -v error -show_entries format=duration:stream=width,height,codec_type -of json \
+            artifacts/s05-real/s05_owner_1080x1440_3x4_NOT_FINAL.mp4
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("artifacts/s05-real/receipt.json").read_text("utf-8"))
+          assert x["shot_id"]=="s05"
+          assert [q["event"] for q in x["owner_action_phases"]] == [
+              "first_shovel_dig","second_shovel_dig","single_CD_coin_found","pack_coin_and_depart"]
+          assert x["coin_lettering_status"].startswith("blank model coin")
+          assert x["model_calls"]==1
+          assert x["source_pngs_transmitted"]==1
+          assert x["reference_image_count"]==1
+          assert x["provider_reference_applied"] is True
+          assert x["source_video_real_model"] is True
+          assert x["output_media"]=="real_omni_video_downloaded"
+          assert x["publication_approved"] is False
+          assert x["actual_fee_usd"] is None
+          assert any(s.get("width")==1080 and s.get("height")==1440
+                     for s in x["reframed_media_qa"]["streams"])
+          PY
+      - name: Upload receipts and actual video only when downloaded
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-original-small-sheep-run-1080x1440-NOT-FINAL
+          path: |
+            artifacts/s05-preview/receipt.json
+            artifacts/s05-real/receipt.json
+            artifacts/s05-real/s05_raw_omni_9x16.mp4
+            artifacts/s05-real/s05_raw_omni_9x16.recovery.json
+            artifacts/s05-real/s05_owner_1080x1440_3x4_NOT_FINAL.mp4
+          retention-days: 7
+          if-no-files-found: warn
