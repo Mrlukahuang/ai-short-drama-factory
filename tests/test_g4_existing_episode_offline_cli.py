@@ -15,7 +15,7 @@ import sys
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from run_g4_existing_episode_offline import G4ReplayDenied, main, run_existing_episode_preview
+from run_g4_existing_episode_offline import (G4ReplayDenied, main, run_existing_episode_preview, preflight_existing_episode)
 from test_offline_render import make_production
 from test_g4_existing_real_shot_handoff import _candidate
 
@@ -171,3 +171,119 @@ def test_malformed_private_path_and_wrong_contract_refused_without_model(client,
                 "--output-root",str(tmp_path/"block-output"),
             ])
         assert blocked.value.code == 2
+
+
+@ffmpeg_needed
+def test_preflight_empty_manifest_is_readonly_and_reports_all_missing(client, tmp_path):
+    # Zero existing real clips is a valid READ-ONLY planning state, never a
+    # valid full technical rendering state.
+    db,run,series,args=_run(client,tmp_path,[],allow=False)
+    for route in ("approve-script","approve-characters"):
+        assert client.post(f"/api/v1/productions/{run}/{route}").status_code==200
+    old=hashlib.sha256(db.path.read_bytes()).hexdigest()
+    report=preflight_existing_episode(**args)
+    assert report["status"]=="blocked_missing_real_shots"
+    assert report["validated_existing_real_shot_ids"]==[]
+    assert report["missing_real_shot_ids"]==["shot-1","shot-2"]
+    assert report["expected_real_shot_count"]==2
+    assert report["existing_real_shot_count"]==0
+    assert report["source_handoff_report_sha256"] is None
+    assert report["sqlite_opened_read_only"] is True
+    assert report["sqlite_initialization_or_migration"] is False
+    assert report["technical_preview_written"] is False
+    assert report["render_ready_under_selected_scope"] is False
+    assert report["provider_calls"]==0
+    assert report["source_actual_vendor_invoices_verified"] is False
+    assert report["publish_approved"] is False
+    assert hashlib.sha256(db.path.read_bytes()).hexdigest()==old
+    assert not args["output_root"].exists()
+    with pytest.raises(G4ReplayDenied,match="manifest"):
+        run_existing_episode_preview(**args)
+
+
+@ffmpeg_needed
+def test_preflight_partial_existing_real_mp4_report_stable_and_no_db_writes(client,tmp_path):
+    one=_candidate(tmp_path,sid="shot-1")
+    db,run,series,args=_run(client,tmp_path,[one],allow=False)
+    for route in ("approve-script","approve-characters"):
+        assert client.post(f"/api/v1/productions/{run}/{route}").status_code==200
+    before=hashlib.sha256(db.path.read_bytes()).hexdigest()
+    report=preflight_existing_episode(**args)
+    assert report["status"]=="blocked_missing_real_shots"
+    assert report["validated_existing_real_shot_ids"]==["shot-1"]
+    assert report["missing_real_shot_ids"]==["shot-2"]
+    assert report["source_handoff_report_sha256"] is not None
+    assert report["render_ready_under_selected_scope"] is False
+    assert preflight_existing_episode(**args)==report
+    assert hashlib.sha256(db.path.read_bytes()).hexdigest()==before
+    assert not args["output_root"].exists()
+    internal=preflight_existing_episode(**{**args,"allow_placeholders":True})
+    assert internal["status"]=="blocked_missing_real_shots"
+    assert internal["render_scope"]=="internal_partial_preview"
+    assert internal["render_ready_under_selected_scope"] is True
+    assert internal["publish_approved"] is False
+    assert not args["output_root"].exists()
+
+
+@ffmpeg_needed
+def test_preflight_full_coverage_ready_but_no_content_or_release_assertion(client,tmp_path,capsys):
+    one=_candidate(tmp_path,sid="shot-1")
+    two=_candidate(tmp_path,sid="shot-2",receipt_source="source_mp4_sha256")
+    db,run,series,args=_run(client,tmp_path,[two,one])
+    for route in ("approve-script","approve-characters"):
+        assert client.post(f"/api/v1/productions/{run}/{route}").status_code==200
+    before=hashlib.sha256(db.path.read_bytes()).hexdigest()
+    report=preflight_existing_episode(**args)
+    assert report["status"]=="ready_for_offline_technical_render"
+    assert report["validated_existing_real_shot_ids"]==["shot-1","shot-2"]
+    assert report["missing_real_shot_ids"]==[]
+    assert report["complete_source_coverage"] is True
+    assert report["render_ready_under_selected_scope"] is True
+    assert report["human_review_status"]=="not_run"
+    assert report["g4_exit_approved"] is False
+    assert report["provider_calls"]==0
+    # The actual CLI switch must emit the same sanitized JSON and NOT render.
+    command=[
+        "--database",str(db.path),"--series-id",series,"--production-id",run,
+        "--shot-manifest",str(args["shot_manifest_path"]),
+        "--output-root",str(args["output_root"]),"--preflight-only",
+    ]
+    assert main(command)==0
+    parsed=json.loads(capsys.readouterr().out)
+    assert parsed==report
+    assert hashlib.sha256(db.path.read_bytes()).hexdigest()==before
+    assert not args["output_root"].exists()
+
+
+@ffmpeg_needed
+def test_corrupted_source_fail_closed_preflight_and_render_without_db_initialization(
+    client,tmp_path,
+):
+    one=_candidate(tmp_path,sid="shot-1")
+    db,run,series,args=_run(client,tmp_path,[one],allow=True)
+    for route in ("approve-script","approve-characters"):
+        assert client.post(f"/api/v1/productions/{run}/{route}").status_code==200
+    before=hashlib.sha256(db.path.read_bytes()).hexdigest()
+    original=json.loads(args["shot_manifest_path"].read_text("utf-8"))
+    original["shots"][0]["expected_sha256"]="e"*64
+    args["shot_manifest_path"].write_text(json.dumps(original),encoding="utf-8")
+    with pytest.raises(ValueError,match="SHA"):
+        preflight_existing_episode(**args)
+    with pytest.raises(ValueError,match="SHA"):
+        run_existing_episode_preview(**args)
+    assert hashlib.sha256(db.path.read_bytes()).hexdigest()==before
+    assert not args["output_root"].exists()
+
+
+def test_missing_sqlite_preflight_never_creates_database_or_output(client,tmp_path):
+    _,run=make_production(client)
+    fake_db=tmp_path/"no-such-production.sqlite3"
+    path=_shot_manifest(tmp_path,[])
+    with pytest.raises(G4ReplayDenied,match="not found"):
+        preflight_existing_episode(
+            database_path=fake_db,
+            production_id=run,series_id="proj_"+"0"*14,
+            shot_manifest_path=path,output_root=tmp_path/"never",
+        )
+    assert not fake_db.exists()
+    assert not (tmp_path/"never").exists()
