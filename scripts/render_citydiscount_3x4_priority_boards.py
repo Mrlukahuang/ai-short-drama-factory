@@ -172,9 +172,9 @@ def render_board(shot_id:str,phase:str,images:dict,logo:Image.Image,
             # This font is a placeholder, not the approved standalone coin design.
     else:
         # s12 displays ONLY original verified canonical brand logo, no fabricated lettering.
-        d.rounded_rectangle((72,393,1008,1082),radius=48,fill="#fdf7ea")
+        d.rounded_rectangle((72,393,1008,1163),radius=48,fill="#fdf7ea")
         d=ImageDraw.Draw(im)
-        d.text((540,457),"CityDiscount",font=font_family(62,bold=True),
+        d.text((540,457),"替你到处挖折扣，让生活多一点。",font=font_family(32,bold=True),
                fill="#285449",anchor="mm")
         exact=logo.copy().convert("RGBA")
         bb=exact.getchannel("A").getbbox()
