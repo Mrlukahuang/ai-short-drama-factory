@@ -1,3 +1,11 @@
+# 2026-10-22 G4/W5｜真实12镜历史素材直接重跑已有W4审片程序（零API）
+
+响应 Owner“继续，流水线优先”指令，最新 main `3aa98406000202efe6719e7b71f9ba0e38517629`。只读核对 W5 Issue #179、W3/W4 frozen handoff，发现一个具体未闭证据：W4 CLI虽然代码/单测通过，**尚未对W3两个真实原片版本直接执行**。本轮从 GitHub Run #39141517448 独立下载原版 Artifact #12142320238 与 W1-FAKE #12141772943，MP4/SRT/09_render各自 SHA 已本地再次确认完全一致；原始60.177333秒 H264/AAC/mov_text。新增 `.github/workflows/g4-w5-real-w4-artifact-smoke.yml` 在 PR 和合并后用GitHub只读Actions token重新取**exact source**、校验SHA、FFmpeg实解码，调用**现有** `scripts/review_gpt_episode_offline.py` 出两个版本独立报告，禁止伪造真人评分：需严格得到 `technical=pass; content=fail; release=blocked`、人审0、已知负例 s03/s07/s09、其他9镜 unknown，W1-FAKE只改s07 SHA。只上传QA JSON，不把真正媒体再次公开。无 Gemini/ASR、Secret或额外付费模型，不碰冻结W1–W5源码、数据库/UI、治理文件；CI失红不得报告通过。详 `docs/handoff/W5_REAL_W4_ARTIFACT_REPLAY_20261022.md`；实际Run结果须等CI真实执行再另补证据。
+
+注意：历史真实完整60秒原片虽存在，但不代表12镜内容合格；中文对白、人物年龄/声音一致性、供应商实账、授权和Owner G4退出仍未核准。CityDiscount是Pipeline Pilot，s05品牌单镜暂停，G5继续冻结。
+
+---
+
 # 2026-10-22 G4/R4.4｜既有一键入口新增零写入整集预检（流水线优先）
 
 接 Owner 明确“流水线优先”指令，在 main `b69b3e673cd9c181fc633758e6c8dd6e68c53fa0` 已合并 PR #226–#228 技术交接基础上，只给 **同一个** `scripts/run_g4_existing_episode_offline.py` 增加 `--preflight-only`。开工前核查没有新开放 PR/改动受冻路径、W1–W5保持完成；CityDiscount仅Pilot，单镜视频/Logo/Woolworths暂停。新的预检不调用 `Database()`（该现有构造器可能创建/迁移SQLite），而用 **SQLite URI mode=ro + PRAGMA query_only** 读取当前已批准production和EpisodeDraft，逐镜复用已有SHA/receipt/mp4真实性*自报*完整性检查：0条来源可列全镜头缺口，partial/full可列准确已验证与缺失的shot_id。无数据库写、无视频渲染、无Provider调用、无输出目录写入；不凭空把未付费生成的镜头判为已有。**正常的真FFmpeg成片命令仍会写技术预览状态，保持明确区分。** 默认只有全部镜头齐备可技术合成； `--allow-placeholders` 仅内部测试草稿且不能发布。完整W3/W4和G4权限/账单/配音/人工QA门禁不变。新回归覆盖0/partial/full、错误SHA、CLI无写、库不存在fail-closed，并接入已存在 `offline-video` CI强制执行。见 `docs/G4_EXISTING_EPISODE_OFFLINE_ONE_COMMAND.md`。
