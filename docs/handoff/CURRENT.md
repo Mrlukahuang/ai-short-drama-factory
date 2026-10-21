@@ -1,3 +1,13 @@
+# 2026-10-22 G4/R4.4｜转回通用短剧工厂：已有真实镜头 → 同一成片/审片入口
+
+**Owner 最新指令**：CityDiscount 只用于验证通用短剧系统，不再反复打磨 s05 的 Woolworths 招牌或 logo coin，不再继续新付费镜头；**优先加速通用工程**。核验 main `bc9933b9ea44ba11e14a6af47f3ab367f6a6e24c`、W1–W5/G4标准交接、Issue #201/#188/#179 之后发现：上游 `EpisodeDraft`/W2引用、Google真正图像参考 SDK、既有W3本地 FFmpeg + W4人工审查已交付；但 s02/s05真实来源/receipt仍需人工各自拼接，不应再次开发 CityDiscount 专用渲染器。
+
+**本轮仅一个 G4/R4.4 复用增量**：`pipeline/existing_real_shots.py` 作为薄桥梁，调用已有 `media_ingest.inspect_source`，验证已存在真实MP4的外部独立 SHA pin、供应商自报 receipt/shot id、实际引用、时长、禁止把Fake冒充真；按任何剧本的 `EpisodeDraft.shots` 顺序输出供已有 `offline_render.render_approved_preview(... source_clips=...)` 直接使用的映射与无私有路径 sanitized receipt。缺镜头/异系列/被改MP4/receipt错/重复镜头失败，不调用Google、不重跑，不合并写既有W1–W5源码。**运营者报称供应商视频真实性不能视为供应商独立签字**；真实费用仍 UNKNOWN。跨两个独立题材的合成MP4/零费用测试验证合同，不声称已完成全12镜实片。细节见 `docs/G4_EXISTING_REAL_SHOT_HANDOFF.md`。
+
+**暂停**：任何新增 CityDiscount 镜头、Woolworths 最终版、CD金币手工贴图迭代；它们留待最后发布候选轮审核，不把粗贴Logo当最终素材。G4 NOT_READY，G5不启动；下游 W3/W4 真实已存媒体复用和Owner审查是下一步，不得为填充缺镜头无授权批量生成。
+
+---
+
 # 2026-10-22 G4/R4.4｜Shot 05 已真实生成；CI 打包文件名误判红灯
 
 Owner手动运行 [s05 Action #39596195021](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39596195021)：真实 Google Omni reference call **1 次成功**（相同原版吉祥羊 PNG）、来源 MP4 **360×640 / 5.013秒**、ffmpeg 3:4版本 **1080×1440 / 5秒** 均成功完成。失败仅来自工作流末尾 **检查/Artifact路径拼写错**：脚本实际输出 `s05_1080x1440_3x4_NOT_FINAL.mp4`；CI却找 `s05_owner_1080x1440_3x4_NOT_FINAL.mp4`。当前红色不代表生成失败；**严禁重新调用付费生成或 rerun 全部 job**。原 Artifact #12343403535 上传了真实源 360p、receipt但因拼写错遗漏了3:4转制文件。总指挥已下载、SHA校验源MP4并在本地无需新Google费用重做3:4；重新编码哈希可能因 FFmpeg 环境不同，不能冒称原Runner字节完全相同。
