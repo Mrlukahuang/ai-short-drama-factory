@@ -325,7 +325,10 @@ def test_genuine_s05_sanitized_source_is_explicitly_sha_pinned_and_not_paid():
     code=(ROOT/"scripts/build_citydiscount_rev5_60s_moving_previs.py").read_text()
     assert 'elif sid in REAL_IDS:' in code
     assert 'if sid=="s05" and s05_clean is not None:' in code
-    assert "extract(s05_clean,target,start=0.0)" in code
+    assert "extract_clean_s05(s05_clean,target)" in code
+    assert "scale=810:1440:flags=lanczos" in code
+    assert "overlay=(W-w)/2:0,format=yuv420p,fps=24" in code
+    assert '"s05_native_9by16_reframed_without_stretch":s05_clean is not None' in code
     assert 'kind="EXISTING_REAL_OMNI_S05_BRAND_SIGN_REDACTED_LOCAL_REVIEW"' in code
     assert '"s05_clean_reuses_existing_omni_not_new_ai":True' in code
     assert '"s05_original_audio_replaced_by_temporary_mix":True' in code
