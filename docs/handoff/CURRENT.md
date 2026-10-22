@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜CityDiscount 60秒“立体城市+小羊穿梭”首次实际代码版（PR #236）
+
+Stage: G4 / Req R4.4 / deliverable: 使用**真实 XYZ 坐标空间、随镜头重新投影的立体毛毡城市**取代旧版二维底图，复用已有 s02/s05 真人类AI小羊片、s12 官方Logo结尾和精确SHA来源，在GitHub Actions实际生成可看的 60s/1080×1440/H264+AAC 技术画样。Owner 明确对旧#235地面平面地图不满意，要求 3D 城市，羊在楼块间穿梭。新增 `scripts/citydiscount_3d_diorama.py`：立体XYZ屋顶/墙体/道路、动态相机方位角/俯仰/推近拉远、街道路径连续，小羊保留原版PNG作为二维 billboard，按深度排序可被前景楼遮挡；现有rev5编片器改为实际使用该世界几何投影，不再给新帧用平面底图。另增强自动测试、现有GitHub工作流及新的独立Artifact名字。全部代码仅本地Pillow/FFmpeg，供应商新调用数0；原Google实账仍 UNKNOWN。**这是可动的低多边形3D几何摄影机预演，不是正式3D模型贴图/真实 rigged小羊/全部AI 12镜/出版验收。** PR https://github.com/Mrlukahuang/ai-short-drama-factory/pull/236 ，当前实际FFmpeg及原仓库CI结果必须核对；待全部7项检查success方可依AMEND-004自主合并。G4 NOT_READY，G5暂停。
+
+---
+
 # 2026-10-22 G4/R4.4｜今日 rev5 可观看全60秒运镜样片（CI待验证）
 
 **Stage G4 / Req R4.4 / Goal：完整可看 rev5 60秒奥克兰城区跟随小羊运动镜头（纯本地2D camera-previs）**。Owner 今日再次催办后，起始 main `a3321d10d6b4e34a84f57b5bbcd5b12b0e3f7aea`，PR #233 和 #234 都已真实视频制作成功/全绿合并，禁止再重复做分镜规划/5秒片尾。新增单一可执行 `scripts/build_citydiscount_rev5_60s_moving_previs.py` 将此前原视频 SHA-pinned rev4 60s 和官方Logo rev5尾卡连接：真正 Omnі 小羊真动态只复用 s02/s05；其余 s01、s03/s04、s06–s11 以已有原版小羊PNG + 自绘2D针毡街景/俯瞰地图产生带数码推拉跟羊的临时分镜，严格标注 NOT AI 3D camera；55–60秒直接复用源视频核验的地球旋转到官方Logo，原句“都市折扣🌟，您的省钱助手小羊薅薅。”，试验音轨为本地合成节拍+币声非真人中文。流程纯Python/Pillow/FFmpeg、无外部模型调用无Google，FFprobe核对60秒/1080x1440/H264/AAC，新申请 GitHub workflow 用历史Artifacts精确SHA下载、仅产出最终内部样片与receipt。不冒称实际全12镜、人工视觉评分、正式CD金币、通过商用音乐或发布，账单还是 UNKNOWN，G4 NOT_READY，G5阻断。详 `docs/CITYDISCOUNT_REV5_60S_MOTION_PREVIS.md`。专项Actions实际产出与完整CI全部SUCCESS后才可自治合并，若失败须按具体日志修复，禁止报告已通过。
