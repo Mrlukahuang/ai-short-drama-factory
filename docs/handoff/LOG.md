@@ -89,3 +89,4 @@
 - 2026-10-22 | GPT-6 | G4/W5 真实W3历史原版及W1-FAKE→已有W4 CLI回放门禁 | 取回Run39141517448的原版/FAKE，SHA/FFprobe真实验证；新增零付费GitHub Actions验收workflow和静态scope，运行现有W4 CLI，预期content=fail/release=blocked，不能凭现有单测假称真人审片。待实际 workflow 结果，G4 NOT_READY、G5停。 | docs/handoff/W5_REAL_W4_ARTIFACT_REPLAY_20261022.md PR TBD
 - 2026-10-22 | GPT-6 | G4/W5 真实 GitHub W4 回放证据与唯一 W5 接受清单一致性门禁 | #230合并，两个真实60.177秒W4直接审片技术pass/内容fail。最新小增量在同一workflow对既有G4_ACCEPTANCE_20261019.json验SHA、NOT_READY、0人审、供应商账单UNKNOWN、R4.3未运行；不另造审计系统，不触碰生产SQLite、0新增模型调用。 | docs/handoff/W5_REAL_W4_ARTIFACT_REPLAY_20261022.md PR pending
 - 2026-10-22 | GPT-6 | G4/R4.4 | rev4 已存在 s02/s05 真实小羊 + 旧 s03 城市场景 → 12×5s 1080×1440 技术预览/显式缺镜头/来源 SHA回执；无新模型调用，不算全真成片，历史账单UNKNOWN，专项GitHub实FFmpeg CI待验 | PR #233
+- 2026-10-22 | GPT-6 | G4/R4.4 | Owner rev5: 12镜真实空间缩放入街区、追踪小羊穿街再缩地球，3.4秒官方Logo＋“都市折扣🌟，您的省钱助手小羊薅薅。”；新增5秒纯本地2D毛毡地球Logo示意视频和回执，真实连续镜头not_verified、付费0，G4 NOT_READY | PR #234
