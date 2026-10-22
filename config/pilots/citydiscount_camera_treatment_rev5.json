@@ -1,0 +1,251 @@
+{
+  "schema": "g4-citydiscount-camera-treatment.v1",
+  "creative_revision": 5,
+  "source_story_revision": 4,
+  "stage": "G4",
+  "req": "R4.4",
+  "film": "CityDiscount little-sheep coin hunt",
+  "output": {
+    "width": 1080,
+    "height": 1440,
+    "aspect_ratio": "3:4",
+    "fps": 24,
+    "total_duration_ms": 60000,
+    "shots": 12,
+    "shot_duration_ms": 5000
+  },
+  "locked": {
+    "same_canonical_small_mascot": true,
+    "mascot_height_fraction_typical": [
+      0.15,
+      0.22
+    ],
+    "mascot_height_fraction_max": 0.27,
+    "all_scenes_needle_felt": true,
+    "one_coin_per_dig_after_two_distinct_digs": true,
+    "exact_logo_locally_verified": true,
+    "exact_coin_design_pending": true,
+    "unlicensed_merchant_or_price_text_allowed": false,
+    "real_paid_call_authorized": false,
+    "publish_approved": false,
+    "g4_exit_approved": false
+  },
+  "camera_language": "One continuous miniature Auckland world. Physical lens move / 3D dolly, matching horizon, block geometry, sheep position and green bag between shots. Static digital scaling is a PREVIS approximation only, never proof of a generated through-the-city camera track.",
+  "shot_camera": [
+    {
+      "shot_id": "s01",
+      "time": [
+        0,
+        5000
+      ],
+      "shot": "family wishlist in same felt home",
+      "camera": "close tabletop -> window glimpses the town; consistent city horizon",
+      "action": "family opens list; wallet and CD-coin motif",
+      "truth": "new_real_footage_pending"
+    },
+    {
+      "shot_id": "s02",
+      "time": [
+        5000,
+        10000
+      ],
+      "shot": "original tiny lamb departs",
+      "camera": "ground-level follow, behind the sheep; camera gently rises as it exits door",
+      "action": "lamb runs with green bag and shovel",
+      "truth": "existing_real_lamb_footage_reusable_after_human_review"
+    },
+    {
+      "shot_id": "s03",
+      "time": [
+        10000,
+        15000
+      ],
+      "shot": "miniature Auckland birds-eye",
+      "camera": "start wide aerial showing harbour bridge + Sky Tower; s03 12.5s start physical zoom/dolly into one EXACT supermarket block",
+      "action": "tiny lamb route is visible from above; no sudden teleport",
+      "truth": "old_s03_city_plate_environment_only_not_full_new_mascot_shot"
+    },
+    {
+      "shot_id": "s04",
+      "time": [
+        15000,
+        20000
+      ],
+      "shot": "supermarket street arrival",
+      "camera": "continue s03 camera's path and 3D geography, move from rooftop height to ground street level by ~16.5s, then follow lamb to pile",
+      "action": "lamb enters same block seen overhead",
+      "truth": "new_real_footage_pending"
+    },
+    {
+      "shot_id": "s05",
+      "time": [
+        20000,
+        25000
+      ],
+      "shot": "two digs one coin",
+      "camera": "street close-medium as lamb digs; in last beat begin slight dolly backward while lamb packs coin (avoid cutting physical action)",
+      "action": "two distinct shovel strokes; one blank coin later authentic CD postmark",
+      "truth": "existing_real_lamb_dig_footage_pending_final_brand_and_motion_qa"
+    },
+    {
+      "shot_id": "s06",
+      "time": [
+        25000,
+        30000
+      ],
+      "shot": "coffee street",
+      "camera": "match s05 final camera position; dolly back revealing corner, pan WITH lamb across contiguous block; then gentle push toward cafe",
+      "action": "lamb travels through space, no location reset",
+      "truth": "new_real_footage_pending"
+    },
+    {
+      "shot_id": "s07",
+      "time": [
+        30000,
+        35000
+      ],
+      "shot": "cafe two digs",
+      "camera": "closer cafe planter/sidewalk then gentle pull-out in last 0.7s",
+      "action": "two distinct digs, second coin, sheep still in same bag/wardrobe",
+      "truth": "new_real_footage_pending"
+    },
+    {
+      "shot_id": "s08",
+      "time": [
+        35000,
+        40000
+      ],
+      "shot": "shopping neighborhood",
+      "camera": "carry pull-out over cafe rooftop, one connected lane to shopping street, then zoom back down to storefront",
+      "action": "lamb runs through street, no appearance drift",
+      "truth": "new_real_footage_pending"
+    },
+    {
+      "shot_id": "s09",
+      "time": [
+        40000,
+        45000
+      ],
+      "shot": "shopping two digs",
+      "camera": "tight on shovel then pull slowly upward to see full street; no jump while coin emerges",
+      "action": "two digs; third and only third new coin; same costume",
+      "truth": "new_real_footage_pending"
+    },
+    {
+      "shot_id": "s10",
+      "time": [
+        45000,
+        50000
+      ],
+      "shot": "tiny lamb weaves through interconnected blocks",
+      "camera": "UNBROKEN progressively widening crane/dolly out: storefront -> intersection -> roofline. Keep animated lamb visible and moving among blocks, not a static cut montage",
+      "action": "full bag, tired feet, still mobile; route heads to family",
+      "truth": "new_real_footage_pending"
+    },
+    {
+      "shot_id": "s11",
+      "time": [
+        50000,
+        55000
+      ],
+      "shot": "family receives coin findings",
+      "camera": "first 3.5s establish real handoff; from 53.5s camera keeps pulling up: family corner -> district -> whole Auckland",
+      "action": "lamb gives bag to matching family, runs away. Start matching the world-to-globe shot before boundary.",
+      "truth": "new_real_footage_pending"
+    },
+    {
+      "shot_id": "s12",
+      "time": [
+        55000,
+        60000
+      ],
+      "shot": "felt Earth revolves into canonical CityDiscount logo",
+      "camera": "55.0–56.0 globe occupies frame, city pin remains geographic anchor; spin 56.0–56.6 as sphere recedes/dissolves into EXACT real source Logo, no generated lettering; 56.6–60 Logo holds unchanged and tagline remains legible",
+      "action": "brand payoff, avoid invented prices and retailer endorsements",
+      "truth": "only_local_2d_globe_logo_previsualization_no_real_3d_earth_to_logo_yet"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "aerial_to_street",
+      "from": "s03",
+      "to": "s04",
+      "start_ms": 12500,
+      "end_ms": 16500,
+      "anchor": "same Auckland supermarket block, no street/roof teleport",
+      "movement": "physical_zoom_in",
+      "real_generation_status": "not_verified"
+    },
+    {
+      "id": "supermarket_to_cafe",
+      "from": "s05",
+      "to": "s06",
+      "start_ms": 24400,
+      "end_ms": 26800,
+      "anchor": "sheep+green bag and same connected corner",
+      "movement": "pullback_follow_then_push_in",
+      "real_generation_status": "not_verified"
+    },
+    {
+      "id": "cafe_to_shopping",
+      "from": "s07",
+      "to": "s08",
+      "start_ms": 34300,
+      "end_ms": 37500,
+      "anchor": "single uninterrupted felt neighborhood roadway",
+      "movement": "pull_out_crane_then_push_in",
+      "real_generation_status": "not_verified"
+    },
+    {
+      "id": "shopping_to_city",
+      "from": "s09",
+      "to": "s10",
+      "start_ms": 44000,
+      "end_ms": 50000,
+      "anchor": "same tiny moving sheep, follow footpath -> intersection -> roofs",
+      "movement": "progressive_zoom_out",
+      "real_generation_status": "not_verified"
+    },
+    {
+      "id": "family_to_earth",
+      "from": "s11",
+      "to": "s12",
+      "start_ms": 53500,
+      "end_ms": 56000,
+      "anchor": "family corner -> Auckland street grid -> mini city -> felt rotating globe",
+      "movement": "long_zoom_out_to_globe",
+      "real_generation_status": "not_verified"
+    },
+    {
+      "id": "globe_into_logo",
+      "from": "s12",
+      "to": "s12",
+      "start_ms": 56000,
+      "end_ms": 56600,
+      "anchor": "globe center transforms to center of canonical logo via protected source PNG",
+      "movement": "globe_rotate_scale_then_logo_morph",
+      "real_generation_status": "2d_local_visual_previs_only"
+    }
+  ],
+  "endcard": {
+    "shot_id": "s12",
+    "globe_start_ms": 55000,
+    "globe_spin_start_ms": 56000,
+    "logo_full_reveal_ms": 56600,
+    "logo_hold_until_ms": 60000,
+    "logo_min_hold_ms": 3000,
+    "logo_unmodified_original": true,
+    "logo_source": "assets/citydiscount/v1/citydiscount_logo_v1.png",
+    "closing_copy": "都市折扣🌟，您的省钱助手小羊薅薅。",
+    "line1": "都市折扣🌟",
+    "line2": "您的省钱助手小羊薅薅",
+    "closing_copy_is_owner_supplied": true,
+    "copy_typography_locally_composited": true,
+    "voiceover_delivery": "not_generated_no_robotic_espeak",
+    "publish_approved": false
+  },
+  "no_new_paid_calls": 0,
+  "real_camera_transition_success": false,
+  "real_complete_12_shots": false,
+  "release_status": "blocked"
+}

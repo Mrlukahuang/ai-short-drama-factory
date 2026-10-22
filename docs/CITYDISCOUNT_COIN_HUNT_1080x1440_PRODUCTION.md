@@ -1,3 +1,5 @@
+> **2026-10-22 Owner 新摄影机方向（rev5，当前应按此制作）：** 微缩奥克兰高空俯瞰一路 Zoom in 街区，再随着小羊穿梭逐渐 Zoom out → 地球旋转 → **官方 CityDiscount Logo**；全片结束语 **“都市折扣🌟，您的省钱助手小羊薅薅。”**。完整最新镜头路径与时间点见 [CITYDISCOUNT_CAMERA_TRANSITIONS_REV5.md](CITYDISCOUNT_CAMERA_TRANSITIONS_REV5.md) 及 [rev5 camera treatment](../config/pilots/citydiscount_camera_treatment_rev5.json)。**下方 rev4 原稿仅保留为旧真实素材/脚本/CI 的可追溯基础，关于镜头和片尾的冲突以 rev5 为准。rev5 真正3D连续运镜未验证。**
+
 # CityDiscount 第一版最新剧本｜小羊满城挖金币｜1080×1440
 
 **Stage: G4 / Req: R4.4** · **最新版创意修订 4** · **明确承接 Owner 2026-10-21 最新叙事与 3:4 尺寸批准**。
