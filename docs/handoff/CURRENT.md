@@ -1,3 +1,8 @@
+# 2026-10-22 G4/R4.4｜真实羊15秒画质基准同步已核准的s05空白牌版本（本PR）
+Stage: G4 / Req: R4.4 / deliverable: 防止已经合并PR #243的60秒安全成片采用去字s05，但旧PR #241的15秒羊毛风格标杆却仍保留虚构Checlues店名。已从真实Run 39756742333 Artifact 12416113076下载并独立验film SHA `3b88c86e89423e41d67971f20b10a25622d2609e26354f8de17a4876eaf81231`，22.75秒完整画面已现场确认空白毛毡招牌，同时小羊/铲子/背景有效；12镜审图SHA `7396450403b6721473f4dd8ef04ec0c26918c9694770f793f26ba2ec06ece92b`。本轮在原有 `scripts/build_citydiscount_real_omni_15s_looklock.py` 更新s05输入源为原Omni的已本地去字审核版，SHA固定 `7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652`，原SHA `4ed60c4e...`仍单独记录；继续保留真s02、s12官方Logo源、15秒1080×1440无拉伸画幅。重用旧15秒专项FFmpeg Runner，不加工作流/抽象/另一个编片器；此次仅跟随已证实真实素材安全修复。全部7项CI和真正15秒Artifact PASS方可合并，未完成则不要宣称已发布或已生成另九镜。新增付费模型调用0，#188/#210均open且未新许可，G4 NOT_READY、G5冻结。
+
+---
+
 # 2026-10-22 G4/R4.4｜实际在60秒rev5插入经过审核的真实s05去字片，生成新整片和12镜审图
 
 **Stage: G4 / Req: R4.4 / deliverable: 更新现有真实60秒技术预览，以PR #242已通过全部7项CI的真实Omni s05牌匾去字素材替换旧含虚构商标的s05镜头。** 起点main `da1c6ece7298daf3768f463ee2ee5321b4fd9a1e`。只在现有编片器新增可选 `--s05-clean` 源路径，SHA固定 `7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652`，仅该路径替换20–25s段；历史未改原版保持独立。由于清理后是原生360×640 9:16，而拼接要求1080×1440 3:4，必须先810×1440等比放大／两侧用同源视频模糊填充，不能变形羊或混合分辨率MP4。复用已有11段与片尾编码管线、临时音轨和12镜Contact Sheet。只要输入SHA不符直接拒绝，CI必须验真实60s、回执`s05_shop_sign_hallucination_removed_in_cut=true`、两铲和币仍未经Owner核准、原音频未保留的诚实标识。新增付费0，新素材外传0，家庭／九段假几何城市仍非真实AI完成，G4 NOT_READY，G5冻结。详细 `docs/CITYDISCOUNT_REV5_REAL_CLEAN_S05_FULL_CUT.md`。专项工作流全绿才能按AMEND-004自主合并。
