@@ -34,27 +34,30 @@ def bridge_frame(city:Image.Image,earth:Image.Image,t:float)->Image.Image:
     if t>=.9:
         return earth.copy()
     q=ease(t/.9)
-    # Globe center is the same location as owner endcard sphere. The miniature
-    # city grows distant and curls into the sphere's circular silhouette.
-    radius=round(445-(445-173)*q)
-    side=radius*2
-    small=city.resize((side,side),Image.Resampling.LANCZOS)
-    foreground=Image.new("RGBA",(W,H),(0,0,0,0))
-    x,y=270-radius,280-radius
-    circle=Image.new("L",(side,side),0)
-    mask=ImageDraw.Draw(circle)
-    if q<.12:
-        # Begin with a full frame so there is no immediate s11→s12 pop.
-        opacity=255*min(1,(1-q)/.04)
+    # Start with a radius larger than ANY canvas corner: the FIRST several
+    # frames are spatially continuous, not a sudden circular wipe.
+    radius=round(575-(575-170)*q)
+    opacity=255*(1-q)
+    overlay=Image.new("RGBA",(W,H),(0,0,0,0))
+    # Scale down city as the globe comes into view. Before first half of blend,
+    # preserve prior footage's original framing exactly.
+    factor=min(1.0,radius/420)
+    if factor<1:
+        mini=city.resize((max(1,round(W*factor)),max(1,round(H*factor))),
+                         Image.Resampling.LANCZOS)
+        paste_x=round((W-mini.width)*.5)
+        paste_y=round(280-mini.height*.45)
+        overlay.paste(mini,(paste_x,paste_y))
     else:
-        mask.ellipse((0,0,side-1,side-1),fill=255)
-        opacity=255*(1-q)
-    if q<.12:
-        return Image.blend(city,earth,min(1,q/.12)*.18)
-    circle=circle.point(lambda a:round(a*opacity/255))
-    foreground.paste(small,(x,y),circle)
+        overlay.paste(city,(0,0))
+    mask=Image.new("L",(W,H),0)
+    circle=ImageDraw.Draw(mask)
+    circle.ellipse((270-radius,280-radius,270+radius,280+radius),fill=255)
+    # Use both the ellipse boundary and a smooth alpha falloff for gentle move.
+    alpha=mask.point(lambda a:round(a*opacity/255))
+    overlay.putalpha(alpha)
     base=earth.convert("RGBA")
-    base.alpha_composite(foreground)
+    base.alpha_composite(overlay)
     return base.convert("RGB")
 
 
