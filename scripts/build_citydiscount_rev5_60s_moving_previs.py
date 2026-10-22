@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT/"scripts"))
 import render_citydiscount_3x4_priority_boards as boards
 import render_citydiscount_rev5_globe_logo_previs as endcard
 import citydiscount_3d_diorama as city3d
+import citydiscount_city_to_globe_bridge as globe_bridge
 
 W,H,FPS=540,720,12
 SOURCE_REV4_SHA="e65d01356dcc977ab40c6cfea2ed479b812b8d16ffae6ccc41bfde8ce430288e"
@@ -238,6 +239,7 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
     seg=out/"segments";seg.mkdir()
     context={"front":front} # Real X/Y/Z geometry comes from city3d, not flat maps
     provenance=[]
+    globe_receipt=None
     for i in range(1,13):
         sid=f"s{i:02}"
         target=seg/(sid+".mp4")
@@ -245,8 +247,11 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
             extract(rev4,target,start=(i-1)*5)
             kind="EXISTING_REAL_OMNI_CHARACTER_MP4_FROM_SHA_PINNED_REV4"
         elif sid=="s12":
-            extract(end,target)
-            kind="EXISTING_2D_FELT_GLOBE_TO_SOURCE_LOGO_ENDCARD"
+            # Connect the actual LAST frame of the moving XYZ city to the globe
+            # rather than cutting abruptly from streets to an unrelated sphere.
+            city_last=movie_frame("s11",(5*FPS-1)/FPS,context)
+            globe_receipt=globe_bridge.encode(city_last,end,target)
+            kind="CITY_XYZ_TO_EXISTING_FELT_GLOBE_OFFICIAL_LOGO_BLEND"
         else:
             encode_drawn(sid,target,context)
             kind="LOCAL_PROCEDURAL_XYZ_CITY_CAMERA_NOT_REAL_AI_FOOTAGE"
@@ -284,6 +289,11 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
         "existing_real_AI_lamb_shots":["s02","s05"],
         "historical_city_plate_rev4_unused_in_this_2d_aerial_treatment":True,
         "scene_camera_3d_geometry_previs":["s01","s03","s04","s06","s07","s08","s09","s10","s11"],
+        "hybrid_lamb_projected_3d_wool_body_and_four_gait_legs":True,
+        "owner_source_face_rgba_unmodified_except_crop_resize_tilt":True,
+        "hybrid_lamb_owner_3d_identity_approval":False,
+        "city_xyz_to_felt_globe_source_bridge":globe_receipt,
+        "planetary_full_3d_camera_animation_pass":False,
         "procedural_3d_scene_rendered":True,
         "street_routes_use_continuous_xyz_grid":True,
         "camera_keys_match_across_non_paid_cuts":True,
