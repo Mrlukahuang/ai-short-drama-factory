@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜真实毛毡镜头接力；终止继续美化积木占位片（本PR）
+
+**Stage: G4 / Req: R4.4.** 当前 main `24c10a7c2a9ce3d34f2bcc7b5e921a3bd2422788`，真实验收样片 #239 已通过7项CI合并。实际对比了最终12镜MP4与真实原始Omni s02/s05，发现主要质量瓶颈不是现有技术剪辑，而是**九段缺失真实角色表演和真正立体毛毡街区的材质/镜头**。停下造新的假毛毡积木动画；本轮准备统一实际真实素材5秒prompt/镜头交接和原始视频SHA，供将来授权的小范围真实生成。新增 `config/pilots/citydiscount_real_video_replacement_rev5.json` 定义九镜所有上下镜地理接续/风格和验收，完整源 `docs/CITYDISCOUNT_REAL_FOOTAGE_HANDOFF_REV5.md`。真实 s02/s05 和旧 s03城市环境片原GH artifacts已重新下载逐帧/ SHA校验并在聊天里独立私密 ZIP 备份（User 2026-10-22聊天可下载）；原源码回执仅 s02/s05 两镜是真小羊视频，s03不算新真镜。原料 artifacts于2026-10-28/29 NZDT到期，应保留私密备份。Google实际账单仍UNKNOWN，相关Gmail检索没有给出可核实的Google模型费用，Owner Issue #188/#210对**新**素材外传/付费许可仍未封闭，因此当前生成次数0，不自动触发Omni，不得按历史估算支出代替账单。既有通用离线真实素材接入脚本可复用，禁止另造多余工具。G4 NOT_READY/G5禁止，发布未批准。最后须全部CI绿后自治合并。
+
+---
+
 # 2026-10-22 G4/R4.4｜基于真60秒抽帧的家庭镜头/可见性修复 + 12镜审片表（PR待创建）
 
 起点为已合并 #238，main `463bd313ab35b4c456151ef8c24c60e58ef19fbf`。本轮实际下载解压 GitHub Actions `39734835845` Artifact `12406796304` 后，FFmpeg 解码生成12格抽帧；肉眼发现实际短板：s01/s11家人和金币交接难以分辨、s03–s10小羊被楼块遮住、形象与真Omni s02/s05风格明显不同。本PR只在原XYZ毛毡城市追加**不冒充正式定妆的3个家庭3D布娃娃**，在羊经过的近景把邻近房屋屋顶柔性降低成娃娃屋剖面，增加屋顶毛毡缝线，原版小羊脸/真Omni s02/s05/官方Logo源不动。新 `scripts/citydiscount_visual_contact_sheet.py` 在实际编码的60秒H264/AAC MP4上按12×2.5秒中点抽真实帧做 `CONTACT_SHEET_12_SHOTS.png`，检查MP4 SHA与receipt、连同 `visual_review.json` 上传，但 `visual_quality_pass=null`、人物审片/家庭交接 `null`，不得从CI绿灯推断人工审片PASS。验收独立7项CI/真实FFmpeg与新审片表均SUCCESS才并入；如CI红停住修理。新增模型调用0，旧账单UNKNOWN；G4 NOT_READY、G5暂停。详 `docs/CITYDISCOUNT_REV5_VISUAL_QA.md`。
