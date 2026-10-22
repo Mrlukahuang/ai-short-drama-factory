@@ -15,6 +15,7 @@ from typing import Callable
 
 from PIL import Image, ImageDraw
 import citydiscount_street_motion as motion
+import citydiscount_volumetric_lamb as volume
 
 W,H=540,720
 STOPS={
@@ -117,6 +118,12 @@ def draw_building(d:ImageDraw.ImageDraw,cam:Camera,b:dict)->None:
         center=(x1,y,h*.47)
         px,py=cam.project(center)
         d.rounded_rectangle((px-3,py-5,px+3,py+6),radius=1,fill="#f5e6bd")
+    # Felt roof seams projected in XYZ, not fake screen-space painted blocks.
+    for j in range(1,5):
+        roof_y=lerp(y0,y1,j/5)
+        left=cam.project((x0+.08,roof_y,h+.003))
+        right=cam.project((x1-.08,roof_y,h+.003))
+        d.line((left,right),fill="#eee4cf",width=1)
     p=cam.project(((x0+x1)*.5,(y0+y1)*.5,h))
     d.line([(p[0]-8,p[1]),(p[0]+6,p[1]-3)],
            fill="#f9f0d8",width=2)
@@ -176,6 +183,52 @@ def _draw_sprite(im:Image.Image,cam:Camera,original:Image.Image,
     motion.composite_actor(im,cam,original,xyz,size,shot_id=sid,t=t)
 
 
+
+def dollhouse_height(b:dict,sid:str,sheep_x:float,sheep_y:float,
+                     camera_zoom:float)->float:
+    """Lower nearby miniature walls gently to keep tiny sheep visible on the road."""
+    height=b["h"]
+    if sid not in ("s04","s06","s07","s08","s09","s10","s11") or camera_zoom<70:
+        return height
+    bx=(b["x0"]+b["x1"])/2
+    by=(b["y0"]+b["y1"])/2
+    distance=math.hypot(bx-sheep_x,by-sheep_y)
+    blend=eased((1.63-distance)/.70)
+    return height*(1-.54*blend)
+
+
+def draw_home_family(im:Image.Image,cam:Camera,sid:str,t:float)->None:
+    """Three clearly visible anonymous XYZ felt doll placeholders at the home."""
+    if sid not in ("s01","s11"):
+        return
+    d=ImageDraw.Draw(im)
+    people=((1.13,4.08,.87,"#d5afa0"),
+            (1.47,4.16,.91,"#8ea4a1"),
+            (1.35,4.49,.66,"#e0c09d"))
+    for i,(px,py,height,coat) in enumerate(people):
+        radius=.24 if i<2 else .19
+        garment=volume.projected_ellipsoid(
+            cam,(px,py,.12+height*.35),(radius,radius*.83,height*.34))
+        head=volume.projected_ellipsoid(
+            cam,(px,py,.18+height*.81),(.17,.16,.17) if i<2
+            else (.14,.14,.14))
+        if len(garment)>=3:d.polygon(garment,fill=coat)
+        if len(head)>=3:d.polygon(head,fill="#eee0ca")
+        x,y=cam.project((px,py,.18+height*.85))
+        e=max(1,round(cam.zoom*.011))
+        d.ellipse((x-4*e,y-e,x-2*e,y+e),fill="#6c6257")
+        d.ellipse((x+2*e,y-e,x+4*e,y+e),fill="#6c6257")
+    if sid=="s11" and t<=3.50:
+        q=eased(t/3.5)
+        bagx=1.03+.25*q
+        bagy=4.42-.18*q
+        coinbag=volume.projected_ellipsoid(
+            cam,(bagx,bagy,.22),(.15,.13,.18))
+        if len(coinbag)>=3:d.polygon(coinbag,fill="#5c8f74")
+        gx,gy=cam.project((bagx,bagy,.32))
+        d.arc((gx-9,gy-16,gx+9,gy+5),190,355,
+              fill="#f8eac4",width=2)
+
 def scene_frame(sid:str,t:float,original_sheep:Image.Image)->Image.Image:
     if sid not in STOPS or not 0<=t<5:
         raise ValueError("Only supported 5-second rev5 scene slots")
@@ -194,18 +247,14 @@ def scene_frame(sid:str,t:float,original_sheep:Image.Image)->Image.Image:
     entities.sort(key=lambda e:e[0])
     for _,kind,item in entities:
         if kind=="building":
-            draw_building(d,cam,item)
+            true_height=dollhouse_height(item,sid,cx,cy,cam.zoom)
+            adjusted={**item,"h":true_height}
+            draw_building(d,cam,adjusted)
         else:
             x,y,size=item
             _draw_sprite(im,cam,original_sheep,(x,y,.065),size,sid=sid,t=t)
             d=ImageDraw.Draw(im)
-    if sid=="s01" or sid=="s11":
-        for x,y,shade in [(1.06,4.15,"#d4ac96"),(1.30,4.3,"#b7a2a1"),
-                          (1.21,4.46,"#9eadbf")]:
-            px,py=cam.project((x,y,.2))
-            r=max(5,round(cam.zoom*.07))
-            d.ellipse((px-r,py-r,px+r,py+r),fill="#f1d3b6")
-            d.rectangle((px-r,py+r,px+r,py+3*r),fill=shade)
+    draw_home_family(im,cam,sid,t)
     # Distinguishable semantic districts, not fictitious live NZ merchant prices.
     district={
         "s01":"HOME","s03":"AUCKLAND","s04":"GROCERIES",
