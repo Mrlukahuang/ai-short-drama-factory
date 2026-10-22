@@ -1,9 +1,10 @@
-name: CityDiscount rev5 complete 60s camera-motion PREVIS (offline)
+name: CityDiscount rev5 3D wool city with sheep running 60s (offline)
 on:
   pull_request:
     branches: [main]
     paths:
       - scripts/build_citydiscount_rev5_60s_moving_previs.py
+      - scripts/citydiscount_3d_diorama.py
       - tests/test_citydiscount_rev5_60s_moving_previs.py
       - .github/workflows/citydiscount-rev5-60s-motion-review.yml
   push:
@@ -50,7 +51,7 @@ jobs:
           run-id: 39709324093
           github-token: ${{ github.token }}
           path: artifacts/previous-endcard
-      - name: Produce 12x5s camera-previsualization with 2 historical real lamb shots
+      - name: Produce 12x5s true projected XYZ city camera-previsualization with historic real lamb shots
         run: |
           python scripts/build_citydiscount_rev5_60s_moving_previs.py \
             --rev4 artifacts/previous-rev4/CityDiscount_rev4_60s_3x4_TECHNICAL_NOT_FINAL.mp4 \
@@ -66,6 +67,9 @@ jobs:
           assert r["resolution"]==[1080,1440] and r["shot_count"]==12
           assert 59.9 <= r["duration_seconds"] <= 60.2
           assert r["existing_real_AI_lamb_shots"]==["s02","s05"]
+          assert r["procedural_3d_scene_rendered"] is True
+          assert r["sheep_actor_is_billed_3d_rigged"] is False
+          assert r["original_sheep_2d_billboard_in_xyz_city"] is True
           assert r["genuine_aerial_to_street_3D_camera_pass"] is False
           assert r["genuine_sheep_travel_world_zoom_pass"] is False
           assert r["true_complete_12shot_AI_film"] is False
