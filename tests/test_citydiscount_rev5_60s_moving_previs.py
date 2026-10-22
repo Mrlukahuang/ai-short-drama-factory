@@ -252,3 +252,66 @@ def test_60sec_movie_includes_city_to_globe_bridge_and_locked_real_video_truth()
     assert '"true_complete_12shot_AI_film":False' in editor
     assert '"publish_approved":False' in editor
     assert "secrets." not in workflow
+
+
+
+def test_dollhouse_cutaway_is_local_smooth_and_does_not_flatten_city():
+    import citydiscount_3d_diorama as geo
+    home=geo.BUILDINGS[0]
+    near_x,near_y=(home["x0"]+home["x1"])/2,(home["y0"]+home["y1"])/2
+    high=geo.dollhouse_height(home,"s06",near_x,near_y,108)
+    assert 0.4*home["h"]<=high<home["h"]
+    assert geo.dollhouse_height(home,"s03",near_x,near_y,108)==home["h"]
+    assert geo.dollhouse_height(home,"s06",near_x+3,near_y+3,108)==home["h"]
+    assert geo.dollhouse_height(home,"s06",near_x,near_y,43)==home["h"]
+
+
+def test_home_family_volumes_make_real_visible_non_final_scenes():
+    from PIL import Image
+    import citydiscount_3d_diorama as geo
+    a=Image.new("RGB",(540,720),"#cbded7")
+    b=a.copy()
+    cam=geo.camera_for("s01",2)
+    geo.draw_home_family(a,cam,"s01",2)
+    geo.draw_home_family(b,cam,"s11",1)
+    assert a.tobytes()!=Image.new("RGB",(540,720),"#cbded7").tobytes()
+    assert b.tobytes()!=a.tobytes()
+    assert len(geo.BUILDINGS)>=20
+
+
+def test_actual_encoded_video_contact_sheet_keeps_manual_quality_gate(monkeypatch,tmp_path):
+    from io import BytesIO
+    from PIL import Image
+    import citydiscount_visual_contact_sheet as sheet
+    video=tmp_path/"reused_existing.mp4"
+    video.write_bytes(b"tiny mock encoded bytes")
+    receipt=tmp_path/"receipt.json"
+    receipt.write_text(json.dumps({
+        "film_sha256":sheet.sha(video),"shot_count":12,
+        "resolution":[1080,1440],"duration_seconds":60.0,
+        "publish_approved":False,"existing_real_AI_lamb_shots":["s02","s05"]
+    }))
+    payload=BytesIO()
+    Image.new("RGB",(54,72),"#aac3ad").save(payload,format="PNG")
+    class Proc:
+        def __init__(self):self.stdout=payload.getvalue()
+    calls=[]
+    def fake_run(cmd,**kwargs):
+        calls.append(cmd)
+        assert cmd[0]=="ffmpeg"
+        assert "-ss" in cmd and "-frames:v" in cmd
+        return Proc()
+    monkeypatch.setattr(sheet.subprocess,"run",fake_run)
+    output=tmp_path/"scene_grid.png"
+    result=sheet.collect(video,receipt,output)
+    assert len(calls)==12
+    assert Image.open(output).size==(1620,772)
+    assert result["visual_quality_pass"] is None
+    assert result["owner_character_design_pass"] is None
+    assert result["approved_for_release"] is False
+    assert result["actual_ai_generated_lamb_motion_shots"]==["s02","s05"]
+    assert len(result["sampled_real_output_frames"])==12
+    assert (tmp_path/"visual_review.json").is_file()
+    video.write_bytes(b"tamper")
+    with pytest.raises(ValueError,match="Refuse"):
+        sheet.collect(video,receipt,tmp_path/"different_grid.png")
