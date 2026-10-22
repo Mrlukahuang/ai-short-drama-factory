@@ -65,4 +65,7 @@ def test_runner_reuses_exact_old_artifacts_and_never_passes_secrets():
     assert "secrets." not in workflow
     assert "generate_real_omni" not in workflow
     assert "CityDiscount_REAL_OMNI_LAMB_CLEAN_S05_LOOK_LOCK_15s_NOT_FINAL.mp4" in workflow
+    # Ensure the SAME file asserted by actual FFmpeg job is in upload-artifact.
+    assert "artifacts/real-omni-15s/"+film.OUTPUT in workflow
+    assert "artifacts/real-omni-15s/CityDiscount_REAL_OMNI_LAMB_LOOK_LOCK_15s_NOT_FINAL.mp4" not in workflow
     assert "--s05-clean footage/s05-clean/CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4" in workflow
