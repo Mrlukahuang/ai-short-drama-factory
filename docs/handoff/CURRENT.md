@@ -1,3 +1,9 @@
+# 2026-10-22｜PR #237 实际 60秒运镜产物验收补证
+
+真实独立 GitHub Actions 运行 [#39721975824](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39721975824) 已完成 SUCCESS；工件 ID `12401691338`、MP4 SHA256 `07502ad4035c2f13f59d33ca4faeda71709288ad54dbd542942ac4f941d804e9`，ffprobe 实测60.0秒、1080×1440 H264/AAC。小羊原版图片在3D几何街区中实现道路沿线轻跳/阴影/两次挖掘预演，保留原版s02/s05真人类AI视频；未引入新Google付费调用。Python 3.11/3.13、offline-video、libSQL、Fake均已SUCCESS。初版Scope Guard失败因为PR正文未用独立行 `Stage: G4` 和 `Req: R4.4`；已修复PR正文，但GitHub重跑旧事件快照仍读取旧正文。**本次以新的同步 commit 触发新的PR事件CI并重新核对最新全部检查，Scope绿之前不合并。** 仅代表程序几何动效/技术成片通过，非全真3D rigged角色/发布通过。G4 NOT_READY，G5不启动。
+
+---
+
 # 2026-10-22 G4/R4.4｜3D城市小羊沿街奔跑 + 摄像机连续性验收（PR #237）
 
 **Stage G4 / Req R4.4 / deliverable: 在现有可播放60秒立体微缩城市基础上实现真实运动轨迹和两次铲土预演，不再重复建新城市。** 起始 main `8c203a20af941015130ad6a588394d2d29619a9c`、PR #236 真FFmpeg成功且7项全绿。新增 `scripts/citydiscount_street_motion.py`，将 s03→s04、s06→s07→s08→s09→s10→s11 的世界XY起止点与摄影机六参数共同约束为匹配（历史s05是真AI切入镜头，不冒充3D无缝连拍）；小羊沿道路中心线L型转弯，不会斜穿立体建筑方块；复用Owner原始PNG作为 billboard，僅对整体做±2.7°倾斜、上下跳步、贴地阴影和脚步示意，分两次挥铲后才展示**未经标准核准的示意币**。此次仍不是rigged三维动画，没有新生成真AI视频、人审/品牌币/完整真实镜头验收。测试逐段验道路线、首尾衔接相机位置、跳步摆动及两次挥铲；复用旧s02/s05真实视频和s12官方Logo，GitHub专项工作流实编码60s MP4＋回执。0新Google/付费调用，旧真实账单UNKNOWN。PR https://github.com/Mrlukahuang/ai-short-drama-factory/pull/237；只有专项视频Artifact成功并且Scope/Python/Fake所有检查全绿，方可自治合并。G4 NOT_READY/G5冻结。
