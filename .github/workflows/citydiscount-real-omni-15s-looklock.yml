@@ -90,7 +90,7 @@ jobs:
         with:
           name: CityDiscount-REAL-s02-CLEAN-s05-OFFICIAL-LOGO-15s-LOOK-LOCK-NOT-FINAL
           path: |
-            artifacts/real-omni-15s/CityDiscount_REAL_OMNI_LAMB_LOOK_LOCK_15s_NOT_FINAL.mp4
+            artifacts/real-omni-15s/CityDiscount_REAL_OMNI_LAMB_CLEAN_S05_LOOK_LOCK_15s_NOT_FINAL.mp4
             artifacts/real-omni-15s/look_lock_receipt.json
           retention-days: 7
           if-no-files-found: error
