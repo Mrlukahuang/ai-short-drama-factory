@@ -315,3 +315,46 @@ def test_actual_encoded_video_contact_sheet_keeps_manual_quality_gate(monkeypatc
     video.write_bytes(b"tamper")
     with pytest.raises(ValueError,match="Refuse"):
         sheet.collect(video,receipt,tmp_path/"different_grid.png")
+
+
+
+def test_genuine_s05_sanitized_source_is_explicitly_sha_pinned_and_not_paid():
+    assert cut.SOURCE_CLEAN_S05_SHA=="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
+    assert cut.REAL_IDS==("s02","s05")
+    assert cut.SOURCE_REV4_SHA=="e65d01356dcc977ab40c6cfea2ed479b812b8d16ffae6ccc41bfde8ce430288e"
+    code=(ROOT/"scripts/build_citydiscount_rev5_60s_moving_previs.py").read_text()
+    assert 'elif sid in REAL_IDS:' in code
+    assert 'if sid=="s05" and s05_clean is not None:' in code
+    assert "extract(s05_clean,target,start=0.0)" in code
+    assert 'kind="EXISTING_REAL_OMNI_S05_BRAND_SIGN_REDACTED_LOCAL_REVIEW"' in code
+    assert '"s05_clean_reuses_existing_omni_not_new_ai":True' in code
+    assert '"s05_original_audio_replaced_by_temporary_mix":True' in code
+    assert '"s05_coin_exact_design_approved":False' in code
+    assert '"s05_two_digs_owner_verified":False' in code
+    assert '"publish_approved":False' in code
+
+
+def test_s05_sha_invalid_does_not_silently_fall_back_to_original(tmp_path):
+    corrupted=tmp_path/"s05_clean.mp4"
+    corrupted.write_bytes(b"not the authorized real s05 redacted media")
+    with pytest.raises(ValueError,match="SHA"):
+        cut.valid_input(corrupted,cut.SOURCE_CLEAN_S05_SHA)
+    link=tmp_path/"linked.mp4"
+    link.symlink_to(corrupted)
+    with pytest.raises(ValueError):
+        cut.valid_input(link,cut.SOURCE_CLEAN_S05_SHA)
+
+
+def test_final_real_s05_integrated_60s_workflow_still_requires_all_media_checks():
+    wf=(ROOT/".github/workflows/citydiscount-rev5-60s-motion-review.yml").read_text()
+    assert "CityDiscount-s05-REAL-OMNI-SIGN-REDACTED-5s-REVIEW-NOT-FINAL" in wf
+    assert "run-id: 39747140543" in wf
+    assert "--s05-clean artifacts/clean-s05/CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4" in wf
+    assert 'assert r["s05_shop_sign_hallucination_removed_in_cut"] is True' in wf
+    assert 'assert r["s05_clean_reuses_existing_omni_not_new_ai"] is True' in wf
+    assert 'assert r["s05_coin_exact_design_approved"] is False' in wf
+    assert "CONTACT_SHEET_12_SHOTS.png" in wf
+    assert "visual_review.json" in wf
+    assert "retention-days: 7" in wf
+    assert "secrets." not in wf
+    assert "GEMINI_API_KEY" not in wf
