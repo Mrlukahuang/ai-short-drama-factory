@@ -1,4 +1,4 @@
-name: CityDiscount rev5 family/dollhouse visual-QA 60s review (offline)
+name: CityDiscount rev5 60s with genuine s05 cleaned sign (offline)
 on:
   pull_request:
     branches: [main]
@@ -60,11 +60,19 @@ jobs:
           run-id: 39709324093
           github-token: ${{ github.token }}
           path: artifacts/previous-endcard
+      - name: Reuse exact SHA-verified local sign redaction of existing REAL Omni s05
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-OMNI-SIGN-REDACTED-5s-REVIEW-NOT-FINAL
+          run-id: 39747140543
+          github-token: ${{ github.token }}
+          path: artifacts/clean-s05
       - name: Produce 12x5s true projected XYZ city camera-previsualization with historic real lamb shots
         run: |
           python scripts/build_citydiscount_rev5_60s_moving_previs.py \
             --rev4 artifacts/previous-rev4/CityDiscount_rev4_60s_3x4_TECHNICAL_NOT_FINAL.mp4 \
             --end artifacts/previous-endcard/CityDiscount_rev5_felt_globe_into_official_logo_5s_PREVIS_NOT_FINAL.mp4 \
+            --s05-clean artifacts/clean-s05/CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4 \
             --out artifacts/cd-rev5-60s
           python - <<'PY'
           import json
@@ -76,6 +84,11 @@ jobs:
           assert r["resolution"]==[1080,1440] and r["shot_count"]==12
           assert 59.9 <= r["duration_seconds"] <= 60.2
           assert r["existing_real_AI_lamb_shots"]==["s02","s05"]
+          assert r["s05_redacted_review_input_sha256"]=="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
+          assert r["s05_shop_sign_hallucination_removed_in_cut"] is True
+          assert r["s05_clean_reuses_existing_omni_not_new_ai"] is True
+          assert r["s05_coin_exact_design_approved"] is False
+          assert r["s05_two_digs_owner_verified"] is False
           assert r["procedural_3d_scene_rendered"] is True
           assert r["sheep_actor_is_billed_3d_rigged"] is False
           assert r["original_sheep_2d_billboard_in_xyz_city"] is True
@@ -122,7 +135,7 @@ jobs:
       - name: Upload one actual 60s MP4 and receipt (no raw original video files)
         uses: actions/upload-artifact@v4
         with:
-          name: CityDiscount-rev5-60s-FAMILY-DOLLHOUSE-12SHOTS-VISUAL-REVIEW-NOT-FINAL
+          name: CityDiscount-rev5-60s-CLEAN-REAL-S05-12SHOTS-VISUAL-REVIEW-NOT-FINAL
           path: |
             artifacts/cd-rev5-60s/CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4
             artifacts/cd-rev5-60s/receipt.json
