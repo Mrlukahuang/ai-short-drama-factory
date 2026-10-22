@@ -1,3 +1,9 @@
+# 2026-10-23 G4/R4.4｜首枚CityDiscount品牌CD金币接入整60s独立审核（本PR）
+
+**Stage: G4 / Req: R4.4 / deliverable:** PR #247已全部7项CI成功且合并到main `5dc3733571efc64f150029998692b7ab99fb1fe1`；其历史真实 Omnis05清理商户店名＋已有官方Logo视频抠字的 CD 金币5秒审核片已由Actions #39778802932实际生成，SHA `6b5c164834df7fd28b1c20fb917399136b1ac900478efef34c504aee63f8d9f7`。本轮复用**同一版** `scripts/build_citydiscount_rev5_60s_moving_previs.py` 和现有60秒Actions工作流，添加独立可选 `--s05-cd-coin` SHA锁定版；仅替换20–25s一镜，其他11镜/临时原音轨/真实奥克兰s03/可选s04数字推镜/官方s12 Logo不动。默认不加参数仍走旧真实去字s05，原SHA链保留；实际整60秒/12镜由Runner真FFmpeg验收后输出独立新Artifact，不冒充正式批准。回执明确`s05_coin_local_manual_tracking_not_owner_approved=true`、`s05_coin_exact_design_approved=false`，原Logo视频被复用不代表独立法律权属审查。**新增付费模型调用0**，九段真实小羊演出仍缺，历史费用UNKNOWN，#188/#210 Owner门禁仍未解，G4 NOT_READY，G5冻结，禁止发布。见 `docs/CITYDISCOUNT_REV5_60S_CD_COIN_OWNER_REVIEW.md`。7/7独立CI（含真60秒片及12镜接触图）全部绿才按AMEND-004自治合并。
+
+---
+
 # 2026-10-23 G4/R4.4｜已有真实Omni小羊s05金币CD字形安全局部后期（仅独立5秒审核，不覆盖60秒）
 
 **Stage: G4 / Req: R4.4 / deliverable:** 已核对最新 main `372214393943eb9004fb4c9a4e6ee3b6aff0f3fe`、PR #246全部7项CI成功且已合并。完整60秒技术编码链100%，实际真小羊表演只有 s02/s05 2/11，另有源自真实Omni的无羊城市环境s03；仍差9个真实小羊镜头，九镜指令已有 `config/pilots/citydiscount_real_video_replacement_rev5.json`。#188（账单/付费）和#210（图片权利/素材远端转交）仍open，不能用历史一般性 USD2单次、USD5 NZ日额度绕开新增素材权利/实际消费核验。此轮基于Owner此前明示要求 **s05第一枚金币刻CD**，在真实5秒Omni s05去字版本（源SHA `7a4a7e5f...`）及旧已核验官方Logo片尾（源SHA `273516c...`）上完全本地做经SHA保护的**绿色CD字形图层**，从Logo视频剪取真正像素、按3.1–5.0秒手工插值跟随金币，保留原s05、原音频、小羊、铲子、去字商店。已在本地实际FFmpeg生成5.0秒120帧 H264/AAC（本地文件SHA `371de253b42395be35822085164613c2d835b46ae1b0bf185afc9c40dc022a60`）和五帧QA图；脚本/专项GitHub workflow/回归测试提交新 PR。**图层近似跟踪、仍需品牌人工审查；这是独立5秒素材审核版，并未加入已合并60秒完整片，也非新Omni生成。** 模型调用0，外传0；G4 NOT_READY，G5暂停。完整文档 `docs/CITYDISCOUNT_S05_CD_GLYPH_COIN_REVIEW.md`。全7项CI以及专项真实5秒Artifact均PASS才能自治合并，且不可将此结果视为9镜完成。
