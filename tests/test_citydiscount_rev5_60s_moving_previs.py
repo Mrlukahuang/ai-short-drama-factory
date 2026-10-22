@@ -475,7 +475,9 @@ def test_s04_never_uses_synthetic_city_when_real_plate_gate_broken(monkeypatch,t
 def test_s04_60second_artifact_is_separate_from_previous_review_edition():
     workflow=(ROOT/".github/workflows/citydiscount-rev5-60s-motion-review.yml").read_text()
     assert "--s04-same-real-plate" in workflow
-    assert "CityDiscount-rev5-60s-S03-S04-SAME-REAL-WOOL-PLATE-DIGITAL-PUSH-AB-NOT-FINAL" in workflow
+    # Separate NEW CD-coin review artifact must NOT overwrite earlier #246 A/B.
+    assert "CityDiscount-rev5-60s-REAL-S05-OWNER-CD-COIN-REVIEW-AFTER-S03-S04-AB-NOT-FINAL" in workflow
+    assert "CityDiscount-rev5-60s-S03-S04-SAME-REAL-WOOL-PLATE-DIGITAL-PUSH-AB-NOT-FINAL" not in workflow
     assert "run-id: 39441034483" in workflow
     assert 'assert r["s04_genuine_3d_parallax_camera_motion"] is False' in workflow
     assert 'assert r["s04_genuine_new_ai_character_performance"] is False' in workflow
