@@ -1,4 +1,4 @@
-name: CityDiscount rev5 hybrid 3D lamb and city-to-globe 60s (offline)
+name: CityDiscount rev5 family/dollhouse visual-QA 60s review (offline)
 on:
   pull_request:
     branches: [main]
@@ -8,6 +8,7 @@ on:
       - scripts/citydiscount_street_motion.py
       - scripts/citydiscount_volumetric_lamb.py
       - scripts/citydiscount_city_to_globe_bridge.py
+      - scripts/citydiscount_visual_contact_sheet.py
       - tests/test_citydiscount_rev5_60s_moving_previs.py
       - .github/workflows/citydiscount-rev5-60s-motion-review.yml
   push:
@@ -18,6 +19,7 @@ on:
       - scripts/citydiscount_street_motion.py
       - scripts/citydiscount_volumetric_lamb.py
       - scripts/citydiscount_city_to_globe_bridge.py
+      - scripts/citydiscount_visual_contact_sheet.py
       - .github/workflows/citydiscount-rev5-60s-motion-review.yml
   workflow_dispatch: {}
 permissions:
@@ -84,6 +86,9 @@ jobs:
           assert r["hybrid_lamb_projected_3d_wool_body_and_four_gait_legs"] is True
           assert r["owner_source_face_rgba_unmodified_except_crop_resize_tilt"] is True
           assert r["hybrid_lamb_owner_3d_identity_approval"] is False
+          assert r["family_cast_is_provisional_xyz_wool_placeholder"] is True
+          assert r["near_actor_dollhouse_roof_cutaway_rendered"] is True
+          assert r["visual_aesthetic_owner_approval"] is None
           assert r["planetary_full_3d_camera_animation_pass"] is False
           assert r["city_xyz_to_felt_globe_source_bridge"]["logo_hold_seconds"] >= 3.0
           assert r["city_xyz_to_felt_globe_source_bridge"]["genuine_planetary_3d_cinematic_camera"] is False
@@ -95,12 +100,33 @@ jobs:
           assert len(r["provenance"])==12
           assert (p/"CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4").is_file()
           PY
+      - name: Audit final H264/AAC frames and create actual 12-scene review sheet
+        run: |
+          python scripts/citydiscount_visual_contact_sheet.py \
+            --video artifacts/cd-rev5-60s/CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4 \
+            --receipt artifacts/cd-rev5-60s/receipt.json \
+            --out artifacts/cd-rev5-60s/CONTACT_SHEET_12_SHOTS.png
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("artifacts/cd-rev5-60s")
+          x=json.loads((root/"visual_review.json").read_text())
+          assert len(x["sampled_real_output_frames"])==12
+          assert [a["shot_id"] for a in x["sampled_real_output_frames"]]==[f"s{i:02d}" for i in range(1,13)]
+          assert x["visual_quality_pass"] is None
+          assert x["owner_character_design_pass"] is None
+          assert x["approved_for_release"] is False
+          assert x["additional_paid_provider_calls"]==0
+          assert (root/"CONTACT_SHEET_12_SHOTS.png").stat().st_size>20000
+          PY
       - name: Upload one actual 60s MP4 and receipt (no raw original video files)
         uses: actions/upload-artifact@v4
         with:
-          name: CityDiscount-rev5-60s-HYBRID-3D-LAMB-CITY-GLOBE-CONTINUITY-NOT-FINAL
+          name: CityDiscount-rev5-60s-FAMILY-DOLLHOUSE-12SHOTS-VISUAL-REVIEW-NOT-FINAL
           path: |
             artifacts/cd-rev5-60s/CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4
             artifacts/cd-rev5-60s/receipt.json
+            artifacts/cd-rev5-60s/CONTACT_SHEET_12_SHOTS.png
+            artifacts/cd-rev5-60s/visual_review.json
           retention-days: 7
           if-no-files-found: error
