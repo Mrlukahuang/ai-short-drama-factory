@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/"scripts"))
 import render_citydiscount_3x4_priority_boards as boards
 import render_citydiscount_rev5_globe_logo_previs as endcard
+import citydiscount_3d_diorama as city3d
 
 W,H,FPS=540,720,12
 SOURCE_REV4_SHA="e65d01356dcc977ab40c6cfea2ed479b812b8d16ffae6ccc41bfde8ce430288e"
@@ -146,66 +147,29 @@ def label(im:Image.Image,sid:str,txt:str)->None:
     d.text((18,20),f"{sid.upper()}  {txt}",
            font=boards.font_family(19,bold=True),fill="#fff9e8")
     d.rounded_rectangle((14,670,526,708),radius=8,fill="#294d46")
-    d.text((24,678),"2D 动态分镜预演 · 非真实 AI 动画",
+    d.text((24,678),"3D几何街区 · 小羊2D原版图像预演",
            font=boards.font_family(16),fill="#f9f4db")
 
 
 def movie_frame(sid:str,t:float,context:dict)->Image.Image:
-    base=context["map"]
-    front=context["front"]
-    if sid=="s03":
-        # Starting aerial, dolly/zoom all the way toward SAME supermarket block.
-        im=zoom(base,1.0+0.72*ease(t/5),px=.64,py=.49)
-        paste_sheep(im,front,415-120*t/5,450-40*t/5,43)
-        title="奥克兰俯瞰 · 镜头推向街区"
-    elif sid=="s04":
-        # Continue from exact previous map position and zoom ratio; dissolve into street.
-        z=1.72+2.08*ease(t/4)
-        city=zoom(base,z,px=.64,py=.49)
-        ground=context["supermarket"].copy()
-        paste_sheep(ground,front,160+120*ease(t/5),550,112)
-        im=blend(city,ground,max(0,(t-3)/2))
-        title="Zoom in · 从街区俯瞰到地面"
-    elif sid=="s10":
-        # Zoom OUT, shrinking the animated source-character across an anchored city.
-        im=zoom(base,2.8-1.65*ease(t/5),px=.62,py=.55)
-        paste_sheep(im,front,250+100*ease(t/5),515-110*ease(t/5),
-                    int(128-80*ease(t/5)))
-        title="镜头拉远 · 小羊穿越毛毡街区"
-    elif sid=="s11":
-        # 0-3.5 family handoff, then slowly ascend to the SAME aerial map.
-        ground=context["family"].copy()
-        family(ground,t)
-        paste_sheep(ground,front,205+100*ease(t/3.5),570,108)
-        city=zoom(base,2.15-1.25*ease(max(0,t-3.5)/1.5),px=.64,py=.51)
-        im=blend(ground,city,max(0,(t-3.3)/1.7))
-        title="交给家人 · Zoom out 拉远看整座城市"
-    elif sid=="s01":
-        im=context["home"].copy()
-        family(im,t)
-        title="奥克兰小家庭的心愿"
-    elif sid=="s06":
-        im=zoom(context["cafe"],1.2-.15*ease(t/5),px=.50,py=.55)
-        paste_sheep(im,front,145+190*ease(t/5),566,110)
-        title="咖啡街区 · 跟随小羊"
-    elif sid=="s07":
-        im=zoom(context["cafe"],1.12+.18*ease(t/5),px=.57,py=.56)
-        paste_sheep(im,front,260,535+10*math.sin(t*4),111)
-        d=ImageDraw.Draw(im)
-        d.ellipse((345,585,391,628),fill="#ddba5b",outline="#f6d88b",width=3)
-        title="咖啡角落挖金币 · 示意动作"
-    elif sid=="s08":
-        im=zoom(context["shopping"],1.2-.18*ease(t/5),px=.53,py=.52)
-        paste_sheep(im,front,150+190*ease(t/5),560,112)
-        title="购物街 · 追随小羊穿街"
-    elif sid=="s09":
-        im=zoom(context["shopping"],1.34-.19*ease(t/5),px=.55,py=.55)
-        paste_sheep(im,front,285+35*ease(t/5),567,111)
-        d=ImageDraw.Draw(im)
-        d.ellipse((370,596,405,627),fill="#e0bb54",outline="#fbe0a2",width=3)
-        title="第三枚金币 · 慢慢拉远"
-    else:
-        raise ValueError("Unexpected storyboard ID")
+    """Real 3D X/Y/Z procedural diorama projection, not AI-generated city footage.
+
+    Sheep is still the original SHA-verified 2D owner PNG billboard in this
+    finite physical geometry. Dynamic camera changes actual building projection,
+    window parallax and mascot occlusion; NOT a rigged 3D animated sheep.
+    """
+    im=city3d.scene_frame(sid,t,context["front"])
+    title={
+        "s01":"微缩立体毛毡家园",
+        "s03":"3D奥克兰城市俯瞰 · 下降推向街区",
+        "s04":"立体屋顶之间 Zoom in 到超市街道",
+        "s06":"小羊穿过立体街区 · 咖啡站",
+        "s07":"立体咖啡街角 · 挖金币",
+        "s08":"建筑之间穿街 · 购物区",
+        "s09":"立体购物街 · 第三枚金币",
+        "s10":"穿越屋群 · 镜头立体拉远",
+        "s11":"家庭交付 · 从立体城市拉远到地球",
+    }[sid]
     label(im,sid,title)
     return im
 
@@ -268,14 +232,11 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
     assert (plan["output"]["total_duration_ms"],plan["output"]["shots"])==(60000,12)
     if out.exists():
         raise FileExistsError("Refuse to overwrite any prior review cut")
-    _,roles_logo,_=boards.owned_assets()
     roles,_,_=boards.owned_assets()
     front=roles["front"].convert("RGBA")
     out.mkdir(parents=True,exist_ok=False)
     seg=out/"segments";seg.mkdir()
-    context={"map":mini_map(),"front":front}
-    for kind in ("home","supermarket","cafe","shopping","family"):
-        context[kind]=street(kind)
+    context={"front":front} # Real X/Y/Z geometry comes from city3d, not flat maps
     provenance=[]
     for i in range(1,13):
         sid=f"s{i:02}"
@@ -288,7 +249,7 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
             kind="EXISTING_2D_FELT_GLOBE_TO_SOURCE_LOGO_ENDCARD"
         else:
             encode_drawn(sid,target,context)
-            kind="LOCAL_2D_CAMERA_MOVE_NOT_AI_FOOTAGE"
+            kind="LOCAL_PROCEDURAL_XYZ_CITY_CAMERA_NOT_REAL_AI_FOOTAGE"
         provenance.append({"shot_id":sid,"kind":kind,"segment_sha256":sha(target),
                            "genuine_new_camera_dolly_verified":False})
     concat=seg/"concat.txt"
@@ -322,12 +283,16 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
         "closing_copy":endcard.TAGLINE,
         "existing_real_AI_lamb_shots":["s02","s05"],
         "historical_city_plate_rev4_unused_in_this_2d_aerial_treatment":True,
-        "scene_camera_2d_animated":["s03","s04","s06","s07","s08","s09","s10","s11"],
-        "genuine_aerial_to_street_3D_camera_pass":False,
+        "scene_camera_3d_geometry_previs":["s01","s03","s04","s06","s07","s08","s09","s10","s11"],
+        "procedural_3d_scene_rendered":True,
+        "sheep_actor_is_billed_3d_rigged":False,
+        "original_sheep_2d_billboard_in_xyz_city":True,
+        "genuine_aerial_to_street_3D_camera_pass":False, # No approved real NZ-world/cinematic capture
         "genuine_sheep_travel_world_zoom_pass":False,
         "true_complete_12shot_AI_film":False,
         "original_unlicensed_audio_source":False,
         "audio":"locally synthesized temporary original notes + placeholder dig/coin beat, NO natural human Chinese voice",
+        "diorama_renderer":"projected physical XYZ cuboids, changing azimuth/elevation/zoom, billboard small original sheep and painter-depth occlusion",
         "no_new_paid_model_calls":True,"vendor_previous_fee_usd":None,
         "human_content_QA":"not_run","publish_approved":False,"g4_exit":False,
         "g5_authorized":False,"release":"BLOCKED_TECHNICAL_CAMERA_PREVIS_ONLY",
