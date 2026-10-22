@@ -248,6 +248,40 @@ def extract_real_s03_city_zoom(source:Path,target:Path)->None:
           "-pix_fmt","yuv420p",str(target)])
 
 
+def extract_real_s04_same_plate_digital_push(s03_segment:Path,target:Path)->None:
+    """Optional visual-comparison alternative to abrupt wool→cube-map cut.
+
+    The s04 five seconds are a local zoompan of the EXACT last encoded frame
+    of the historical real city s03. They are NOT new AI or camera-parallax,
+    contain NO new lamb performance, and MUST NOT be called a true 3D shot.
+    Original s03 is verified upstream against its historical SHA.
+    """
+    still=target.with_suffix(".s03-last.png")
+    try:
+        # Decode all existing s03 frames and persist the *actual last* one.
+        # FFmpeg's image2 "-update 1" is robust to source timestamp/count
+        # differences; using select(n=119) sometimes yields zero images on GH.
+        call(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+              "-i",str(s03_segment),"-vsync","0","-update","1",
+              str(still)])
+        if not still.is_file() or still.stat().st_size<1000:
+            raise ValueError("Unable to extract genuine last s03 frame")
+        # At t=0 the crop matches the last s03 frame; slowly push into
+        # precisely the same miniature wool blocks. Moderate <=1.5x.
+        vf=(
+            "zoompan=z='min(1+on*0.0042,1.5)':"
+            "x='(iw-iw/zoom)*0.55':y='(ih-ih/zoom)*0.70':"
+            "d=120:s=1080x1440:fps=24,format=yuv420p"
+        )
+        call(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+              "-loop","1","-framerate","24","-i",str(still),
+              "-vf",vf,"-frames:v","120","-an",
+              "-c:v","libx264","-preset","ultrafast",
+              "-crf","30","-pix_fmt","yuv420p",str(target)])
+    finally:
+        still.unlink(missing_ok=True)
+
+
 def scratch_audio(target:Path)->None:
     """Locally synthesized *TEMP* music/SFX guide. No vendor audio or licensed samples."""
     sr=24000
@@ -273,13 +307,15 @@ def scratch_audio(target:Path)->None:
             out.writeframes(bytes(samples))
 
 
-def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None,s03_city:Path|None=None)->dict:
+def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None,s03_city:Path|None=None,s04_same_real_plate:bool=False)->dict:
     rev4=valid_input(rev4,SOURCE_REV4_SHA)
     end=valid_input(end,SOURCE_END_SHA)
     if s05_clean is not None:
         s05_clean=valid_input(s05_clean,SOURCE_CLEAN_S05_SHA)
     if s03_city is not None:
         s03_city=valid_input(s03_city,SOURCE_REAL_S03_ENV_SHA)
+    if s04_same_real_plate and s03_city is None:
+        raise ValueError('s04 real-frame continuation requires exact SHA-pinned historical s03 real city source')
     plan,logo,logo_hash=endcard.load()
     assert plan["endcard"]["closing_copy"]==endcard.TAGLINE
     assert (plan["output"]["total_duration_ms"],plan["output"]["shots"])==(60000,12)
@@ -295,7 +331,11 @@ def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None,s03_city:Pat
     for i in range(1,13):
         sid=f"s{i:02}"
         target=seg/(sid+".mp4")
-        if sid=="s03" and s03_city is not None:
+        if sid=="s04" and s04_same_real_plate:
+            # s03.mp4 has just been rendered and is the actual genuine wool city.
+            extract_real_s04_same_plate_digital_push(seg/"s03.mp4",target)
+            kind="LOCAL_ZOOMPAN_OF_HISTORICAL_REAL_OMNI_CITY_S03_FRAME_NOT_NEW_REAL_SHOT"
+        elif sid=="s03" and s03_city is not None:
             extract_real_s03_city_zoom(s03_city,target)
             kind="EXISTING_REAL_OMNI_AUCKLAND_ENVIRONMENT_REVERSE_CAMERA_NOT_CHARACTER"
         elif sid=="s05" and s05_clean is not None:
@@ -362,8 +402,15 @@ def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None,s03_city:Pat
         "s03_native_9by16_nonstretched_reframe":s03_city is not None,
         "s03_has_original_mascot_performance":False,
         "s03_s04_unbroken_real_world_camera_verified":False,
+        "s04_same_original_real_city_frame_followup":s04_same_real_plate,
+        "s04_last_s03_frame_local_digital_push_only":s04_same_real_plate,
+        "s04_genuine_new_ai_character_performance":False,
+        "s04_genuine_3d_parallax_camera_motion":False,
+        "s04_sharp_zoompanning_limited_to_1point5x":s04_same_real_plate,
+        "s04_original_program_city_unmodified_in_default_cut":not s04_same_real_plate,
         "real_model_generated_shots_added_in_this_run":0,
-        "scene_camera_3d_geometry_previs":(["s01","s04","s06","s07","s08","s09","s10","s11"] if s03_city else ["s01","s03","s04","s06","s07","s08","s09","s10","s11"]),
+        "scene_camera_3d_geometry_previs":([sid for sid in ("s01","s03","s04","s06","s07","s08","s09","s10","s11")
+            if not (sid=="s03" and s03_city) and not (sid=="s04" and s04_same_real_plate)]),
         "hybrid_lamb_projected_3d_wool_body_and_four_gait_legs":True,
         "family_cast_is_provisional_xyz_wool_placeholder":True,
         "near_actor_dollhouse_roof_cutaway_rendered":True,
@@ -399,13 +446,17 @@ def main()->None:
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--rev4",type=Path,required=True)
     p.add_argument("--end",type=Path,required=True)
+    p.add_argument("--s04-same-real-plate",action="store_true",
+                   help="OPTIONAL separate internal A/B: digital push from exact last s03 genuine wool-city frame, NO new lamb or real 3D movement")
     p.add_argument("--s03-city",type=Path,
                    help="Historical RAW real Omni Auckland s03 city-only source; reverses original pullback into approach without generating a lamb")
     p.add_argument("--s05-clean",type=Path,
                    help="Optional SHA-pinned local sign-redacted REAL Omni s05 5s MP4; never substitutes synthetic media")
     p.add_argument("--out",type=Path,required=True)
     a=p.parse_args()
-    result=make_cut(rev4=a.rev4,end=a.end,out=a.out,s05_clean=a.s05_clean,s03_city=a.s03_city)
+    result=make_cut(rev4=a.rev4,end=a.end,out=a.out,
+                    s05_clean=a.s05_clean,s03_city=a.s03_city,
+                    s04_same_real_plate=a.s04_same_real_plate)
     print(json.dumps({k:result[k] for k in
            ("film_sha256","duration_seconds","closing_copy",
             "existing_real_AI_lamb_shots","true_complete_12shot_AI_film")},

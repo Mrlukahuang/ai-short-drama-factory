@@ -1,4 +1,4 @@
-name: CityDiscount rev5 60s REAL felt Auckland s03 zoom & cleaned s05 ($0)
+name: CityDiscount rev5 60s S03+S04 genuine wool plate continuity A/B ($0)
 on:
   pull_request:
     branches: [main]
@@ -81,6 +81,7 @@ jobs:
             --end artifacts/previous-endcard/CityDiscount_rev5_felt_globe_into_official_logo_5s_PREVIS_NOT_FINAL.mp4 \
             --s05-clean artifacts/clean-s05/CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4 \
             --s03-city artifacts/real-city-s03/s03-real/s03_city_plate.mp4 \
+            --s04-same-real-plate \
             --out artifacts/cd-rev5-60s
           python - <<'PY'
           import json
@@ -98,6 +99,14 @@ jobs:
           assert r["s03_native_9by16_nonstretched_reframe"] is True
           assert r["s03_has_original_mascot_performance"] is False
           assert r["s03_s04_unbroken_real_world_camera_verified"] is False
+          assert r["s04_same_original_real_city_frame_followup"] is True
+          assert r["s04_last_s03_frame_local_digital_push_only"] is True
+          assert r["s04_genuine_new_ai_character_performance"] is False
+          assert r["s04_genuine_3d_parallax_camera_motion"] is False
+          assert r["s04_sharp_zoompanning_limited_to_1point5x"] is True
+          assert r["s04_original_program_city_unmodified_in_default_cut"] is False
+          assert r["provenance"][3]["kind"]=="LOCAL_ZOOMPAN_OF_HISTORICAL_REAL_OMNI_CITY_S03_FRAME_NOT_NEW_REAL_SHOT"
+          assert "s04" not in r["scene_camera_3d_geometry_previs"]
           assert r["real_model_generated_shots_added_in_this_run"]==0
           assert r["provenance"][2]["kind"]=="EXISTING_REAL_OMNI_AUCKLAND_ENVIRONMENT_REVERSE_CAMERA_NOT_CHARACTER"
           assert r["s05_redacted_review_input_sha256"]=="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
@@ -152,7 +161,7 @@ jobs:
       - name: Upload one actual 60s MP4 and receipt (no raw original video files)
         uses: actions/upload-artifact@v4
         with:
-          name: CityDiscount-rev5-60s-REAL-AUCKLAND-S03-ZOOM-CLEAN-S05-12SHOTS-NOT-FINAL
+          name: CityDiscount-rev5-60s-S03-S04-SAME-REAL-WOOL-PLATE-DIGITAL-PUSH-AB-NOT-FINAL
           path: |
             artifacts/cd-rev5-60s/CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4
             artifacts/cd-rev5-60s/receipt.json

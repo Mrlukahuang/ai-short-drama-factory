@@ -1,3 +1,9 @@
+# 2026-10-23 G4/R4.4｜零费用真实城市 s03→s04 两种衔接 A/B（独立审核，不修改旧片）
+
+Stage: G4 / Req: R4.4 / deliverable: 在已合并 #245 / main `6b483972e9fc26a564b120c064d7e5335b087244`，用实际60秒取帧确认14.7秒 s03真实羊毛城市与15.08秒s04几何城市场景的显著风格跳切。新增原有编片器**可选** `--s04-same-real-plate`，从经过原SHA核验的真实旧Omni s03完整5秒编码段准确提取末帧第120帧，使用FFmpeg在**同一张真实毛毡城市照片上做持续5秒≤1.5倍本地数字推近**，可和原#245未更动的s04“城市几何小羊”片做A/B并排选型。这样视觉风格衔接不会跨素材骤变，但s04候选完全**没有小羊行动**，不能冒充原生3D摄像机/新增AI视频/完整真实商业广告。专项现有60秒工作流将输出B版单独命名mp4+12镜图，检查 `s04_genuine_new_ai_character_performance=false`、`s04_genuine_3d_parallax_camera_motion=false`、`s03_s04_unbroken_real_world_camera_verified=false`。原真Omni s02和去字真Omni s05不动，真实Logo结尾不动，新增付费0，历史账单UNKNOWN；#188/#210 未通过新模型/外传权限。G4 NOT_READY，G5保持冻结。详 `docs/CITYDISCOUNT_S04_SAME_REAL_PLATE_COMPARISON.md`。专项完整实片、Scope/Python等7项CI全部绿后方能自治合并；B版美术是否优于A版只供Owner判断，不宣称机器通过人审。
+
+---
+
 # 2026-10-22 G4/R4.4｜把原真实Omni毛毡奥克兰城市 s03 接入整60秒（优先修视觉质感）
 **Stage: G4 / Req: R4.4.** 起始 main `94cfb7ea4fd494bef03e260fc2f1c8946060478f` (#244全绿已合并)。独立重新下载 old real Omni `s03_city_plate.mp4`（Actions 39441034483 / Artifact 12274786001），FFprobe 360×640/120帧/5.013s，原SHA `b718e6b0a6e5a64db66d74e6b1364326d16671823fca12935e8a3667b101af3f`匹配。实际抽帧对比真s03（有毛毡海港大桥／天空塔／水湾／立体街景）显著优于现#243的扁平XYZ积木s03。源视频原来为俯拍拉远，本地FFmpeg可**倒放镜头时间帧**实现从城市远处推近毛毡天空塔，已实跑独立5秒/120帧/1080×1440无拉伸视频（SHA `2fd0c6a15cf929bb65eac4302aa4867de581eda9be0181e9fd3e6d5667663932`，本地FFmpeg输出而非GitHub云端SHA）。已在原 rev5 60秒编片器加 `--s03-city` SHA锁定该真源，复用旧60秒工作流下载原真实城市 Artifact，位置在10–15秒，保持真小羊s02与去字版s05、旧官方Logo和其余本地城市场景不动；回执明确s03环境真实但是`has_original_mascot_performance=false`、旧原镜头只是reverse、s03→s04并非同真实3D连拍。测试与 GitHub 专项真实60秒/12镜图需全绿后方可合并，新增Omni0次，Owner #188/#210费用和新图外传门禁原状，G4 NOT_READY/G5冻结。详 `docs/CITYDISCOUNT_S03_REAL_AUCKLAND_SOURCE_IN_60S.md`。
 
