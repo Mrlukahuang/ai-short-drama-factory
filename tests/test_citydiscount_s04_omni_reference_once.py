@@ -1,0 +1,143 @@
+"""S04 original owned sheep 360p manual double-dig, zero paid CI."""
+from __future__ import annotations
+import json
+from pathlib import Path
+import sys
+import pytest
+from drama_factory.providers.google_omni_video import VideoCallDisabled
+
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
+import citydiscount_s04_omni_reference_once as s04
+
+OPTS={
+    "spent_today_usd":"UNKNOWN",
+    "paid":False,
+    "confirmation":s04.PREVIEW,
+    "rights_confirmed":False,
+    "google_transfer_confirmed":False,
+    "google_terms_accepted":False,
+    "invoice_verified":False,
+}
+
+def test_owner_real_s04_action_contract_no_cloud_model_call(tmp_path):
+    req,receipt=s04.prepare_s04(**OPTS)
+    assert req is None
+    assert receipt["shot_id"]=="s04"
+    assert receipt["model_calls"]==0
+    assert receipt["target_px"]==[1080,1440]
+    assert receipt["source_request_resolution"]=="360p"
+    assert receipt["source_request_aspect"]=="9:16"
+    assert receipt["publication_approved"] is False
+    assert receipt["actual_fee_usd"] is None
+    assert receipt["original_mascot"]["eyes_retouched"] is False
+    assert receipt["original_mascot"]["identity_artwork_regenerated"] is False
+    assert len(receipt["original_mascot"]["original_png_sha256"])==64
+    assert receipt["owner_storybeat"]=="supermarket_arrival"
+    assert receipt["owner_scene_anchor"]=="felt_supermarket_street"
+    assert receipt["owner_shot_dependencies"]==["s03"]
+    assert receipt["shot_contains_branded_coin"] is False
+    assert receipt["source_s03_video_sent_to_provider"] is False
+    assert receipt["genuine_s03_s04_continuous_camera_verified"] is False
+    assert receipt["owner_mascot_identity_qa"]=="NOT_VERIFIED"
+    assert receipt["owner_s05_scene_match_qa"]=="NOT_VERIFIED"
+    out=s04.run_s04(output_dir=tmp_path/"preview",**OPTS)
+    assert out["model_calls"]==0
+    assert not list((tmp_path/"preview").glob("*.mp4"))
+
+
+@pytest.mark.parametrize("bad",["-1","NaN","Infinity","4","3.01","abc",""])
+def test_billing_budget_fails_closed(bad):
+    with pytest.raises(VideoCallDisabled):
+        s04.prepare_s04(**{**OPTS,"spent_today_usd":bad})
+
+
+def test_paid_s04_require_independent_bill_terms_and_owner_confirmation():
+    paid={**OPTS,"paid":True,"confirmation":s04.PAID,
+          "spent_today_usd":"0","rights_confirmed":True,
+          "google_transfer_confirmed":True,"google_terms_accepted":True,
+          "invoice_verified":True}
+    with pytest.raises(VideoCallDisabled,match="UNKNOWN"):
+        s04.prepare_s04(**{**paid,"spent_today_usd":"UNKNOWN"})
+    for k in ("rights_confirmed","google_transfer_confirmed",
+              "google_terms_accepted","invoice_verified"):
+        with pytest.raises(VideoCallDisabled,match="required"):
+            s04.prepare_s04(**{**paid,k:False})
+    env,receipt=s04.prepare_s04(**paid)
+    assert [p["type"] for p in env.request_payload["input"]]==["image","text"]
+    assert env.request_payload["response_format"]=={
+        "type":"video","aspect_ratio":"9:16","resolution":"360p","delivery":"uri"}
+    assert env.receipt["shot_id"]=="s04"
+    assert env.receipt["model_submission_allowed"] is False
+    assert env.receipt["media"][0]["png_sha256"]==receipt["original_mascot"]["sanitized_rgb_sha256"]
+
+
+
+    text=env.request_payload["input"][-1]["text"]
+    assert "THREE-DIMENSIONAL NEEDLE-FELT MINIATURE AUCKLAND" in text
+    assert "EXACT approved owner front-mascot" in text
+    assert "NO facial redraw" in text
+    assert "DOES NOT FIND ANY COIN" in text
+    assert "NEVER above 27" in text
+    assert "s05 FIRST digging sequence" in text
+    assert "No false business name" not in text  # No extra fabricated retailer names in prompts.
+    assert "data" not in str(receipt)
+    assert receipt["actual_fee_usd"] is None
+
+
+def test_no_model_request_in_preview_and_missing_paid_switch(tmp_path,monkeypatch):
+    monkeypatch.setenv("DRAMA_ENABLE_PAID_GENERATION","NO")
+    paid={**OPTS,"paid":True,"confirmation":s04.PAID,
+          "spent_today_usd":"0","rights_confirmed":True,
+          "google_transfer_confirmed":True,"google_terms_accepted":True,
+          "invoice_verified":True}
+    with pytest.raises(VideoCallDisabled,match="disabled"):
+        s04.run_s04(output_dir=tmp_path/"never",**paid)
+    assert not (tmp_path/"never").exists()
+
+
+def test_synthetic_single_call_sdk_path_cannot_auto_retry(tmp_path,monkeypatch):
+    class Stub:
+        n=0
+        def generate_approved_reference_envelope(self,envelope,path,*,live_consent):
+            self.n+=1
+            assert envelope.receipt["shot_id"]=="s04"
+            assert live_consent["source_rights_verified_by_operator"] is True
+            assert live_consent["provider_retention_terms_accepted"] is True
+            assert live_consent["external_model_transfer_approved"] is True
+            path.write_bytes(b"synthetic fake CI payload, NOT a real MP4")
+            return dict(is_mock=False,model_calls=1,
+                        reference_image_count=1,provider_reference_applied=True,
+                        provider_task_id="synthetic-ci-do-not-publish")
+    sdk=Stub()
+    paid={**OPTS,"paid":True,"confirmation":s04.PAID,
+          "spent_today_usd":"0","rights_confirmed":True,
+          "google_transfer_confirmed":True,"google_terms_accepted":True,
+          "invoice_verified":True}
+    monkeypatch.setenv("DRAMA_ENABLE_PAID_GENERATION","YES")
+    monkeypatch.setattr(s04,"_ffprobe",lambda _:{"format":{"duration":"5"},"streams":[
+        {"width":360,"height":640,"codec_type":"video"}]})
+    x=s04.run_s04(output_dir=tmp_path/"synthetic",provider=sdk,convert_video=False,**paid)
+    assert sdk.n==1
+    assert x["model_calls"]==1 and x["source_pngs_transmitted"]==1
+    assert x["actual_fee_usd"] is None and x["publication_approved"] is False
+    with pytest.raises(VideoCallDisabled,match="overwrite"):
+        s04.run_s04(output_dir=tmp_path/"synthetic",provider=sdk,convert_video=False,**paid)
+    assert sdk.n==1
+
+
+def test_s04_workflow_checks_and_archives_the_real_python_output_path():
+    """Prevent paid-generation SUCCESS followed by a false red CI file check.
+
+    Runs locally/offline only: no Google SDK request, no source upload,
+    no modification of produced media. All three places MUST agree.
+    """
+    from pathlib import Path
+    root=Path(__file__).resolve().parents[1]
+    script=(root/"scripts/citydiscount_s04_omni_reference_once.py").read_text("utf-8")
+    workflow=(root/".github/workflows/citydiscount-s04-omni-reference-once.yml").read_text("utf-8")
+    name="s04_1080x1440_3x4_NOT_FINAL.mp4"
+    assert ('output_dir/"'+name+'"') in script
+    assert workflow.count("artifacts/s04-real/"+name)==3
+    assert "s04_owner_1080x1440_3x4_NOT_FINAL.mp4" not in workflow
+    assert 'if: always()' in workflow
+    assert "s04_raw_omni_9x16.mp4" in workflow
