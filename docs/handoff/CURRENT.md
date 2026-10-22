@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜真实Omni小羊画质定标15秒（仅历史真实源，零新费用）
+
+本轮紧接已合并 PR #240 / main `89f3c9b42d4ce5b3a32f520ea19887dc2a09fbee`。Owner要求继续、上一轮已明确不能把低多边形城市当正式毛毡电影。实际下载且SHA核验真实 s02、s05 和s12官方Logo源，FFmpeg在本地制作了真实的 **15秒 / 1080×1440 / 24fps / H264+AAC静音** 质量基准：0–5秒真实Omni出发、5–10秒真实Omni挖掘、10–15秒旧二维毛毡地球→原版Logo。s02/s05的原9:16 360×640视频按高1440像素缩至**宽810**，两边各135px采用同一镜头虚化填充，**没有横向拉伸小羊**；逐帧视觉检查确认原版卷毛/肤质与低多边形城市质感相差明显，s05潜在店铺招牌文字要人工审查。新 `scripts/build_citydiscount_real_omni_15s_looklock.py` + `tests/test_citydiscount_real_omni_15s_looklock.py` + 专项Actions workflow保证3段原SHA、真实FFprobe时长/尺寸和无新付费调用；会上传审核片及receipt。详 `docs/CITYDISCOUNT_REAL_OMNI_15S_LOOK_LOCK.md`。**只是原素材质量标尺、非新9镜/完整60秒/发行通行证。** 新模型调用0，Issue #188/#210素材外传/费用门禁仍需Owner，历史真实Google费用仍UNKNOWN。G4 NOT_READY、G5暂停。
+
+---
+
 # 2026-10-22 G4/R4.4｜真实毛毡镜头接力；终止继续美化积木占位片（本PR）
 
 **Stage: G4 / Req: R4.4.** 当前 main `24c10a7c2a9ce3d34f2bcc7b5e921a3bd2422788`，真实验收样片 #239 已通过7项CI合并。实际对比了最终12镜MP4与真实原始Omni s02/s05，发现主要质量瓶颈不是现有技术剪辑，而是**九段缺失真实角色表演和真正立体毛毡街区的材质/镜头**。停下造新的假毛毡积木动画；本轮准备统一实际真实素材5秒prompt/镜头交接和原始视频SHA，供将来授权的小范围真实生成。新增 `config/pilots/citydiscount_real_video_replacement_rev5.json` 定义九镜所有上下镜地理接续/风格和验收，完整源 `docs/CITYDISCOUNT_REAL_FOOTAGE_HANDOFF_REV5.md`。真实 s02/s05 和旧 s03城市环境片原GH artifacts已重新下载逐帧/ SHA校验并在聊天里独立私密 ZIP 备份（User 2026-10-22聊天可下载）；原源码回执仅 s02/s05 两镜是真小羊视频，s03不算新真镜。原料 artifacts于2026-10-28/29 NZDT到期，应保留私密备份。Google实际账单仍UNKNOWN，相关Gmail检索没有给出可核实的Google模型费用，Owner Issue #188/#210对**新**素材外传/付费许可仍未封闭，因此当前生成次数0，不自动触发Omni，不得按历史估算支出代替账单。既有通用离线真实素材接入脚本可复用，禁止另造多余工具。G4 NOT_READY/G5禁止，发布未批准。最后须全部CI绿后自治合并。
