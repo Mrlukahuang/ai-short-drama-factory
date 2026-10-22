@@ -422,3 +422,64 @@ def test_actual_full_60s_runner_uses_real_s03_without_spending_or_claiming_chara
     assert "visual_review.json" in wf
     assert "DRAMA_ENABLE_PAID_GENERATION: 'NO'" in wf
     assert "secrets." not in wf
+
+
+
+def test_s04_same_real_city_is_explicitly_only_a_digital_push_not_real_character():
+    src=(ROOT/"scripts/build_citydiscount_rev5_60s_moving_previs.py").read_text()
+    for marker in ('"s04_same_original_real_city_frame_followup":s04_same_real_plate',
+                   '"s04_last_s03_frame_local_digital_push_only":s04_same_real_plate',
+                   '"s04_genuine_new_ai_character_performance":False',
+                   '"s04_genuine_3d_parallax_camera_motion":False',
+                   '"s03_s04_unbroken_real_world_camera_verified":False',
+                   '"real_model_generated_shots_added_in_this_run":0',
+                   '"s04_original_program_city_unmodified_in_default_cut":not s04_same_real_plate'):
+        assert marker in src
+    assert 'if sid=="s04" and s04_same_real_plate:' in src
+    assert 'extract_real_s04_same_plate_digital_push(seg/"s03.mp4",target)' in src
+    assert 'if s04_same_real_plate and s03_city is None:' in src
+
+
+def test_s04_uses_exact_final_120th_frame_and_zoom_at_most_1point5(monkeypatch,tmp_path):
+    from PIL import Image
+    calls=[]
+    def fake(cmd):
+        calls.append(cmd)
+        if cmd[-1].endswith(".png"):
+            Image.new("RGB",(1080,1440),"#ddd1b7").save(cmd[-1])
+    monkeypatch.setattr(cut,"call",fake)
+    src=tmp_path/"s03.mp4"
+    target=tmp_path/"s04.mp4"
+    cut.extract_real_s04_same_plate_digital_push(src,target)
+    assert len(calls)==2
+    assert "select=eq(n\\,119)" in calls[0]
+    assert "-frames:v" in calls[0]
+    assert str(src) in calls[0]
+    vf=calls[1][calls[1].index("-vf")+1]
+    assert "zoompan" in vf
+    assert "on*0.0042,1.5" in vf
+    assert "d=120:s=1080x1440:fps=24" in vf
+    assert str(target) in calls[1]
+    assert not (tmp_path/"s04.s03-last.png").exists()  # no stray imagery
+
+
+def test_s04_never_uses_synthetic_city_when_real_plate_gate_broken(monkeypatch,tmp_path):
+    # Deliberately no SHA-pinned old real s03 input and no offline visual fallback.
+    monkeypatch.setattr(cut,"valid_input",lambda p,s:p)
+    with pytest.raises(ValueError,match="requires exact SHA-pinned"):
+        cut.make_cut(rev4=tmp_path/"rev4.mp4",end=tmp_path/"end.mp4",
+                     out=tmp_path/"no_review_cut",s04_same_real_plate=True)
+
+
+def test_s04_60second_artifact_is_separate_from_previous_review_edition():
+    workflow=(ROOT/".github/workflows/citydiscount-rev5-60s-motion-review.yml").read_text()
+    assert "--s04-same-real-plate" in workflow
+    assert "CityDiscount-rev5-60s-S03-S04-SAME-REAL-WOOL-PLATE-DIGITAL-PUSH-AB-NOT-FINAL" in workflow
+    assert "run-id: 39441034483" in workflow
+    assert 'assert r["s04_genuine_3d_parallax_camera_motion"] is False' in workflow
+    assert 'assert r["s04_genuine_new_ai_character_performance"] is False' in workflow
+    assert 'assert r["provenance"][3]["kind"]=="LOCAL_ZOOMPAN_OF_HISTORICAL_REAL_OMNI_CITY_S03_FRAME_NOT_NEW_REAL_SHOT"' in workflow
+    assert "CONTACT_SHEET_12_SHOTS.png" in workflow
+    assert "retention-days: 7" in workflow
+    assert "DRAMA_ENABLE_PAID_GENERATION: 'NO'" in workflow
+    assert "secrets." not in workflow
