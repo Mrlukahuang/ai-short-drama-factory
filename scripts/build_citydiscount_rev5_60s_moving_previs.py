@@ -285,6 +285,10 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
         "historical_city_plate_rev4_unused_in_this_2d_aerial_treatment":True,
         "scene_camera_3d_geometry_previs":["s01","s03","s04","s06","s07","s08","s09","s10","s11"],
         "procedural_3d_scene_rendered":True,
+        "street_routes_use_continuous_xyz_grid":True,
+        "camera_keys_match_across_non_paid_cuts":True,
+        "sheep_bounded_2d_gait_bob_and_footstep_pass":True,
+        "sheep_is_original_billboard_not_3d_rigged":True,
         "sheep_actor_is_billed_3d_rigged":False,
         "original_sheep_2d_billboard_in_xyz_city":True,
         "genuine_aerial_to_street_3D_camera_pass":False, # No approved real NZ-world/cinematic capture

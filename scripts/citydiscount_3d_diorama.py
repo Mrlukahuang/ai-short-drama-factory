@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from PIL import Image, ImageDraw
+import citydiscount_street_motion as motion
 
 W,H=540,720
 STOPS={
@@ -64,28 +65,7 @@ def eased(t:float)->float:
 
 
 def camera_for(sid:str,t:float)->Camera:
-    q=eased(t/5.0)
-    if sid=="s03":
-        return Camera(lerp(2.55,3.52,q),lerp(2.65,2.25,q),
-                      lerp(.78,.82,q),lerp(1.18,.78,q),lerp(43,91,q),380)
-    if sid=="s04":
-        return Camera(lerp(3.52,3.82,q),lerp(2.25,2.30,q),
-                      lerp(.82,.90,q),lerp(.78,.61,q),lerp(91,113,q),412)
-    if sid in ("s06","s07"):
-        return Camera(lerp(3.5,2.86,q),lerp(2.5,3.08,q),
-                      lerp(.9,1.04,q),.68,lerp(100,118,q),404)
-    if sid in ("s08","s09"):
-        return Camera(lerp(2.88,1.88,q),lerp(3.12,4.10,q),
-                      lerp(1.04,.84,q),.65,lerp(114,102,q),405)
-    if sid=="s10":
-        return Camera(lerp(1.85,2.5,q),lerp(4.1,2.7,q),
-                      lerp(.84,.78,q),lerp(.65,1.12,q),lerp(112,42,q),385)
-    if sid=="s11":
-        lift=eased((t-3.35)/1.65)
-        return Camera(lerp(1.15,2.6,lift),lerp(4.30,2.65,lift),
-                      lerp(.80,.78,lift),lerp(.60,1.15,lift),
-                      lerp(116,42,lift),lerp(435,370,lift))
-    return Camera(1.25,4.15,.82,.64,120,415)
+    return Camera(*motion.camera_key(sid,t))
 
 
 def building_data():
@@ -187,35 +167,13 @@ def _mascot_image(source:Image.Image,size:int)->Image.Image:
 
 
 def route(sid:str,t:float)->tuple[float,float,int]:
-    q=eased(t/5)
-    if sid=="s03":
-        return (lerp(4.55,3.85,q),lerp(1.10,1.91,q),37)
-    if sid=="s04":
-        return (lerp(3.85,3.77,q),lerp(1.91,2.2,q),87)
-    if sid=="s06":
-        return (lerp(3.75,2.96,q),lerp(2.2,2.98,q),98)
-    if sid=="s07":
-        return (2.96,3.0+0.04*math.sin(t*3),99)
-    if sid=="s08":
-        return (lerp(2.95,1.98,q),lerp(3.04,3.96,q),96)
-    if sid=="s09":
-        return (1.98,3.98+.02*math.sin(t*3),98)
-    if sid=="s10":
-        return (lerp(1.98,1.18,q),lerp(3.98,4.62,q),
-                round(104-63*q))
-    if sid=="s11":
-        return (lerp(1.18,.92,eased(t/3.5)),lerp(4.62,4.30,eased(t/3.5)),
-                round(103-58*eased((t-3.4)/1.6)))
-    return (1.2,4.3,103)
+    return motion.actor_key(sid,t)
 
 
 def _draw_sprite(im:Image.Image,cam:Camera,original:Image.Image,
-                 xyz:tuple[float,float,float],size:int)->None:
-    px,py=cam.project(xyz)
-    sheep=_mascot_image(original,size)
-    x,y=round(px-sheep.width*.5),round(py-sheep.height*.88)
-    # PIL mask compositing clips sprites safely as the actor crosses frame edges.
-    im.paste(sheep,(x,y),sheep.getchannel("A"))
+                 xyz:tuple[float,float,float],size:int,
+                 *,sid:str,t:float)->None:
+    motion.composite_actor(im,cam,original,xyz,size,shot_id=sid,t=t)
 
 
 def scene_frame(sid:str,t:float,original_sheep:Image.Image)->Image.Image:
@@ -229,6 +187,7 @@ def scene_frame(sid:str,t:float,original_sheep:Image.Image)->Image.Image:
     cx,cy,height=route(sid,t)
     # Painter's algorithm interleaves mascot into its depth-sorted position,
     # so nearest buildings CAN occlude a small street-level traveler.
+    # The source owner PNG is translated/tilted whole, never repainted.
     entities=[(cam.distance((b["x0"]+b["x1"])/2,(b["y0"]+b["y1"])/2),
                "building",b) for b in BUILDINGS]
     entities.append((cam.distance(cx,cy),"sheep",(cx,cy,height)))
@@ -238,7 +197,7 @@ def scene_frame(sid:str,t:float,original_sheep:Image.Image)->Image.Image:
             draw_building(d,cam,item)
         else:
             x,y,size=item
-            _draw_sprite(im,cam,original_sheep,(x,y,.065),size)
+            _draw_sprite(im,cam,original_sheep,(x,y,.065),size,sid=sid,t=t)
             d=ImageDraw.Draw(im)
     if sid=="s01" or sid=="s11":
         for x,y,shade in [(1.06,4.15,"#d4ac96"),(1.30,4.3,"#b7a2a1"),

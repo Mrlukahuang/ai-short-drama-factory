@@ -119,3 +119,73 @@ def test_pipeline_really_uses_depth_sorted_xyz_world_not_old_flat_map():
     assert 'entities.sort(key=lambda e:e[0])' in geo
     assert 'sheep_actor_3d_rigged' not in geo
     assert '"true_complete_12shot_AI_film":False' in code
+
+
+
+def test_sheep_paths_follow_street_lines_never_building_lots():
+    import citydiscount_street_motion as motion
+    for sid in motion.PATHS:
+        for i in range(51):
+            x,y=motion.world_path(sid,i*.098)
+            assert motion.within_road(x,y), (sid,i,x,y)
+    for sid,path in motion.PATHS.items():
+        for a,b in zip(path[:-1],path[1:]):
+            assert a[0]==b[0] or a[1]==b[1], (sid,a,b)
+
+
+def test_sheep_route_world_coordinates_remain_contiguous_at_cuts():
+    import citydiscount_street_motion as motion
+    for before,after in [("s03","s04"),("s04","s06"),
+                         ("s06","s07"),("s07","s08"),("s08","s09"),
+                         ("s09","s10"),("s10","s11")]:
+        x1,y1=motion.world_path(before,5)
+        x2,y2=motion.world_path(after,0)
+        assert abs(x1-x2)<.00001 and abs(y1-y2)<.00001,(before,after)
+
+
+def test_real_xyz_camera_transform_continuity_between_local_shots():
+    import citydiscount_street_motion as motion
+    import citydiscount_3d_diorama as geo
+    for before,after in [("s03","s04"),("s06","s07"),("s07","s08"),
+                         ("s08","s09"),("s09","s10"),("s10","s11")]:
+        a=motion.camera_key(before,5)
+        b=motion.camera_key(after,0)
+        assert all(abs(x-y)<.000001 for x,y in zip(a,b)),(before,after)
+    aerial=geo.Camera(*motion.camera_key("s03",0))
+    street=geo.Camera(*motion.camera_key("s04",4.999))
+    assert aerial.elevation>street.elevation
+    assert aerial.zoom<street.zoom
+    assert geo.Camera(*motion.camera_key("s11",4.999)).zoom<street.zoom
+
+
+def test_lamb_animates_bob_step_bow_without_redrawing_owner_face():
+    import citydiscount_street_motion as motion
+    a=motion.pose("s06",.16)
+    b=motion.pose("s06",.36)
+    assert a["walking"] and b["walking"]
+    assert a["tilt_degrees"] != b["tilt_degrees"]
+    assert abs(a["tilt_degrees"])<=2.71
+    assert abs(b["tilt_degrees"])<=2.71
+    assert 0<=a["bob_height"]<=.043
+    first=motion.pose("s07",1.0)
+    second=motion.pose("s07",2.3)
+    third=motion.pose("s07",3.0)
+    assert [first["dig_stroke"],second["dig_stroke"],third["dig_stroke"]]==[1,2,0]
+    assert not first["coin_visible"] and not second["coin_visible"]
+    assert third["coin_visible"]
+    assert motion.pose("s09",3)["coin_visible"]
+    assert not motion.pose("s04",3)["coin_visible"]
+
+
+def test_mini_city_3d_renderer_uses_new_gait_and_keeps_publishing_blocked():
+    render=(ROOT/"scripts/citydiscount_3d_diorama.py").read_text()
+    editor=(ROOT/"scripts/build_citydiscount_rev5_60s_moving_previs.py").read_text()
+    workflow=(ROOT/".github/workflows/citydiscount-rev5-60s-motion-review.yml").read_text()
+    assert "motion.actor_key(sid,t)" in render
+    assert "motion.composite_actor" in render
+    assert "citydiscount_street_motion.py" in workflow
+    assert '"street_routes_use_continuous_xyz_grid":True' in editor
+    assert '"sheep_is_original_billboard_not_3d_rigged":True' in editor
+    assert '"true_complete_12shot_AI_film":False' in editor
+    assert '"publish_approved":False' in editor
+    assert "GEMINI_API_KEY" not in workflow

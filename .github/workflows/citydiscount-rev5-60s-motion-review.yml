@@ -1,10 +1,11 @@
-name: CityDiscount rev5 3D wool city with sheep running 60s (offline)
+name: CityDiscount rev5 3D city with routed walking sheep 60s (offline)
 on:
   pull_request:
     branches: [main]
     paths:
       - scripts/build_citydiscount_rev5_60s_moving_previs.py
       - scripts/citydiscount_3d_diorama.py
+      - scripts/citydiscount_street_motion.py
       - tests/test_citydiscount_rev5_60s_moving_previs.py
       - .github/workflows/citydiscount-rev5-60s-motion-review.yml
   push:
@@ -12,6 +13,7 @@ on:
     paths:
       - scripts/build_citydiscount_rev5_60s_moving_previs.py
       - scripts/citydiscount_3d_diorama.py
+      - scripts/citydiscount_street_motion.py
       - .github/workflows/citydiscount-rev5-60s-motion-review.yml
   workflow_dispatch: {}
 permissions:
@@ -71,6 +73,10 @@ jobs:
           assert r["procedural_3d_scene_rendered"] is True
           assert r["sheep_actor_is_billed_3d_rigged"] is False
           assert r["original_sheep_2d_billboard_in_xyz_city"] is True
+          assert r["street_routes_use_continuous_xyz_grid"] is True
+          assert r["camera_keys_match_across_non_paid_cuts"] is True
+          assert r["sheep_bounded_2d_gait_bob_and_footstep_pass"] is True
+          assert r["sheep_is_original_billboard_not_3d_rigged"] is True
           assert r["genuine_aerial_to_street_3D_camera_pass"] is False
           assert r["genuine_sheep_travel_world_zoom_pass"] is False
           assert r["true_complete_12shot_AI_film"] is False
@@ -82,7 +88,7 @@ jobs:
       - name: Upload one actual 60s MP4 and receipt (no raw original video files)
         uses: actions/upload-artifact@v4
         with:
-          name: CityDiscount-rev5-60s-XYZ-3D-MINI-CITY-SHEEP-NOT-FINAL
+          name: CityDiscount-rev5-60s-3D-CITY-WALKING-SHEEP-CAMERA-CONTINUITY-NOT-FINAL
           path: |
             artifacts/cd-rev5-60s/CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4
             artifacts/cd-rev5-60s/receipt.json
