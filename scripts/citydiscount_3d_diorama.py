@@ -186,7 +186,8 @@ def scene_frame(sid:str,t:float,original_sheep:Image.Image)->Image.Image:
     draw_road_grid(d,cam)
     cx,cy,height=route(sid,t)
     # Painter's algorithm interleaves mascot into its depth-sorted position,
-    # so nearest buildings CAN occlude a small street-level traveler.\n    # The source owner PNG is translated/tilted whole, never repainted.
+    # so nearest buildings CAN occlude a small street-level traveler.
+    # The source owner PNG is translated/tilted whole, never repainted.
     entities=[(cam.distance((b["x0"]+b["x1"])/2,(b["y0"]+b["y1"])/2),
                "building",b) for b in BUILDINGS]
     entities.append((cam.distance(cx,cy),"sheep",(cx,cy,height)))
