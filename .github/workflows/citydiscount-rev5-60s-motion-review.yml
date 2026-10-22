@@ -1,4 +1,4 @@
-name: CityDiscount rev5 60s S03+S04 genuine wool plate continuity A/B ($0)
+name: CityDiscount rev5 60s REAL s05 branded CD coin additional owner-review cut ($0)
 on:
   pull_request:
     branches: [main]
@@ -67,6 +67,13 @@ jobs:
           run-id: 39747140543
           github-token: ${{ github.token }}
           path: artifacts/clean-s05
+      - name: Reuse SHA-verified real Omni clean-shop s05 with existing official CD glyph coin review
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-CLEAN-SIGN-SOURCE-CD-COIN-LOCAL-REVIEW-NOT-FINAL
+          run-id: 39778802932
+          github-token: ${{ github.token }}
+          path: artifacts/real-s05-cd-coin
       - name: Reuse historical REAL Omni s03 felt-Auckland city-only original, SHA pinned
         uses: actions/download-artifact@v4
         with:
@@ -80,6 +87,7 @@ jobs:
             --rev4 artifacts/previous-rev4/CityDiscount_rev4_60s_3x4_TECHNICAL_NOT_FINAL.mp4 \
             --end artifacts/previous-endcard/CityDiscount_rev5_felt_globe_into_official_logo_5s_PREVIS_NOT_FINAL.mp4 \
             --s05-clean artifacts/clean-s05/CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4 \
+            --s05-cd-coin artifacts/real-s05-cd-coin/CityDiscount_s05_REAL_OMNI_CLEAN_SIGN_CD_COIN_LOCAL_REVIEW_NOT_FINAL.mp4 \
             --s03-city artifacts/real-city-s03/s03-real/s03_city_plate.mp4 \
             --s04-same-real-plate \
             --out artifacts/cd-rev5-60s
@@ -110,6 +118,12 @@ jobs:
           assert r["real_model_generated_shots_added_in_this_run"]==0
           assert r["provenance"][2]["kind"]=="EXISTING_REAL_OMNI_AUCKLAND_ENVIRONMENT_REVERSE_CAMERA_NOT_CHARACTER"
           assert r["s05_redacted_review_input_sha256"]=="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
+          assert r["s05_cd_coin_local_review_sha256"]=="6b5c164834df7fd28b1c20fb917399136b1ac900478efef34c504aee63f8d9f7"
+          assert r["s05_coin_from_existing_official_endcard_glyph"] is True
+          assert r["s05_coin_local_manual_tracking_not_owner_approved"] is True
+          assert r["s05_coin_review_inserted_into_this_60s_cut"] is True
+          assert r["s05_official_brand_glyph_source_full_logo_png_independently_verified"] is False
+          assert r["provenance"][4]["kind"]=="EXISTING_REAL_OMNI_S05_CLEAN_SHOP_LOCAL_CD_COIN_REVIEW_NOT_APPROVED"
           assert r["s05_shop_sign_hallucination_removed_in_cut"] is True
           assert r["s05_native_9by16_reframed_without_stretch"] is True
           assert r["s05_clean_reuses_existing_omni_not_new_ai"] is True
@@ -161,7 +175,7 @@ jobs:
       - name: Upload one actual 60s MP4 and receipt (no raw original video files)
         uses: actions/upload-artifact@v4
         with:
-          name: CityDiscount-rev5-60s-S03-S04-SAME-REAL-WOOL-PLATE-DIGITAL-PUSH-AB-NOT-FINAL
+          name: CityDiscount-rev5-60s-REAL-S05-OWNER-CD-COIN-REVIEW-AFTER-S03-S04-AB-NOT-FINAL
           path: |
             artifacts/cd-rev5-60s/CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4
             artifacts/cd-rev5-60s/receipt.json

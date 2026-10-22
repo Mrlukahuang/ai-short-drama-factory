@@ -30,6 +30,8 @@ W,H,FPS=540,720,12
 SOURCE_REV4_SHA="e65d01356dcc977ab40c6cfea2ed479b812b8d16ffae6ccc41bfde8ce430288e"
 SOURCE_END_SHA="273516cacbc07d750fd0262de6897ddd3a879ed5e22fa58fd1f5a49e09c6b8c1"
 SOURCE_CLEAN_S05_SHA="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
+SOURCE_BRANDED_COIN_REVIEW_SHA="6b5c164834df7fd28b1c20fb917399136b1ac900478efef34c504aee63f8d9f7"
+# Branded coin is a locally keyed REVIEW layer from real Omni s05; no new real scene.
 SOURCE_REAL_S03_ENV_SHA="b718e6b0a6e5a64db66d74e6b1364326d16671823fca12935e8a3667b101af3f"
 # Authenticated source is a REVIEW COPY of the same old Gemini Omni s05, not a new shot.
 REAL_IDS=("s02","s05")
@@ -307,11 +309,15 @@ def scratch_audio(target:Path)->None:
             out.writeframes(bytes(samples))
 
 
-def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None,s03_city:Path|None=None,s04_same_real_plate:bool=False)->dict:
+def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None,s03_city:Path|None=None,s04_same_real_plate:bool=False,s05_cd_coin:Path|None=None)->dict:
     rev4=valid_input(rev4,SOURCE_REV4_SHA)
     end=valid_input(end,SOURCE_END_SHA)
     if s05_clean is not None:
         s05_clean=valid_input(s05_clean,SOURCE_CLEAN_S05_SHA)
+    if s05_cd_coin is not None:
+        if s05_clean is None:
+            raise ValueError("CD coin review needs SHA-verified sanitized real s05 lineage")
+        s05_cd_coin=valid_input(s05_cd_coin,SOURCE_BRANDED_COIN_REVIEW_SHA)
     if s03_city is not None:
         s03_city=valid_input(s03_city,SOURCE_REAL_S03_ENV_SHA)
     if s04_same_real_plate and s03_city is None:
@@ -338,9 +344,13 @@ def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None,s03_city:Pat
         elif sid=="s03" and s03_city is not None:
             extract_real_s03_city_zoom(s03_city,target)
             kind="EXISTING_REAL_OMNI_AUCKLAND_ENVIRONMENT_REVERSE_CAMERA_NOT_CHARACTER"
+        elif sid=="s05" and s05_cd_coin is not None:
+            # Exact SHA-pinned real s05, with already-sanitized shop sign AND
+            # a MANUAL approximate CD glyph coin overlay. Owner QA pending.
+            extract_clean_s05(s05_cd_coin,target)
+            kind="EXISTING_REAL_OMNI_S05_CLEAN_SHOP_LOCAL_CD_COIN_REVIEW_NOT_APPROVED"
         elif sid=="s05" and s05_clean is not None:
-            # Insert the SOURCE-SHA-VERIFIED local redaction of the actual real
-            # s05. Never replace this with synthetic wool actor footage.
+            # Old unbranded clean-sign variant remains the DEFAULT.
             extract_clean_s05(s05_clean,target)
             kind="EXISTING_REAL_OMNI_S05_BRAND_SIGN_REDACTED_LOCAL_REVIEW"
         elif sid in REAL_IDS:
@@ -389,6 +399,11 @@ def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None,s03_city:Pat
         "existing_real_AI_lamb_shots":["s02","s05"],
         "s05_original_real_omni_sha256":"4ed60c4e769ab36e21186733931e89c23d1dcbb776e3274389216a2bb742fc56",
         "s05_redacted_review_input_sha256":SOURCE_CLEAN_S05_SHA if s05_clean else None,
+        "s05_cd_coin_local_review_sha256":SOURCE_BRANDED_COIN_REVIEW_SHA if s05_cd_coin else None,
+        "s05_coin_from_existing_official_endcard_glyph":s05_cd_coin is not None,
+        "s05_coin_local_manual_tracking_not_owner_approved":s05_cd_coin is not None,
+        "s05_coin_review_inserted_into_this_60s_cut":s05_cd_coin is not None,
+        "s05_official_brand_glyph_source_full_logo_png_independently_verified":False,
         "s05_shop_sign_hallucination_removed_in_cut":s05_clean is not None,
         "s05_native_9by16_reframed_without_stretch":s05_clean is not None,
         "s05_clean_reuses_existing_omni_not_new_ai":True,
@@ -450,13 +465,16 @@ def main()->None:
                    help="OPTIONAL separate internal A/B: digital push from exact last s03 genuine wool-city frame, NO new lamb or real 3D movement")
     p.add_argument("--s03-city",type=Path,
                    help="Historical RAW real Omni Auckland s03 city-only source; reverses original pullback into approach without generating a lamb")
+    p.add_argument("--s05-cd-coin",type=Path,
+                   help="OPTIONAL exact SHA real Omni s05 with manually tracked CD coin preview, requires --s05-clean; never approves brand or overwrites default")
     p.add_argument("--s05-clean",type=Path,
                    help="Optional SHA-pinned local sign-redacted REAL Omni s05 5s MP4; never substitutes synthetic media")
     p.add_argument("--out",type=Path,required=True)
     a=p.parse_args()
     result=make_cut(rev4=a.rev4,end=a.end,out=a.out,
                     s05_clean=a.s05_clean,s03_city=a.s03_city,
-                    s04_same_real_plate=a.s04_same_real_plate)
+                    s04_same_real_plate=a.s04_same_real_plate,
+                    s05_cd_coin=a.s05_cd_coin)
     print(json.dumps({k:result[k] for k in
            ("film_sha256","duration_seconds","closing_copy",
             "existing_real_AI_lamb_shots","true_complete_12shot_AI_film")},
