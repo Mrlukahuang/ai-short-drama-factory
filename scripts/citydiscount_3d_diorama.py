@@ -214,10 +214,8 @@ def _draw_sprite(im:Image.Image,cam:Camera,original:Image.Image,
     px,py=cam.project(xyz)
     sheep=_mascot_image(original,size)
     x,y=round(px-sheep.width*.5),round(py-sheep.height*.88)
-    # clip without adding fake replacement face; original RGBA remains pixel-preserved
-    rgba=im.convert("RGBA")
-    rgba.alpha_composite(sheep,(x,y))
-    im.paste(rgba.convert("RGB"))
+    # PIL mask compositing clips sprites safely as the actor crosses frame edges.
+    im.paste(sheep,(x,y),sheep.getchannel("A"))
 
 
 def scene_frame(sid:str,t:float,original_sheep:Image.Image)->Image.Image:
