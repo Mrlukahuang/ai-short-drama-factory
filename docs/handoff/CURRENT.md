@@ -1,3 +1,8 @@
+# 2026-10-23 G4/R4.4｜s04真实Omni小羊街区到超市独立一次性入口（默认零付费）
+Stage: G4 / Req: R4.4 / deliverable: 用户问“到底做到哪/能不能生成”。核验main `702f6a921dcbf17e6d81d845cb1f72d789c1863b`、#248 60秒真实s05金币技术样片已7/7绿合并；真实Omni小羊表演s02/s05共2/11，其它九镜还缺真正角色表演，旧真s03仅奥克兰环境。查 GitHub workflows 目录，过去确实没有s04真镜生成入口（只有s02/s03/s05）。本PR沿用**成功真实付费的既有s05 provider/源SHA验证/一次性请求/无拉伸3:4转码**，新增真实s04 `scripts/citydiscount_s04_omni_reference_once.py`、`.github/workflows/citydiscount-s04-omni-reference-once.yml`、只用Fake的新CI测试和交接。任务为5秒小羊随城市毛毡街道进入超市果蔬摊，在土堆举起铲子接s05挖币；小羊全身15–22%高度、绝不超过27%、保持原大眼/衣物、无商户文字或假折扣。仅提供正面原始PNG+文字，未带真实s03源片，无法保证视觉连贯的单镜验收。**本工作流只能在Owner人工workflow_dispatch时付费，默认PREVIEW_ONLY/0新增Google付费；当前GitHub连接器不提供新workflows的dispatch动作**。#188和#210尚未结束，旧Google费用实际账单UNKNOWN，单次USD2/日USD5预算意愿不是硬封顶。不得以聊天“继续”冒充已核准新Google素材外传、留存条款、invoice_verified，绝不触发付费。全CI通过后才自主合并，并将实视频启动与真实额度核对交还Owner。G4 NOT_READY/G5暂停。详 `docs/CITYDISCOUNT_S04_REAL_ONESHOT_HANDOFF.md`。
+
+---
+
 # 2026-10-23 G4/R4.4｜首枚CityDiscount品牌CD金币接入整60s独立审核（本PR）
 
 **Stage: G4 / Req: R4.4 / deliverable:** PR #247已全部7项CI成功且合并到main `5dc3733571efc64f150029998692b7ab99fb1fe1`；其历史真实 Omnis05清理商户店名＋已有官方Logo视频抠字的 CD 金币5秒审核片已由Actions #39778802932实际生成，SHA `6b5c164834df7fd28b1c20fb917399136b1ac900478efef34c504aee63f8d9f7`。本轮复用**同一版** `scripts/build_citydiscount_rev5_60s_moving_previs.py` 和现有60秒Actions工作流，添加独立可选 `--s05-cd-coin` SHA锁定版；仅替换20–25s一镜，其他11镜/临时原音轨/真实奥克兰s03/可选s04数字推镜/官方s12 Logo不动。默认不加参数仍走旧真实去字s05，原SHA链保留；实际整60秒/12镜由Runner真FFmpeg验收后输出独立新Artifact，不冒充正式批准。回执明确`s05_coin_local_manual_tracking_not_owner_approved=true`、`s05_coin_exact_design_approved=false`，原Logo视频被复用不代表独立法律权属审查。**新增付费模型调用0**，九段真实小羊演出仍缺，历史费用UNKNOWN，#188/#210 Owner门禁仍未解，G4 NOT_READY，G5冻结，禁止发布。见 `docs/CITYDISCOUNT_REV5_60S_CD_COIN_OWNER_REVIEW.md`。7/7独立CI（含真60秒片及12镜接触图）全部绿才按AMEND-004自治合并。
