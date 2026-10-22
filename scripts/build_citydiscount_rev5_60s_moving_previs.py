@@ -258,11 +258,12 @@ def extract_real_s04_same_plate_digital_push(s03_segment:Path,target:Path)->None
     """
     still=target.with_suffix(".s03-last.png")
     try:
-        # The preceding s03 segment is verified 120 frames at 24 fps.
+        # Decode all existing s03 frames and persist the *actual last* one.
+        # FFmpeg's image2 "-update 1" is robust to source timestamp/count
+        # differences; using select(n=119) sometimes yields zero images on GH.
         call(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
-              "-i",str(s03_segment),
-              "-vf","select=eq(n\\,119)","-vsync","0",
-              "-frames:v","1",str(still)])
+              "-i",str(s03_segment),"-vsync","0","-update","1",
+              str(still)])
         if not still.is_file() or still.stat().st_size<1000:
             raise ValueError("Unable to extract genuine last s03 frame")
         # At t=0 the crop matches the last s03 frame; slowly push into
