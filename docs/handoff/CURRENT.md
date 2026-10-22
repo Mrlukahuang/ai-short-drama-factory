@@ -1,3 +1,8 @@
+# 2026-10-22 G4/R4.4｜真实Omni s05 虚构店铺文字去除（原创视频不动）
+Stage: G4 / Req: R4.4 / Actual local render. 以已并入PR #241的历史真实Omni s02/s05和官方logo质量基准为基础，本轮逐帧发现s05原图商家招牌虚构词Checlues，属不可公开的未经核准商家名。新增实片处理 `scripts/citydiscount_s05_sign_redaction.py`，仅覆盖原360×640图像牌内(133,196,227,236)为不带字毡板；保留历史原始SHA，产物5.0秒120帧、音轨、前后对照与机器回执。实片主角区域平均像素差2.49/255，目标招牌改动35.84/255，原5s视频未覆盖；纯本地，无新付费/新参考图外传。新增专项Actions以历史真素材SHA重新编片，必须7/7检查绿才可并。两铲、CD品牌金币及发布依然NOT_VERIFIED，G4 NOT_READY，G5冻结。详 `docs/CITYDISCOUNT_S05_REAL_SIGN_CLEANUP.md`。
+
+---
+
 # 2026-10-22 G4/R4.4｜真实Omni小羊画质定标15秒（仅历史真实源，零新费用）
 
 本轮紧接已合并 PR #240 / main `89f3c9b42d4ce5b3a32f520ea19887dc2a09fbee`。Owner要求继续、上一轮已明确不能把低多边形城市当正式毛毡电影。实际下载且SHA核验真实 s02、s05 和s12官方Logo源，FFmpeg在本地制作了真实的 **15秒 / 1080×1440 / 24fps / H264+AAC静音** 质量基准：0–5秒真实Omni出发、5–10秒真实Omni挖掘、10–15秒旧二维毛毡地球→原版Logo。s02/s05的原9:16 360×640视频按高1440像素缩至**宽810**，两边各135px采用同一镜头虚化填充，**没有横向拉伸小羊**；逐帧视觉检查确认原版卷毛/肤质与低多边形城市质感相差明显，s05潜在店铺招牌文字要人工审查。新 `scripts/build_citydiscount_real_omni_15s_looklock.py` + `tests/test_citydiscount_real_omni_15s_looklock.py` + 专项Actions workflow保证3段原SHA、真实FFprobe时长/尺寸和无新付费调用；会上传审核片及receipt。详 `docs/CITYDISCOUNT_REAL_OMNI_15S_LOOK_LOCK.md`。**只是原素材质量标尺、非新9镜/完整60秒/发行通行证。** 新模型调用0，Issue #188/#210素材外传/费用门禁仍需Owner，历史真实Google费用仍UNKNOWN。G4 NOT_READY、G5暂停。

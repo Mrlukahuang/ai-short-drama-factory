@@ -1,0 +1,78 @@
+name: CityDiscount G4 s05 REAL Omni safe storefront review ($0)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/citydiscount_s05_sign_redaction.py
+      - tests/test_citydiscount_s05_sign_redaction.py
+      - .github/workflows/citydiscount-s05-real-sign-review.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/citydiscount_s05_sign_redaction.py
+      - .github/workflows/citydiscount-s05-real-sign-review.yml
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-s05-unlicensed-sign-redaction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    env:
+      DRAMA_ENABLE_PAID_GENERATION: 'NO'
+      DRAMA_FACTORY_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure FFmpeg, ffprobe and Pillow (pure local only)
+        run: |
+          python -m pip install 'pillow>=11,<13'
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+          fi
+      - name: Fetch SAME original real 5-second Gemini Omni s05, no new model execution
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-original-small-sheep-run-1080x1440-NOT-FINAL
+          run-id: 39596195021
+          github-token: ${{ github.token }}
+          path: footage/s05
+      - name: Render and verify untouched sheep with brand-safe blank sign
+        run: |
+          python scripts/citydiscount_s05_sign_redaction.py \
+            --source footage/s05/s05-real/s05_raw_omni_9x16.mp4 \
+            --out artifacts/s05-clean-review
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          p=Path("artifacts/s05-clean-review")
+          x=json.loads((p/"receipt.json").read_text())
+          assert x["original_real_omni_video_sha256"]=="4ed60c4e769ab36e21186733931e89c23d1dcbb776e3274389216a2bb742fc56"
+          assert x["original_preserved_unchanged"] is True
+          assert x["edit_region_native_360x640"]==[133,196,227,236]
+          assert x["review_video_frames"]==120
+          assert x["review_video_width_height"]==[360,640]
+          assert 4.95<=x["review_video_duration_seconds"]<=5.08
+          assert x["actor_region_mean_delta"]<9
+          assert x["banner_region_mean_delta"]>12
+          assert x["new_ai_model_calls"]==0 and x["new_source_image_external_uploads"]==0
+          assert x["commercial_release_approved"] is False
+          assert x["coin_exact_official_design_approved"] is False
+          assert x["two_digs_owner_creative_review"]=="NOT_VERIFIED"
+          assert Image.open(p/"s05_BEFORE_AFTER_2_75s.jpg").size==(720,640)
+          assert (p/"CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4").stat().st_size>100000
+          PY
+      - name: Upload SHA-pinned real s05 blank-sign review, no source raw MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-OMNI-SIGN-REDACTED-5s-REVIEW-NOT-FINAL
+          path: |
+            artifacts/s05-clean-review/CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4
+            artifacts/s05-clean-review/s05_BEFORE_AFTER_2_75s.jpg
+            artifacts/s05-clean-review/receipt.json
+          retention-days: 7
+          if-no-files-found: error
