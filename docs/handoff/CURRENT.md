@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜今日 rev5 可观看全60秒运镜样片（CI待验证）
+
+**Stage G4 / Req R4.4 / Goal：完整可看 rev5 60秒奥克兰城区跟随小羊运动镜头（纯本地2D camera-previs）**。Owner 今日再次催办后，起始 main `a3321d10d6b4e34a84f57b5bbcd5b12b0e3f7aea`，PR #233 和 #234 都已真实视频制作成功/全绿合并，禁止再重复做分镜规划/5秒片尾。新增单一可执行 `scripts/build_citydiscount_rev5_60s_moving_previs.py` 将此前原视频 SHA-pinned rev4 60s 和官方Logo rev5尾卡连接：真正 Omnі 小羊真动态只复用 s02/s05；其余 s01、s03/s04、s06–s11 以已有原版小羊PNG + 自绘2D针毡街景/俯瞰地图产生带数码推拉跟羊的临时分镜，严格标注 NOT AI 3D camera；55–60秒直接复用源视频核验的地球旋转到官方Logo，原句“都市折扣🌟，您的省钱助手小羊薅薅。”，试验音轨为本地合成节拍+币声非真人中文。流程纯Python/Pillow/FFmpeg、无外部模型调用无Google，FFprobe核对60秒/1080x1440/H264/AAC，新申请 GitHub workflow 用历史Artifacts精确SHA下载、仅产出最终内部样片与receipt。不冒称实际全12镜、人工视觉评分、正式CD金币、通过商用音乐或发布，账单还是 UNKNOWN，G4 NOT_READY，G5阻断。详 `docs/CITYDISCOUNT_REV5_60S_MOTION_PREVIS.md`。专项Actions实际产出与完整CI全部SUCCESS后才可自治合并，若失败须按具体日志修复，禁止报告已通过。
+
+---
+
 # 2026-10-22 G4/R4.4｜Owner rev5 微缩城市→街区→地球→CityDiscount Logo 连续摄影机指令（PR #234）
 
 Stage: G4 / Req: R4.4 / deliverable: 精确12×5s摄像机镜头与衔接合同 + 5s真正可播放的本地零费用地球到官方Logo片尾预演。以已合并 PR #233 / main `ee90d4b91f9cc876031970d680ea31f3dc937a11` 为开工基线；Owner 新提出微缩奥克兰城市俯瞰 Zoom in 到真实街区、每镜 Zoom out 跟着小羊穿行、最后缩远成为旋转地球并转官方 Logo；原话末尾 **“都市折扣🌟，您的省钱助手小羊薅薅。”**。新增 `config/pilots/citydiscount_camera_treatment_rev5.json` 版本化摄影机 Overlay，不覆盖历史 rev4 JSON/原真实 s02/s05来源 SHA；六条跨镜头镜头衔接按共同地标、街区坐标、角色身份、35°?不作无依据镜头参数、不跳场锁定。s03/04 12.5–16.5s推入同一超市街区；s10持续远拉跟羊穿街，s11 53.5s起从家庭→整城，s12 55秒地球旋转至56.6秒官方 Logo，停留3.4秒；新结束语按原字，不回滚旧口号。复用现有原版官方Logo SHA，新增 `scripts/render_citydiscount_rev5_globe_logo_previs.py` + 隔离Actions工作流，用Pillow二维毛毡地球概念和FFmpeg产生 **5秒 1080×1440 24fps真实可播放的H264/AAC静音预览**，并严禁冒充真实3D城市轨迹和完整60秒真实成片。准确视觉效果须以实际GitHub CI/Artifact为准。
