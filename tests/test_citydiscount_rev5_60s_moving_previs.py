@@ -484,3 +484,54 @@ def test_s04_60second_artifact_is_separate_from_previous_review_edition():
     assert "retention-days: 7" in workflow
     assert "DRAMA_ENABLE_PAID_GENERATION: 'NO'" in workflow
     assert "secrets." not in workflow
+
+
+
+def test_owner_requested_source_CD_coin_in_complete_60s_is_optional_and_awaits_review():
+    assert cut.SOURCE_BRANDED_COIN_REVIEW_SHA=="6b5c164834df7fd28b1c20fb917399136b1ac900478efef34c504aee63f8d9f7"
+    src=(ROOT/"scripts/build_citydiscount_rev5_60s_moving_previs.py").read_text()
+    for token in [
+        'if s05_cd_coin is not None:',
+        's05_cd_coin=valid_input(s05_cd_coin,SOURCE_BRANDED_COIN_REVIEW_SHA)',
+        'if sid=="s05" and s05_cd_coin is not None:',
+        'extract_clean_s05(s05_cd_coin,target)',
+        '"s05_cd_coin_local_review_sha256":SOURCE_BRANDED_COIN_REVIEW_SHA if s05_cd_coin else None',
+        '"s05_coin_from_existing_official_endcard_glyph":s05_cd_coin is not None',
+        '"s05_coin_local_manual_tracking_not_owner_approved":s05_cd_coin is not None',
+        '"s05_coin_review_inserted_into_this_60s_cut":s05_cd_coin is not None',
+        '"s05_official_brand_glyph_source_full_logo_png_independently_verified":False',
+        '"s05_coin_exact_design_approved":False',
+        '"publish_approved":False'
+    ]:
+        assert token in src
+    # A reader invoking existing command without new flag still gets old
+    # approved clean-sign source, NOT unexpected coin overlay.
+    assert "s05_cd_coin:Path|None=None" in src
+    assert '"EXISTING_REAL_OMNI_S05_BRAND_SIGN_REDACTED_LOCAL_REVIEW"' in src
+    assert '"EXISTING_REAL_OMNI_S05_CLEAN_SHOP_LOCAL_CD_COIN_REVIEW_NOT_APPROVED"' in src
+
+
+def test_cd_coin_source_requires_clean_real_omni_lineage_no_fallback(monkeypatch,tmp_path):
+    good_looking_fake=tmp_path/"fake_branded.mp4"
+    good_looking_fake.write_bytes(b"not the SHA-pinned approved review")
+    with pytest.raises(ValueError,match="SHA"):
+        cut.valid_input(good_looking_fake,cut.SOURCE_BRANDED_COIN_REVIEW_SHA)
+    monkeypatch.setattr(cut,"valid_input",lambda p,sha: p)
+    with pytest.raises(ValueError,match="needs SHA-verified sanitized"):
+        cut.make_cut(rev4=tmp_path/"rev4.mp4",end=tmp_path/"end.mp4",
+                     out=tmp_path/"out",s05_cd_coin=good_looking_fake)
+
+
+def test_full_60s_cd_coin_special_runner_produces_new_not_final_artifact():
+    wf=(ROOT/".github/workflows/citydiscount-rev5-60s-motion-review.yml").read_text()
+    for marker in ("run-id: 39778802932",
+                   "CityDiscount-s05-REAL-CLEAN-SIGN-SOURCE-CD-COIN-LOCAL-REVIEW-NOT-FINAL",
+                   "--s05-cd-coin artifacts/real-s05-cd-coin/CityDiscount_s05_REAL_OMNI_CLEAN_SIGN_CD_COIN_LOCAL_REVIEW_NOT_FINAL.mp4",
+                   'assert r["s05_coin_review_inserted_into_this_60s_cut"] is True',
+                   'assert r["s05_official_brand_glyph_source_full_logo_png_independently_verified"] is False',
+                   "CityDiscount-rev5-60s-REAL-S05-OWNER-CD-COIN-REVIEW-AFTER-S03-S04-AB-NOT-FINAL",
+                   "CONTACT_SHEET_12_SHOTS.png",
+                   "visual_review.json",
+                   "DRAMA_ENABLE_PAID_GENERATION: 'NO'"):
+        assert marker in wf
+    assert "secrets." not in wf and "GEMINI_API_KEY" not in wf
