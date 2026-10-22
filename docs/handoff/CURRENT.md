@@ -1,3 +1,11 @@
+# 2026-10-22 G4/R4.4｜CD rev4 60秒真实已有素材→离线技术拼片（PR #233，结果依实际CI）
+
+**Stage: G4 / Req: R4.4 / Deliverable: 60s 1080×1440 3:4 existing-media review-cut with fail-closed provenance.** Owner 要加速，避免停留在“开发计划”。已核对最新 main 79cd9f9f、AMEND/AGENTS/STAGES/GUARDRAILS、rev4 剧本及旧 s02/s05 真实 Google Artifacts。复用旧 s02/s05 真正AI小羊动态、旧 s03 奥克兰背景素材（仅历史环境参考），其余 rev4 未生成的镜头均保持可辨认占位/现有原图静态分镜，绝不伪报真12镜。新增 `scripts/build_citydiscount_rev4_review_cut.py` + `.github/workflows/citydiscount-rev4-60s-review-cut.yml` + 契约测试；工作流拉取已有 GitHub Artifacts，验证 s02/s05 供应商自报SHA回执与旧 s03 独立 SHA 后运行本地FFmpeg，产出真实可播放 **60s/1080×1440 H264+AAC(静音占位)** 视频和不含源媒体的 sanitized JSON，未运行 Google/ASR/TTS，也没有新增外传到AI模型。确切新增授权费用USD0，**历史 Google 实账仍UNKNOWN**。此片只有 s02/s05 两镜完整真人动态素材，旧s03环境画面不算新版合格，其他10镜均未证实有完整真实动态画面；CD 标识、人物、音乐、音效、自然人声、人工审片、版权/发布和真实生产整集尚未验收。
+
+**PR：** https://github.com/Mrlukahuang/ai-short-drama-factory/pull/233 。GitHub Actions 专项真实FFmpeg工作流与6项原CI必须全部完成SUCCESS才可自治合并；任何失败禁止报告PASS。不更改历史W1–W5、生产SQLite、Secrets、治理文件；不启动新付费镜头。旧 s03/s02/s05 GitHub Artifacts 大约在 2026-10-28/29 NZDT 过期，应提前安全保存原版和 receipt，若过期则阻断而非另行付费重拍。**G4 NOT_READY；G5暂停。**
+
+---
+
 # 2026-10-22 G4/W5｜真实 W4 GitHub 回放与原有 W5 退出清单强关联（零费用）
 
 Owner：继续开发，流水线优先；CityDiscount只是通用系统Pilot。过渡文件已生成供新会话继任，开工前重新只读核查 main：`1384406a0e991c6776a92799a0750b7c52a23c12`，PR #230合并且7/7 check-run成功。**真实 12镜原版/W1-FAKE 历史 Artifact 运行旧W4 CLI已获真实GitHub Runner证据**（[run39625584995](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39625584995)、两版本报告 SHA 和 W5 2026-10-19 验收基线完全相同）。核查发现已有 `docs/handoff/G4_ACCEPTANCE_20261019.{md,json}`完整 W5 原始机器盘点，**绝不再造新一份审计/退出门系统**。本轮只在既有W5真实媒体工作流里新增对**原有** W5 JSON `NOT_READY`、报表 SHA/文件SHA、账单未知、人审0、R4.3未运行、G5禁止的 fail-closed 交叉核查；新证据回执携带原盘点 SHA，防止“技术PASS=发布PASS”的历史漂移。同步把 `W5_REAL_W4_ARTIFACT_REPLAY_20261022.md` 原来的“尚待Run”更新为实际成功证据。CI仍然无Google模型调用、无真实资料新上传（仅W4报告）、不动冻结 W1–W5源码、不碰 SQLite/治理文件。G4 NOT_READY，G5暂停；下一需 Owner 真人内容/中文对白/实际发票及 #177 的第三方评分授权。
