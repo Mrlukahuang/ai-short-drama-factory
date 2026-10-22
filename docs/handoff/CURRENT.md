@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜实际在60秒rev5插入经过审核的真实s05去字片，生成新整片和12镜审图
+
+**Stage: G4 / Req: R4.4 / deliverable: 更新现有真实60秒技术预览，以PR #242已通过全部7项CI的真实Omni s05牌匾去字素材替换旧含虚构商标的s05镜头。** 起点main `da1c6ece7298daf3768f463ee2ee5321b4fd9a1e`。只在现有编片器新增可选 `--s05-clean` 源路径，SHA固定 `7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652`，仅该路径替换20–25s段；历史未改原版保持独立。由于清理后是原生360×640 9:16，而拼接要求1080×1440 3:4，必须先810×1440等比放大／两侧用同源视频模糊填充，不能变形羊或混合分辨率MP4。复用已有11段与片尾编码管线、临时音轨和12镜Contact Sheet。只要输入SHA不符直接拒绝，CI必须验真实60s、回执`s05_shop_sign_hallucination_removed_in_cut=true`、两铲和币仍未经Owner核准、原音频未保留的诚实标识。新增付费0，新素材外传0，家庭／九段假几何城市仍非真实AI完成，G4 NOT_READY，G5冻结。详细 `docs/CITYDISCOUNT_REV5_REAL_CLEAN_S05_FULL_CUT.md`。专项工作流全绿才能按AMEND-004自主合并。
+
+---
+
 # 2026-10-22 G4/R4.4｜真实Omni s05 虚构店铺文字去除（原创视频不动）
 Stage: G4 / Req: R4.4 / Actual local render. 以已并入PR #241的历史真实Omni s02/s05和官方logo质量基准为基础，本轮逐帧发现s05原图商家招牌虚构词Checlues，属不可公开的未经核准商家名。新增实片处理 `scripts/citydiscount_s05_sign_redaction.py`，仅覆盖原360×640图像牌内(133,196,227,236)为不带字毡板；保留历史原始SHA，产物5.0秒120帧、音轨、前后对照与机器回执。实片主角区域平均像素差2.49/255，目标招牌改动35.84/255，原5s视频未覆盖；纯本地，无新付费/新参考图外传。新增专项Actions以历史真素材SHA重新编片，必须7/7检查绿才可并。两铲、CD品牌金币及发布依然NOT_VERIFIED，G4 NOT_READY，G5冻结。详 `docs/CITYDISCOUNT_S05_REAL_SIGN_CLEANUP.md`。
 

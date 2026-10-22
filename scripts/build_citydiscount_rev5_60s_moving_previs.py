@@ -29,6 +29,8 @@ import citydiscount_city_to_globe_bridge as globe_bridge
 W,H,FPS=540,720,12
 SOURCE_REV4_SHA="e65d01356dcc977ab40c6cfea2ed479b812b8d16ffae6ccc41bfde8ce430288e"
 SOURCE_END_SHA="273516cacbc07d750fd0262de6897ddd3a879ed5e22fa58fd1f5a49e09c6b8c1"
+SOURCE_CLEAN_S05_SHA="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
+# Authenticated source is a REVIEW COPY of the same old Gemini Omni s05, not a new shot.
 REAL_IDS=("s02","s05")
 DRAWN_IDS=("s01","s03","s04","s06","s07","s08","s09","s10","s11")
 TARGET="CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4"
@@ -200,6 +202,27 @@ def extract(source:Path,target:Path,start:float=0.0)->None:
           "-r","24","-c:v","libx264","-preset","ultrafast","-crf","30",str(target)])
 
 
+def extract_clean_s05(source:Path,target:Path)->None:
+    """Retain all real original s05 pixels without stretching native 9:16.
+
+    The clean clip is 360x640. All 60s concatenated segments need matching
+    1080x1440 3:4, so center the original at sharp 810x1440 and blur the
+    same old footage behind it to fill 135px on each side. No new model
+    visuals, logo, retailer name or character geometry invented here.
+    """
+    vf=(
+        "[0:v]split=2[original][background];"
+        "[background]scale=1080:1920:flags=lanczos,"
+        "crop=1080:1440:0:240,gblur=sigma=26[blurred];"
+        "[original]scale=810:1440:flags=lanczos[sharp];"
+        "[blurred][sharp]overlay=(W-w)/2:0,format=yuv420p,fps=24[v]"
+    )
+    call(["ffmpeg","-hide_banner","-loglevel","error","-nostdin","-y",
+          "-i",str(source),"-filter_complex",vf,"-map","[v]",
+          "-t","5.000","-an","-r","24","-c:v","libx264",
+          "-preset","ultrafast","-crf","30","-pix_fmt","yuv420p",str(target)])
+
+
 def scratch_audio(target:Path)->None:
     """Locally synthesized *TEMP* music/SFX guide. No vendor audio or licensed samples."""
     sr=24000
@@ -225,9 +248,11 @@ def scratch_audio(target:Path)->None:
             out.writeframes(bytes(samples))
 
 
-def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
+def make_cut(*,rev4:Path,end:Path,out:Path,s05_clean:Path|None=None)->dict:
     rev4=valid_input(rev4,SOURCE_REV4_SHA)
     end=valid_input(end,SOURCE_END_SHA)
+    if s05_clean is not None:
+        s05_clean=valid_input(s05_clean,SOURCE_CLEAN_S05_SHA)
     plan,logo,logo_hash=endcard.load()
     assert plan["endcard"]["closing_copy"]==endcard.TAGLINE
     assert (plan["output"]["total_duration_ms"],plan["output"]["shots"])==(60000,12)
@@ -243,7 +268,12 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
     for i in range(1,13):
         sid=f"s{i:02}"
         target=seg/(sid+".mp4")
-        if sid in REAL_IDS:
+        if sid=="s05" and s05_clean is not None:
+            # Insert the SOURCE-SHA-VERIFIED local redaction of the actual real
+            # s05. Never replace this with synthetic wool actor footage.
+            extract_clean_s05(s05_clean,target)
+            kind="EXISTING_REAL_OMNI_S05_BRAND_SIGN_REDACTED_LOCAL_REVIEW"
+        elif sid in REAL_IDS:
             extract(rev4,target,start=(i-1)*5)
             kind="EXISTING_REAL_OMNI_CHARACTER_MP4_FROM_SHA_PINNED_REV4"
         elif sid=="s12":
@@ -287,6 +317,14 @@ def make_cut(*,rev4:Path,end:Path,out:Path)->dict:
         "source_logo_sha256":logo_hash,
         "closing_copy":endcard.TAGLINE,
         "existing_real_AI_lamb_shots":["s02","s05"],
+        "s05_original_real_omni_sha256":"4ed60c4e769ab36e21186733931e89c23d1dcbb776e3274389216a2bb742fc56",
+        "s05_redacted_review_input_sha256":SOURCE_CLEAN_S05_SHA if s05_clean else None,
+        "s05_shop_sign_hallucination_removed_in_cut":s05_clean is not None,
+        "s05_native_9by16_reframed_without_stretch":s05_clean is not None,
+        "s05_clean_reuses_existing_omni_not_new_ai":True,
+        "s05_original_audio_replaced_by_temporary_mix":True,
+        "s05_coin_exact_design_approved":False,
+        "s05_two_digs_owner_verified":False,
         "historical_city_plate_rev4_unused_in_this_2d_aerial_treatment":True,
         "scene_camera_3d_geometry_previs":["s01","s03","s04","s06","s07","s08","s09","s10","s11"],
         "hybrid_lamb_projected_3d_wool_body_and_four_gait_legs":True,
@@ -324,9 +362,11 @@ def main()->None:
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--rev4",type=Path,required=True)
     p.add_argument("--end",type=Path,required=True)
+    p.add_argument("--s05-clean",type=Path,
+                   help="Optional SHA-pinned local sign-redacted REAL Omni s05 5s MP4; never substitutes synthetic media")
     p.add_argument("--out",type=Path,required=True)
     a=p.parse_args()
-    result=make_cut(rev4=a.rev4,end=a.end,out=a.out)
+    result=make_cut(rev4=a.rev4,end=a.end,out=a.out,s05_clean=a.s05_clean)
     print(json.dumps({k:result[k] for k in
            ("film_sha256","duration_seconds","closing_copy",
             "existing_real_AI_lamb_shots","true_complete_12shot_AI_film")},
