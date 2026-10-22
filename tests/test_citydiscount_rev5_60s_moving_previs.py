@@ -440,7 +440,7 @@ def test_s04_same_real_city_is_explicitly_only_a_digital_push_not_real_character
     assert 'if s04_same_real_plate and s03_city is None:' in src
 
 
-def test_s04_uses_exact_final_120th_frame_and_zoom_at_most_1point5(monkeypatch,tmp_path):
+def test_s04_uses_actual_last_decoded_frame_and_zoom_at_most_1point5(monkeypatch,tmp_path):
     from PIL import Image
     calls=[]
     def fake(cmd):
@@ -452,8 +452,9 @@ def test_s04_uses_exact_final_120th_frame_and_zoom_at_most_1point5(monkeypatch,t
     target=tmp_path/"s04.mp4"
     cut.extract_real_s04_same_plate_digital_push(src,target)
     assert len(calls)==2
-    assert "select=eq(n\\,119)" in calls[0]
-    assert "-frames:v" in calls[0]
+    assert "-update" in calls[0]
+    assert calls[0][calls[0].index("-update")+1]=="1"
+    assert "select=eq(n" not in " ".join(calls[0])
     assert str(src) in calls[0]
     vf=calls[1][calls[1].index("-vf")+1]
     assert "zoompan" in vf
