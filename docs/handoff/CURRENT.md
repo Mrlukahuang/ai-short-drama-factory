@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜CityDiscount 3D 小羊身体／四肢 + 立体城市连续缩入地球（新交付待CI）
+
+Stage: G4 / Req: R4.4 / deliverable: 从已合并的 PR #237、main `5856b833d4f2013ccd3226b10fd51d292094c021` 继续，不重做旧真AI s02/s05、旧Logo/静态基础动画。新增 `scripts/citydiscount_volumetric_lamb.py` ：使用本地世界XYZ椭球几何绘制毛毡身体、头颈、毛卷和4条独立随步频摆动的腿；原Owner小羊脸使用从仓库已SHA校验图片裁出的原始像素贴片，**没有通过真实3D角色身份验收，不是全 rigged 3D 角色**。新增 `scripts/citydiscount_city_to_globe_bridge.py`：编片时将s11真实XYZ微缩城市末帧平顺收进已有毛毡地球素材，保留s12从56.6秒起3.4秒官方Logo停留及原Owner结尾“都市折扣🌟，您的省钱助手小羊薅薅。”。编片器保留上游真实Omni镜头s02/s05的源SHA，纯Pillow+FFmpeg本地运行，**不调用新付费AI、不上传源PNG到新服务**，实际源码/CI证据仅能证明内部技术预演，不能宣称完整真12镜或已可商业发布；G4 NOT_READY、G5继续禁止。新PR通过独立GitHub 60s视频Runner与原全部强制检查SUCCESS方可自合并；若失败不得把代码提交视作可看影片。
+
+---
+
 # 2026-10-22｜PR #237 实际 60秒运镜产物验收补证
 
 真实独立 GitHub Actions 运行 [#39721975824](https://github.com/Mrlukahuang/ai-short-drama-factory/actions/runs/39721975824) 已完成 SUCCESS；工件 ID `12401691338`、MP4 SHA256 `07502ad4035c2f13f59d33ca4faeda71709288ad54dbd542942ac4f941d804e9`，ffprobe 实测60.0秒、1080×1440 H264/AAC。小羊原版图片在3D几何街区中实现道路沿线轻跳/阴影/两次挖掘预演，保留原版s02/s05真人类AI视频；未引入新Google付费调用。Python 3.11/3.13、offline-video、libSQL、Fake均已SUCCESS。初版Scope Guard失败因为PR正文未用独立行 `Stage: G4` 和 `Req: R4.4`；已修复PR正文，但GitHub重跑旧事件快照仍读取旧正文。**本次以新的同步 commit 触发新的PR事件CI并重新核对最新全部检查，Scope绿之前不合并。** 仅代表程序几何动效/技术成片通过，非全真3D rigged角色/发布通过。G4 NOT_READY，G5不启动。
