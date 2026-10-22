@@ -1,0 +1,88 @@
+name: CityDiscount G4 only REAL Omni s02/s05 with official Logo 15s ($0)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/build_citydiscount_real_omni_15s_looklock.py
+      - tests/test_citydiscount_real_omni_15s_looklock.py
+      - .github/workflows/citydiscount-real-omni-15s-looklock.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/build_citydiscount_real_omni_15s_looklock.py
+      - .github/workflows/citydiscount-real-omni-15s-looklock.yml
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-real-omni-look-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      DRAMA_ENABLE_PAID_GENERATION: 'NO'
+      DRAMA_FACTORY_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure local FFmpeg/FFprobe for exact nonstretched source
+        run: |
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+      - name: Reuse previously generated real Omni original sheep s02 (raw 360x640)
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-s02-REAL-original-small-sheep-run-1080x1440-NOT-FINAL
+          run-id: 39583047905
+          github-token: ${{ github.token }}
+          path: footage/s02
+      - name: Reuse previously generated real Omni original sheep s05 (raw 360x640)
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-original-small-sheep-run-1080x1440-NOT-FINAL
+          run-id: 39596195021
+          github-token: ${{ github.token }}
+          path: footage/s05
+      - name: Reuse unchanged original branded 5s 2D globe / official logo
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-rev5-owner-globe-to-official-logo-5s-ENDCARD-NOT-FINAL
+          run-id: 39709324093
+          github-token: ${{ github.token }}
+          path: footage/s12
+      - name: Actually produce MP4 and audit no newly generated AI scene
+        run: |
+          python scripts/build_citydiscount_real_omni_15s_looklock.py \
+            --s02 footage/s02/s02-real/s02_raw_omni_9x16.mp4 \
+            --s05 footage/s05/s05-real/s05_raw_omni_9x16.mp4 \
+            --s12 footage/s12/CityDiscount_rev5_felt_globe_into_official_logo_5s_PREVIS_NOT_FINAL.mp4 \
+            --out artifacts/real-omni-15s
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path("artifacts/real-omni-15s")
+          doc=json.loads((p/"look_lock_receipt.json").read_text())
+          assert doc["schema"]=="g4-citydiscount-real-omni-look-lock-15s.v1"
+          assert doc["ordered_segments"]==["s02","s05","s12"]
+          assert doc["new_real_model_shots_generated"]==0
+          assert doc["new_paid_model_calls"]==0
+          assert doc["approved_for_publication"] is False
+          assert doc["human_identity_style_qa"]=="NOT_VERIFIED"
+          assert doc["source_mascot_face_geometry_stretched"] is False
+          assert doc["owner_rights_for_new_source_uploads"]=="NOT_AUTHORIZED"
+          assert doc["output_size"]==[1080,1440]
+          assert doc["output_duration_seconds"]==15.0
+          assert doc["closing_copy"]=="都市折扣🌟，您的省钱助手小羊薅薅。"
+          assert (p/"CityDiscount_REAL_OMNI_LAMB_LOOK_LOCK_15s_NOT_FINAL.mp4").stat().st_size>200000
+          PY
+      - name: Upload real-sources-only look-lock video and receipt (NOT FINAL)
+        uses: actions/upload-artifact@v4
+        with:
+          name: CityDiscount-REAL-s02-s05-OFFICIAL-LOGO-15s-LOOK-LOCK-NOT-FINAL
+          path: |
+            artifacts/real-omni-15s/CityDiscount_REAL_OMNI_LAMB_LOOK_LOCK_15s_NOT_FINAL.mp4
+            artifacts/real-omni-15s/look_lock_receipt.json
+          retention-days: 7
+          if-no-files-found: error
