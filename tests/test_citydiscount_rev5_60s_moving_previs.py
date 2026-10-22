@@ -361,3 +361,64 @@ def test_final_real_s05_integrated_60s_workflow_still_requires_all_media_checks(
     assert "retention-days: 7" in wf
     assert "secrets." not in wf
     assert "GEMINI_API_KEY" not in wf
+
+
+
+def test_exact_historical_real_felt_auckland_s03_is_a_city_only_source():
+    assert cut.SOURCE_REAL_S03_ENV_SHA=="b718e6b0a6e5a64db66d74e6b1364326d16671823fca12935e8a3667b101af3f"
+    code=(ROOT/"scripts/build_citydiscount_rev5_60s_moving_previs.py").read_text()
+    assert 'if sid=="s03" and s03_city is not None:' in code
+    assert 'extract_real_s03_city_zoom(s03_city,target)' in code
+    assert '"s03_genuine_existing_omni_environment_in_60s":s03_city is not None' in code
+    assert '"s03_original_camera_crane_out_retimed_in_reverse":s03_city is not None' in code
+    assert '"s03_native_9by16_nonstretched_reframe":s03_city is not None' in code
+    assert '"s03_has_original_mascot_performance":False' in code
+    assert '"s03_s04_unbroken_real_world_camera_verified":False' in code
+    assert '"real_model_generated_shots_added_in_this_run":0' in code
+    assert '"true_complete_12shot_AI_film":False' in code
+
+
+def test_real_s03_reverse_movie_uses_old_source_geometry_not_fake_stretch(monkeypatch,tmp_path):
+    calls=[]
+    monkeypatch.setattr(cut,"call",lambda args:calls.append(args))
+    original=tmp_path/"source.mp4"
+    target=tmp_path/"s03.mp4"
+    cut.extract_real_s03_city_zoom(original,target)
+    assert len(calls)==1
+    argv=calls[0]
+    assert "-filter_complex" in argv
+    vf=argv[argv.index("-filter_complex")+1]
+    assert "trim=duration=5,setpts=PTS-STARTPTS,reverse,split=2" in vf
+    assert "scale=810:1440:flags=lanczos" in vf
+    assert "gblur=sigma=26" in vf
+    assert "overlay=(W-w)/2:0" in vf
+    assert "-frames:v" in argv and argv[argv.index("-frames:v")+1]=="120"
+    assert "-an" in argv
+    assert "-c:v" in argv and "libx264" in argv
+    assert str(original) in argv and str(target) in argv
+
+
+def test_s03_sha_bypass_or_missing_real_plate_fails_closed(tmp_path):
+    false=tmp_path/"s03_city_plate.mp4"
+    false.write_bytes(b"synthetic city cannot masquerade as old model-generated video")
+    with pytest.raises(ValueError,match="SHA"):
+        cut.valid_input(false,cut.SOURCE_REAL_S03_ENV_SHA)
+    linked=tmp_path/"symlink.mp4"
+    linked.symlink_to(false)
+    with pytest.raises(ValueError):
+        cut.valid_input(linked,cut.SOURCE_REAL_S03_ENV_SHA)
+
+
+def test_actual_full_60s_runner_uses_real_s03_without_spending_or_claiming_character():
+    wf=(ROOT/".github/workflows/citydiscount-rev5-60s-motion-review.yml").read_text()
+    assert "run-id: 39441034483" in wf
+    assert "citydiscount-s03-city-plate-not-final-episode" in wf
+    assert "--s03-city artifacts/real-city-s03/s03-real/s03_city_plate.mp4" in wf
+    assert 'assert r["s03_real_source_sha256"]=="b718e6b0a6e5a64db66d74e6b1364326d16671823fca12935e8a3667b101af3f"' in wf
+    assert 'assert r["s03_has_original_mascot_performance"] is False' in wf
+    assert 'assert r["s03_s04_unbroken_real_world_camera_verified"] is False' in wf
+    assert 'assert r["real_model_generated_shots_added_in_this_run"]==0' in wf
+    assert "CONTACT_SHEET_12_SHOTS.png" in wf
+    assert "visual_review.json" in wf
+    assert "DRAMA_ENABLE_PAID_GENERATION: 'NO'" in wf
+    assert "secrets." not in wf
