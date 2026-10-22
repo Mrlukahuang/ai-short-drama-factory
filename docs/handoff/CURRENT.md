@@ -1,3 +1,8 @@
+# 2026-10-22 G4/R4.4｜把原真实Omni毛毡奥克兰城市 s03 接入整60秒（优先修视觉质感）
+**Stage: G4 / Req: R4.4.** 起始 main `94cfb7ea4fd494bef03e260fc2f1c8946060478f` (#244全绿已合并)。独立重新下载 old real Omni `s03_city_plate.mp4`（Actions 39441034483 / Artifact 12274786001），FFprobe 360×640/120帧/5.013s，原SHA `b718e6b0a6e5a64db66d74e6b1364326d16671823fca12935e8a3667b101af3f`匹配。实际抽帧对比真s03（有毛毡海港大桥／天空塔／水湾／立体街景）显著优于现#243的扁平XYZ积木s03。源视频原来为俯拍拉远，本地FFmpeg可**倒放镜头时间帧**实现从城市远处推近毛毡天空塔，已实跑独立5秒/120帧/1080×1440无拉伸视频（SHA `2fd0c6a15cf929bb65eac4302aa4867de581eda9be0181e9fd3e6d5667663932`，本地FFmpeg输出而非GitHub云端SHA）。已在原 rev5 60秒编片器加 `--s03-city` SHA锁定该真源，复用旧60秒工作流下载原真实城市 Artifact，位置在10–15秒，保持真小羊s02与去字版s05、旧官方Logo和其余本地城市场景不动；回执明确s03环境真实但是`has_original_mascot_performance=false`、旧原镜头只是reverse、s03→s04并非同真实3D连拍。测试与 GitHub 专项真实60秒/12镜图需全绿后方可合并，新增Omni0次，Owner #188/#210费用和新图外传门禁原状，G4 NOT_READY/G5冻结。详 `docs/CITYDISCOUNT_S03_REAL_AUCKLAND_SOURCE_IN_60S.md`。
+
+---
+
 # 2026-10-22 G4/R4.4｜真实羊15秒画质基准同步已核准的s05空白牌版本（本PR）
 Stage: G4 / Req: R4.4 / deliverable: 防止已经合并PR #243的60秒安全成片采用去字s05，但旧PR #241的15秒羊毛风格标杆却仍保留虚构Checlues店名。已从真实Run 39756742333 Artifact 12416113076下载并独立验film SHA `3b88c86e89423e41d67971f20b10a25622d2609e26354f8de17a4876eaf81231`，22.75秒完整画面已现场确认空白毛毡招牌，同时小羊/铲子/背景有效；12镜审图SHA `7396450403b6721473f4dd8ef04ec0c26918c9694770f793f26ba2ec06ece92b`。本轮在原有 `scripts/build_citydiscount_real_omni_15s_looklock.py` 更新s05输入源为原Omni的已本地去字审核版，SHA固定 `7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652`，原SHA `4ed60c4e...`仍单独记录；继续保留真s02、s12官方Logo源、15秒1080×1440无拉伸画幅。重用旧15秒专项FFmpeg Runner，不加工作流/抽象/另一个编片器；此次仅跟随已证实真实素材安全修复。全部7项CI和真正15秒Artifact PASS方可合并，未完成则不要宣称已发布或已生成另九镜。新增付费模型调用0，#188/#210均open且未新许可，G4 NOT_READY、G5冻结。
 
