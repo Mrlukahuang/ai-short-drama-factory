@@ -189,3 +189,66 @@ def test_mini_city_3d_renderer_uses_new_gait_and_keeps_publishing_blocked():
     assert '"true_complete_12shot_AI_film":False' in editor
     assert '"publish_approved":False' in editor
     assert "GEMINI_API_KEY" not in workflow
+
+
+
+def test_true_xyz_wool_body_and_four_independent_projected_legs():
+    import citydiscount_3d_diorama as geo
+    import citydiscount_volumetric_lamb as wool
+    from PIL import Image
+    cam=geo.Camera(target_x=2,target_y=3,azimuth=.7,elevation=.9,zoom=110)
+    other=geo.Camera(target_x=2,target_y=3,azimuth=1.4,elevation=.9,zoom=110)
+    blob=wool.projected_ellipsoid(cam,(2,3,.45),(.43,.32,.4))
+    blob_other=wool.projected_ellipsoid(other,(2,3,.45),(.43,.32,.4))
+    assert len(blob)>=6 and blob!=blob_other
+    a=Image.new("RGB",(540,720),"#d2e0d5")
+    b=a.copy()
+    metadata=wool.volumetric_lamb_frame(a,cam,(2,3,.065),t=.1,walking=True)
+    wool.volumetric_lamb_frame(b,cam,(2,3,.065),t=.42,walking=True)
+    assert a.tobytes()!=b.tobytes()
+    assert metadata["four_xyz_jointed_gait_legs"] is True
+    assert metadata["canonical_face_is_2d_source_overlay"] is True
+    assert metadata["approved_rigged_3d_sheep"] is False
+
+
+def test_3d_body_still_uses_original_source_face_not_new_model_pixels():
+    src=(ROOT/"scripts/citydiscount_street_motion.py").read_text()
+    code=(ROOT/"scripts/citydiscount_volumetric_lamb.py").read_text()
+    assert "wool3d.volumetric_lamb_frame" in src
+    assert "source.convert(" in src
+    assert "face_source=full.crop" in src
+    assert "approved_rigged_3d_sheep" in code
+    assert "generate_approved_reference_envelope" not in src
+    assert "GEMINI_API_KEY" not in src
+
+
+def test_city_s11_last_frame_blends_into_globe_with_no_logo_hold_loss():
+    from PIL import Image
+    import citydiscount_city_to_globe_bridge as globe
+    city=Image.new("RGB",(540,720),"#214f44")
+    earth=Image.new("RGB",(540,720),"#b9d6d0")
+    first=globe.bridge_frame(city,earth,0)
+    middle=globe.bridge_frame(city,earth,.55)
+    arrived=globe.bridge_frame(city,earth,.95)
+    assert first.tobytes()==city.tobytes()
+    assert arrived.tobytes()==earth.tobytes()
+    assert middle.tobytes()!=city.tobytes()
+    assert middle.tobytes()!=earth.tobytes()
+    with pytest.raises(ValueError):
+        globe.bridge_frame(city,earth,5)
+    with pytest.raises(ValueError):
+        globe.bridge_frame(Image.new("RGB",(1080,1440)),earth,.4)
+
+
+def test_60sec_movie_includes_city_to_globe_bridge_and_locked_real_video_truth():
+    workflow=(ROOT/".github/workflows/citydiscount-rev5-60s-motion-review.yml").read_text()
+    editor=(ROOT/"scripts/build_citydiscount_rev5_60s_moving_previs.py").read_text()
+    assert "citydiscount_volumetric_lamb.py" in workflow
+    assert "citydiscount_city_to_globe_bridge.py" in workflow
+    assert "globe_bridge.encode(city_last,end,target)" in editor
+    assert '"hybrid_lamb_projected_3d_wool_body_and_four_gait_legs":True' in editor
+    assert '"hybrid_lamb_owner_3d_identity_approval":False' in editor
+    assert '"planetary_full_3d_camera_animation_pass":False' in editor
+    assert '"true_complete_12shot_AI_film":False' in editor
+    assert '"publish_approved":False' in editor
+    assert "secrets." not in workflow
