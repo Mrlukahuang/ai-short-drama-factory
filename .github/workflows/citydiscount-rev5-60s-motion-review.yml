@@ -86,6 +86,7 @@ jobs:
           assert r["existing_real_AI_lamb_shots"]==["s02","s05"]
           assert r["s05_redacted_review_input_sha256"]=="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
           assert r["s05_shop_sign_hallucination_removed_in_cut"] is True
+          assert r["s05_native_9by16_reframed_without_stretch"] is True
           assert r["s05_clean_reuses_existing_omni_not_new_ai"] is True
           assert r["s05_coin_exact_design_approved"] is False
           assert r["s05_two_digs_owner_verified"] is False
