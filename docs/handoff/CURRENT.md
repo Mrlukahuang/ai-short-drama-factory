@@ -1,3 +1,9 @@
+# 2026-10-23 G4/R4.4｜已有真实Omni小羊s05金币CD字形安全局部后期（仅独立5秒审核，不覆盖60秒）
+
+**Stage: G4 / Req: R4.4 / deliverable:** 已核对最新 main `372214393943eb9004fb4c9a4e6ee3b6aff0f3fe`、PR #246全部7项CI成功且已合并。完整60秒技术编码链100%，实际真小羊表演只有 s02/s05 2/11，另有源自真实Omni的无羊城市环境s03；仍差9个真实小羊镜头，九镜指令已有 `config/pilots/citydiscount_real_video_replacement_rev5.json`。#188（账单/付费）和#210（图片权利/素材远端转交）仍open，不能用历史一般性 USD2单次、USD5 NZ日额度绕开新增素材权利/实际消费核验。此轮基于Owner此前明示要求 **s05第一枚金币刻CD**，在真实5秒Omni s05去字版本（源SHA `7a4a7e5f...`）及旧已核验官方Logo片尾（源SHA `273516c...`）上完全本地做经SHA保护的**绿色CD字形图层**，从Logo视频剪取真正像素、按3.1–5.0秒手工插值跟随金币，保留原s05、原音频、小羊、铲子、去字商店。已在本地实际FFmpeg生成5.0秒120帧 H264/AAC（本地文件SHA `371de253b42395be35822085164613c2d835b46ae1b0bf185afc9c40dc022a60`）和五帧QA图；脚本/专项GitHub workflow/回归测试提交新 PR。**图层近似跟踪、仍需品牌人工审查；这是独立5秒素材审核版，并未加入已合并60秒完整片，也非新Omni生成。** 模型调用0，外传0；G4 NOT_READY，G5暂停。完整文档 `docs/CITYDISCOUNT_S05_CD_GLYPH_COIN_REVIEW.md`。全7项CI以及专项真实5秒Artifact均PASS才能自治合并，且不可将此结果视为9镜完成。
+
+---
+
 # 2026-10-23 G4/R4.4｜零费用真实城市 s03→s04 两种衔接 A/B（独立审核，不修改旧片）
 
 Stage: G4 / Req: R4.4 / deliverable: 在已合并 #245 / main `6b483972e9fc26a564b120c064d7e5335b087244`，用实际60秒取帧确认14.7秒 s03真实羊毛城市与15.08秒s04几何城市场景的显著风格跳切。新增原有编片器**可选** `--s04-same-real-plate`，从经过原SHA核验的真实旧Omni s03完整5秒编码段准确提取末帧第120帧，使用FFmpeg在**同一张真实毛毡城市照片上做持续5秒≤1.5倍本地数字推近**，可和原#245未更动的s04“城市几何小羊”片做A/B并排选型。这样视觉风格衔接不会跨素材骤变，但s04候选完全**没有小羊行动**，不能冒充原生3D摄像机/新增AI视频/完整真实商业广告。专项现有60秒工作流将输出B版单独命名mp4+12镜图，检查 `s04_genuine_new_ai_character_performance=false`、`s04_genuine_3d_parallax_camera_motion=false`、`s03_s04_unbroken_real_world_camera_verified=false`。原真Omni s02和去字真Omni s05不动，真实Logo结尾不动，新增付费0，历史账单UNKNOWN；#188/#210 未通过新模型/外传权限。G4 NOT_READY，G5保持冻结。详 `docs/CITYDISCOUNT_S04_SAME_REAL_PLATE_COMPARISON.md`。专项完整实片、Scope/Python等7项CI全部绿后方能自治合并；B版美术是否优于A版只供Owner判断，不宣称机器通过人审。

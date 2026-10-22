@@ -1,0 +1,85 @@
+name: CityDiscount G4 real s05 official CD coin local review ($0)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/citydiscount_s05_coin_logo_review.py
+      - tests/test_citydiscount_s05_coin_logo_review.py
+      - .github/workflows/citydiscount-s05-coin-logo-local-review.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/citydiscount_s05_coin_logo_review.py
+      - .github/workflows/citydiscount-s05-coin-logo-local-review.yml
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-5sec-local-CD-coin-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DRAMA_ENABLE_PAID_GENERATION: 'NO'
+      DRAMA_FACTORY_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install minimal offline Pillow and FFmpeg
+        run: |
+          python -m pip install 'pillow>=11,<13'
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+          fi
+      - name: Reuse exact historical SHA-pinned sanitized REAL Omni s05
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-OMNI-SIGN-REDACTED-5s-REVIEW-NOT-FINAL
+          run-id: 39747140543
+          github-token: ${{ github.token }}
+          path: footage/s05
+      - name: Reuse existing OFFICIAL logo final video, not any new brand picture
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-rev5-owner-globe-to-official-logo-5s-ENDCARD-NOT-FINAL
+          run-id: 39709324093
+          github-token: ${{ github.token }}
+          path: footage/endcard
+      - name: Actual source-preserving 5s video render and integrity audit
+        run: |
+          python scripts/citydiscount_s05_coin_logo_review.py \
+            --s05-clean footage/s05/CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4 \
+            --official-endcard footage/endcard/CityDiscount_rev5_felt_globe_into_official_logo_5s_PREVIS_NOT_FINAL.mp4 \
+            --out artifacts/s05-cd-glyph-review
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          p=Path("artifacts/s05-cd-glyph-review")
+          r=json.loads((p/"coin_review_receipt.json").read_text())
+          assert r["schema"]=="g4-citydiscount-real-s05-coin-letter-review.v1"
+          assert r["source_clean_s05_sha256"]=="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
+          assert r["source_endcard_sha256"]=="273516cacbc07d750fd0262de6897ddd3a879ed5e22fa58fd1f5a49e09c6b8c1"
+          assert r["frames"]==120 and 4.95<=r["seconds"]<=5.08
+          assert r["geometry"]==[360,640]
+          assert r["original_audio_copied"] is True
+          assert r["new_model_calls"]==0 and r["new_image_external_transfers"]==0
+          assert r["human_2_digs_qa_pass"] is False
+          assert r["coin_final_owner_brand_qa_pass"] is False
+          assert r["full_60s_film_uses_this_new_coin_version"] is False
+          assert r["publish_approved"] is False
+          assert (p/"CityDiscount_s05_REAL_OMNI_CLEAN_SIGN_CD_COIN_LOCAL_REVIEW_NOT_FINAL.mp4").stat().st_size>100000
+          assert Image.open(p/"s05_real_coins_5_frames_review.png").size==(1800,676)
+          PY
+      - name: Upload actual 5s MP4, decoded review frames and receipt NOT FINAL
+        uses: actions/upload-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-CLEAN-SIGN-SOURCE-CD-COIN-LOCAL-REVIEW-NOT-FINAL
+          path: |
+            artifacts/s05-cd-glyph-review/CityDiscount_s05_REAL_OMNI_CLEAN_SIGN_CD_COIN_LOCAL_REVIEW_NOT_FINAL.mp4
+            artifacts/s05-cd-glyph-review/s05_real_coins_5_frames_review.png
+            artifacts/s05-cd-glyph-review/coin_review_receipt.json
+          retention-days: 7
+          if-no-files-found: error
