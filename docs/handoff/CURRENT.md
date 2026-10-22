@@ -1,3 +1,11 @@
+# 2026-10-22 G4/R4.4｜Owner rev5 微缩城市→街区→地球→CityDiscount Logo 连续摄影机指令（PR #234）
+
+Stage: G4 / Req: R4.4 / deliverable: 精确12×5s摄像机镜头与衔接合同 + 5s真正可播放的本地零费用地球到官方Logo片尾预演。以已合并 PR #233 / main `ee90d4b91f9cc876031970d680ea31f3dc937a11` 为开工基线；Owner 新提出微缩奥克兰城市俯瞰 Zoom in 到真实街区、每镜 Zoom out 跟着小羊穿行、最后缩远成为旋转地球并转官方 Logo；原话末尾 **“都市折扣🌟，您的省钱助手小羊薅薅。”**。新增 `config/pilots/citydiscount_camera_treatment_rev5.json` 版本化摄影机 Overlay，不覆盖历史 rev4 JSON/原真实 s02/s05来源 SHA；六条跨镜头镜头衔接按共同地标、街区坐标、角色身份、35°?不作无依据镜头参数、不跳场锁定。s03/04 12.5–16.5s推入同一超市街区；s10持续远拉跟羊穿街，s11 53.5s起从家庭→整城，s12 55秒地球旋转至56.6秒官方 Logo，停留3.4秒；新结束语按原字，不回滚旧口号。复用现有原版官方Logo SHA，新增 `scripts/render_citydiscount_rev5_globe_logo_previs.py` + 隔离Actions工作流，用Pillow二维毛毡地球概念和FFmpeg产生 **5秒 1080×1440 24fps真实可播放的H264/AAC静音预览**，并严禁冒充真实3D城市轨迹和完整60秒真实成片。准确视觉效果须以实际GitHub CI/Artifact为准。
+
+**PR：** https://github.com/Mrlukahuang/ai-short-drama-factory/pull/234 ，专项Actions与原Python/scope等全部通过前不得合并。新 Google/模型/媒体外传0、无真实发票、无真人配音、无Owner发布许可；新真实12镜/连续运镜仍待后续获得精确许可和素材。已有 #233 60s 技术样片仍为rev4，不是假称rev5真实镜头。G4 NOT_READY/G5继续禁入。
+
+---
+
 # 2026-10-22 G4/R4.4｜CD rev4 60秒真实已有素材→离线技术拼片（PR #233，结果依实际CI）
 
 **Stage: G4 / Req: R4.4 / Deliverable: 60s 1080×1440 3:4 existing-media review-cut with fail-closed provenance.** Owner 要加速，避免停留在“开发计划”。已核对最新 main 79cd9f9f、AMEND/AGENTS/STAGES/GUARDRAILS、rev4 剧本及旧 s02/s05 真实 Google Artifacts。复用旧 s02/s05 真正AI小羊动态、旧 s03 奥克兰背景素材（仅历史环境参考），其余 rev4 未生成的镜头均保持可辨认占位/现有原图静态分镜，绝不伪报真12镜。新增 `scripts/build_citydiscount_rev4_review_cut.py` + `.github/workflows/citydiscount-rev4-60s-review-cut.yml` + 契约测试；工作流拉取已有 GitHub Artifacts，验证 s02/s05 供应商自报SHA回执与旧 s03 独立 SHA 后运行本地FFmpeg，产出真实可播放 **60s/1080×1440 H264+AAC(静音占位)** 视频和不含源媒体的 sanitized JSON，未运行 Google/ASR/TTS，也没有新增外传到AI模型。确切新增授权费用USD0，**历史 Google 实账仍UNKNOWN**。此片只有 s02/s05 两镜完整真人动态素材，旧s03环境画面不算新版合格，其他10镜均未证实有完整真实动态画面；CD 标识、人物、音乐、音效、自然人声、人工审片、版权/发布和真实生产整集尚未验收。
