@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 from PIL import Image, ImageDraw
+import citydiscount_volumetric_lamb as wool3d
 
 
 def smooth(q:float)->float:
@@ -121,42 +122,48 @@ def pose(shot_id:str,t:float)->dict:
 def composite_actor(image:Image.Image,cam,source:Image.Image,
                     xyz:tuple[float,float,float],height:int,
                     *,shot_id:str,t:float)->None:
+    """Hybrid 3D world-space wool body/leg joints plus original cropped face.
+
+    Shape and gait are genuinely projected XYZ volume, but the Owner's existing
+    face pixels are a 2D plate. This MUST NOT be advertised as a newly approved
+    fully rigged/verified 3D sheep.
+    """
     p=pose(shot_id,t)
     x,y,z=xyz
-    px,py=cam.project((x,y,z))
-    drawer=ImageDraw.Draw(image)
-    width=max(4,round(height*.31))
-    drawer.ellipse((px-width,py-6,px+width,py+4),fill="#809d8c")
-    if p["walking"]:
-        stride=max(2,round(cam.zoom*.045))
-        for step in (-1,1):
-            xx=px+step*stride
-            yy=py-(4 if (step==1)==p["left_foot_forward"] else 0)
-            drawer.ellipse((xx-4,yy-3,xx+4,yy+3),
-                           fill="#d7c2a3",outline="#957f68",width=1)
+    wool3d.volumetric_lamb_frame(image,cam,xyz,t=t,walking=p["walking"])
+    # Use existing original sheep RGBA's head pixels unchanged, no newly drawn
+    # eyes, unapproved AI face re-generation or reference upload.
     raw=source.convert("RGBA")
     bbox=raw.getchannel("A").getbbox()
     if not bbox:
-        raise ValueError("Original owner PNG has no opaque pixels")
-    original=raw.crop(bbox)
-    w=max(1,round(original.width*height/original.height))
-    actor=original.resize((w,height),Image.Resampling.LANCZOS)
-    if abs(p["tilt_degrees"])>.10:
-        actor=actor.rotate(p["tilt_degrees"],
-                           resample=Image.Resampling.BICUBIC,expand=True)
-    _,raised=cam.project((x,y,z+p["bob_height"]))
-    offset=5 if p["dig_stroke"] else 0
-    image.paste(actor,(round(px-actor.width/2),
-                       round(raised-actor.height*.88+offset)),actor.getchannel("A"))
+        raise ValueError("Owner original sheep reference has empty alpha")
+    full=raw.crop(bbox)
+    top=max(1,round(full.height*.60))
+    face_source=full.crop((0,0,full.width,top))
+    face_bb=face_source.getchannel("A").getbbox()
+    if not face_bb:
+        raise ValueError("Owner sheep face crop empty")
+    face=face_source.crop(face_bb)
+    size=max(11,round(cam.zoom*.37))
+    nw=max(1,round(face.width*size/max(1,face.height)))
+    source_face=face.resize((nw,size),Image.Resampling.LANCZOS)
+    wobble=p["tilt_degrees"]*.48
+    if abs(wobble)>.1:
+        source_face=source_face.rotate(wobble,
+                  resample=Image.Resampling.BICUBIC,expand=True)
+    shift=p["bob_height"]
+    fx,fy=cam.project((x+.39,y-.03,z+.76+shift))
+    image.paste(source_face,(round(fx-source_face.width*.5),
+               round(fy-source_face.height*.57)),source_face.getchannel("A"))
     d=ImageDraw.Draw(image)
     if p["dig_stroke"]:
-        d.line((px+height*.20,py-height*.58,
-                px+height*.38,py-4),fill="#93714a",width=3)
-        d.ellipse((px+height*.32,py-5,px+height*.44,py+2),
-                  fill="#e0c499")
+        px,py=cam.project((x+.45,y-.23,z+.22))
+        d.line((px-6,py-38,px+10,py+3),fill="#98714e",width=4)
+        d.ellipse((px+5,py-3,px+18,py+5),fill="#ddc499")
     if p["coin_visible"]:
         cx,cy=cam.project((x+.20,y+.04,.046))
         radius=max(3,round(cam.zoom*.07))
         d.ellipse((cx-radius,cy-radius,cx+radius,cy+radius),
                   fill="#e4b858",outline="#ffebaf",width=2)
+
     # No model-generated logo/CD lettering; symbol is unapproved still illustration.

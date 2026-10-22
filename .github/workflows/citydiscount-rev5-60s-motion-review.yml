@@ -1,4 +1,4 @@
-name: CityDiscount rev5 3D city with routed walking sheep 60s (offline)
+name: CityDiscount rev5 hybrid 3D lamb and city-to-globe 60s (offline)
 on:
   pull_request:
     branches: [main]
@@ -6,6 +6,8 @@ on:
       - scripts/build_citydiscount_rev5_60s_moving_previs.py
       - scripts/citydiscount_3d_diorama.py
       - scripts/citydiscount_street_motion.py
+      - scripts/citydiscount_volumetric_lamb.py
+      - scripts/citydiscount_city_to_globe_bridge.py
       - tests/test_citydiscount_rev5_60s_moving_previs.py
       - .github/workflows/citydiscount-rev5-60s-motion-review.yml
   push:
@@ -14,6 +16,8 @@ on:
       - scripts/build_citydiscount_rev5_60s_moving_previs.py
       - scripts/citydiscount_3d_diorama.py
       - scripts/citydiscount_street_motion.py
+      - scripts/citydiscount_volumetric_lamb.py
+      - scripts/citydiscount_city_to_globe_bridge.py
       - .github/workflows/citydiscount-rev5-60s-motion-review.yml
   workflow_dispatch: {}
 permissions:
@@ -77,6 +81,12 @@ jobs:
           assert r["camera_keys_match_across_non_paid_cuts"] is True
           assert r["sheep_bounded_2d_gait_bob_and_footstep_pass"] is True
           assert r["sheep_is_original_billboard_not_3d_rigged"] is True
+          assert r["hybrid_lamb_projected_3d_wool_body_and_four_gait_legs"] is True
+          assert r["owner_source_face_rgba_unmodified_except_crop_resize_tilt"] is True
+          assert r["hybrid_lamb_owner_3d_identity_approval"] is False
+          assert r["planetary_full_3d_camera_animation_pass"] is False
+          assert r["city_xyz_to_felt_globe_source_bridge"]["logo_hold_seconds"] >= 3.0
+          assert r["city_xyz_to_felt_globe_source_bridge"]["genuine_planetary_3d_cinematic_camera"] is False
           assert r["genuine_aerial_to_street_3D_camera_pass"] is False
           assert r["genuine_sheep_travel_world_zoom_pass"] is False
           assert r["true_complete_12shot_AI_film"] is False
@@ -88,7 +98,7 @@ jobs:
       - name: Upload one actual 60s MP4 and receipt (no raw original video files)
         uses: actions/upload-artifact@v4
         with:
-          name: CityDiscount-rev5-60s-3D-CITY-WALKING-SHEEP-CAMERA-CONTINUITY-NOT-FINAL
+          name: CityDiscount-rev5-60s-HYBRID-3D-LAMB-CITY-GLOBE-CONTINUITY-NOT-FINAL
           path: |
             artifacts/cd-rev5-60s/CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4
             artifacts/cd-rev5-60s/receipt.json
