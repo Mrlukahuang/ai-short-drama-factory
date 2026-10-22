@@ -14,7 +14,8 @@ def test_sources_historical_real_video_and_exact_owner_logo_are_pinned():
         "s05":"4ed60c4e769ab36e21186733931e89c23d1dcbb776e3274389216a2bb742fc56",
         "s12":"273516cacbc07d750fd0262de6897ddd3a879ed5e22fa58fd1f5a49e09c6b8c1",
     }
-    assert film.OUTPUT=="CityDiscount_REAL_OMNI_LAMB_LOOK_LOCK_15s_NOT_FINAL.mp4"
+    assert film.CLEAN_S05_SHA=="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
+    assert film.OUTPUT=="CityDiscount_REAL_OMNI_LAMB_CLEAN_S05_LOOK_LOCK_15s_NOT_FINAL.mp4"
 
 
 def test_wrong_or_tampered_source_is_rejected_fail_closed(tmp_path):
@@ -25,7 +26,9 @@ def test_wrong_or_tampered_source_is_rejected_fail_closed(tmp_path):
     g=tmp_path/"linked.mp4"
     g.symlink_to(f)
     with pytest.raises(ValueError):
-        film.checked(g,film.EXPECTED["s05"])
+        film.checked(g,film.CLEAN_S05_SHA)
+    with pytest.raises(ValueError,match="SHA"):
+        film.checked(f,film.CLEAN_S05_SHA)
 
 
 def test_geometry_is_not_faked_3by4_stretch_and_rights_do_not_open():
@@ -40,6 +43,11 @@ def test_geometry_is_not_faked_3by4_stretch_and_rights_do_not_open():
     assert '"approved_for_publication":False' in source
     assert '"human_identity_style_qa":"NOT_VERIFIED"' in source
     assert '"actual_full_rev5_shots_completed":False' in source
+    assert '"s05_hallucinated_shop_sign_locally_redacted":True' in source
+    assert '"s05_original_unedited_sha256":EXPECTED["s05"]' in source
+    assert '"s05_official_cd_coin_design_approved":False' in source
+    assert '"s05_two_digs_owner_approved":False' in source
+    assert "checked(s05_clean,CLEAN_S05_SHA)" in source
     assert '"owner_rights_for_new_source_uploads":"NOT_AUTHORIZED"' in source
     assert "GEMINI_API_KEY" not in source
     assert '"closing_copy":"都市折扣🌟，您的省钱助手小羊薅薅。"' in source
@@ -47,13 +55,17 @@ def test_geometry_is_not_faked_3by4_stretch_and_rights_do_not_open():
 
 def test_runner_reuses_exact_old_artifacts_and_never_passes_secrets():
     workflow=(ROOT/".github/workflows/citydiscount-real-omni-15s-looklock.yml").read_text()
-    for token in ("39583047905","39596195021","39709324093",
+    for token in ("39583047905","39747140543","39709324093",
                   "CityDiscount-s02-REAL-original-small-sheep-run-1080x1440-NOT-FINAL",
-                  "CityDiscount-s05-REAL-original-small-sheep-run-1080x1440-NOT-FINAL",
+                  "CityDiscount-s05-REAL-OMNI-SIGN-REDACTED-5s-REVIEW-NOT-FINAL",
                   "CityDiscount-rev5-owner-globe-to-official-logo-5s-ENDCARD-NOT-FINAL",
                   "DRAMA_ENABLE_PAID_GENERATION: 'NO'",
                   "retention-days: 7"):
         assert token in workflow
     assert "secrets." not in workflow
     assert "generate_real_omni" not in workflow
-    assert "CityDiscount_REAL_OMNI_LAMB_LOOK_LOCK_15s_NOT_FINAL.mp4" in workflow
+    assert "CityDiscount_REAL_OMNI_LAMB_CLEAN_S05_LOOK_LOCK_15s_NOT_FINAL.mp4" in workflow
+    # Ensure the SAME file asserted by actual FFmpeg job is in upload-artifact.
+    assert "artifacts/real-omni-15s/"+film.OUTPUT in workflow
+    assert "artifacts/real-omni-15s/CityDiscount_REAL_OMNI_LAMB_LOOK_LOCK_15s_NOT_FINAL.mp4" not in workflow
+    assert "--s05-clean footage/s05-clean/CityDiscount_s05_REAL_OMNI_BANNER_REDACTED_5s_NOT_FINAL.mp4" in workflow
