@@ -1,0 +1,304 @@
+{
+  "schema": "g4-citydiscount-real-omni-replacement-readiness.v1",
+  "build_date_nz": "2026-10-22",
+  "stage": "G4",
+  "req": "R4.4",
+  "creative_revision": 5,
+  "source_plan": "config/pilots/citydiscount_camera_treatment_rev5.json",
+  "pinned_real_sources": {
+    "s02": {
+      "kind": "real_character_omni",
+      "artifact_id": 12339030552,
+      "model": "gemini-omni-1.1-flash",
+      "raw_sha256": "a8a25ba43e5e8659d9c5528d685c69e8e0f991b990a48bf77c5c2be4fcfef80c",
+      "model_resolution": [
+        360,
+        640
+      ],
+      "native_aspect": "9:16",
+      "target_aspect": "3:4",
+      "target_pixels": [
+        1080,
+        1440
+      ],
+      "actual_provider_fee_usd": null,
+      "rights_asserted_for_original_run": true,
+      "permission_for_new_generation": false
+    },
+    "s05": {
+      "kind": "real_character_omni",
+      "artifact_id": 12343403535,
+      "model": "gemini-omni-1.1-flash",
+      "raw_sha256": "4ed60c4e769ab36e21186733931e89c23d1dcbb776e3274389216a2bb742fc56",
+      "model_resolution": [
+        360,
+        640
+      ],
+      "native_aspect": "9:16",
+      "target_aspect": "3:4",
+      "target_pixels": [
+        1080,
+        1440
+      ],
+      "actual_provider_fee_usd": null,
+      "rights_asserted_for_original_run": true,
+      "permission_for_new_generation": false
+    },
+    "s03_environment_only": {
+      "kind": "historical_non_mascot_city_plate",
+      "artifact_id": 12274786001,
+      "raw_sha256": "b718e6b0a6e5a64db66d74e6b1364326d16671823fca12935e8a3667b101af3f",
+      "real_rev5_character_scene_completed": false
+    }
+  },
+  "output": {
+    "width": 1080,
+    "height": 1440,
+    "aspect_ratio": "3:4",
+    "shots": 12,
+    "shot_seconds": 5,
+    "total_seconds": 60
+  },
+  "prompt_identity_style_lock": "Auckland, New Zealand, entirely handmade miniature needle-felt wool diorama photographed as tactile stop-motion movie miniature: visible dense wool fibers, felt seams, pastel buildings with genuine depth, tiny realistic felt paving, warm low-sun cinematic lighting, natural lens bokeh, lens travel in a truly continuous miniature street geography; EXACT original little CityDiscount mascot lamb reference only: cream-white curly wool, round expressive face, matching large eyes and small green scarf/bag, toy shovel, 15-22 percent frame height normally, never above 27 percent. The lamb must retain the SAME facial proportions, green bag and wool texture as source real original s02/s05 Omni footage. The town is a volumetric physical wool model, NEVER flat illustrated map, never abstract low-poly digital cubes, never top-down 2D paper drawing. 3:4 delivery framing; model native 9:16 360p must be reframed without stretching. 5.0s single shot. No retailer names, fictional prices, UI screenshots, fabricated cash discount claims, watermarks, model-drawn CityDiscount logo or readable characters.",
+  "missing_real_mascot_shots": [
+    "s01",
+    "s03",
+    "s04",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10",
+    "s11"
+  ],
+  "retained_real_mascot_shots": [
+    "s02",
+    "s05"
+  ],
+  "end_card": {
+    "shot_id": "s12",
+    "kind": "local_2d_felt_globe_source_logo",
+    "genuine_planetary_3d_video": false,
+    "owner_text": "都市折扣🌟，您的省钱助手小羊薅薅。",
+    "official_logo_hold_seconds": 3.4,
+    "reuse_existing": true
+  },
+  "proposed_replacements": [
+    {
+      "shot_id": "s03",
+      "priority": 1,
+      "segment": "A: aerial into same supermarket street",
+      "seconds": 5,
+      "start_ms": 10000,
+      "end_ms": 15000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "One 5-second UNBROKEN camera movement: aerial wide over genuine three-dimensional handmade wool Auckland city, Sky Tower and Harbour Bridge miniatures, wool rooftop depth and real stitch seams, camera gently starts a physical zoom/dolly into a single supermarket street with identifiable cream-coral roof near a tiny corner bakery, tiny canonical lamb walking along street. Perspective parallax of building façades; no jumping or morphing geometry.",
+      "prev_next_continuity": "Start: 3D felt Auckland aerial with recognizable Sky Tower & Harbour Bridge in real miniature wool. End: camera aimed down at SAME identifiable supermarket street central crossroad; exact geometry, traffic-light, roof marks must align with s04. Tiny original sheep moving toward block.",
+      "qa_acceptance": [
+        "not flat map",
+        "wool city volumetric and tactile",
+        "building landmarks visible",
+        "end frame physically continues s04"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    },
+    {
+      "shot_id": "s04",
+      "priority": 1,
+      "segment": "A: aerial into same supermarket street",
+      "seconds": 5,
+      "start_ms": 15000,
+      "end_ms": 20000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "Continue the PREVIOUS shot exact miniature city street, same distinct cream-coral rooftops and crossroad: one smooth moving physical camera dive down between volumetric wool buildings, camera lens descends to eye-level of tiny canonical felt lamb at supermarket produce shop. Tiny sheep approaching a soft brown felt digging spot with green shoulder bag and small shovel. Final frame must visually match s05 real character full body and shop foreground; zero teleports, no new lamb face.",
+      "prev_next_continuity": "Start: EXACT s03 end street geometry; lens continues through same roofs and street; end: lamb arriving in front of needle-felt fruit and vegetable stall, small pile of soil, its bag and shovel consistent with s05 real footage.",
+      "qa_acceptance": [
+        "same block as s03 end",
+        "real felt fruit/veg textures",
+        "lamb green bag/face same s05",
+        "no shop brand or text"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    },
+    {
+      "shot_id": "s10",
+      "priority": 1,
+      "segment": "B: sheep-to-city-to-globe",
+      "seconds": 5,
+      "start_ms": 45000,
+      "end_ms": 50000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "In one 5-second continuous tracking crane up, original tiny cream wool sheep jogs tiredly with full green shoulder bag through connected miniature Auckland wool shopping streets; four legs move naturally as real felt puppet, tiny wool sweat drop, no altered sheep face. Camera slowly zooms out and gains height while keeping real 3D buildings with rich fibers, parallax and scale, reveals rooftop geography and continuous street route leading toward wool family house. Not a flat illustration.",
+      "prev_next_continuity": "Start: s09 same wool shopping block, lamb has full green bag. End: broad diorama vista that will continue into s11 family street corner; no abrupt jump, progressively shrinking same lamb along connected roads.",
+      "qa_acceptance": [
+        "same sheep body across travel",
+        "perspective and real 3D parallax",
+        "street path connected",
+        "match s11 home location"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    },
+    {
+      "shot_id": "s11",
+      "priority": 1,
+      "segment": "B: sheep-to-city-to-globe",
+      "seconds": 5,
+      "start_ms": 50000,
+      "end_ms": 55000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "The same tiny original felt wool lamb reaches the same three-person needle-felt family at their cozy city home street corner, places ONE full green bag of collected symbolic wool coins into family hands, visible smiles from three CONSISTENT family members, lamb cheerfully hops away. At t=3.5s the camera CRANES out upward through the connected physical wool city street grid, ending very wide showing same home block and Auckland miniature. Warm luminous cinematic felt fiber texture, tactile depth of field. Do not paint a brand logo or text.",
+      "prev_next_continuity": "Start: same street route and home as s10 end; 0-3.5s lamb delivers coin bag to a FIXED family of 3 wool figures. 3.5-5s pull back roofline and larger Auckland diorama. s12 begins at this city scale, transitions to spinning globe; no crowd teleport.",
+      "qa_acceptance": [
+        "family handoff legible",
+        "consistent three family members",
+        "dolly out at 3.5-5s",
+        "no logo; s12 postcomposed"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    },
+    {
+      "shot_id": "s06",
+      "priority": 2,
+      "segment": "C: supermarket-to-cafe travel",
+      "seconds": 5,
+      "start_ms": 25000,
+      "end_ms": 30000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "One cinematic 5-second shoulder-height follow camera in tactile felt Auckland wool city, tiny original CityDiscount lamb with exactly matching green bag moves along physically connected wool-paved supermarket street to a cozy wool cafe courtyard. Background changes through real parallax and passing 3D buildings, foreground wool fibers detailed, little sheep naturally runs between building volumes instead of moving as flat overlay. Stop beside a brown felt planter soil spot.",
+      "prev_next_continuity": "Start: after s05 coin digging real source, same bag/shovel/street. End: identifiable cafe plaza wool flower planters to setup s07.",
+      "qa_acceptance": [
+        "connect s05 end",
+        "lamb original identity",
+        "real parallax foreground/background",
+        "stop at s07 planter"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    },
+    {
+      "shot_id": "s08",
+      "priority": 2,
+      "segment": "D: cafe-to-shopping travel",
+      "seconds": 5,
+      "start_ms": 35000,
+      "end_ms": 40000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "Physical lens tracks tiny original green-bagged felt lamb leaving the needle-felt cafe courtyard with its second symbolic coin, follow from above shoulder to side as the lamb crosses one contiguous wool-paved miniature Auckland lane into handmade shopping street with wool gift displays, stitched building facades, warm cinematic bokeh. Visible 3D street depth and felt fibers, same lamb face unchanged. Stop at brown felt digging spot in front of unbranded wool window displays.",
+      "prev_next_continuity": "Start same cafe planter s07 end, cross connected block; end shopping district soft soil mound setup s09.",
+      "qa_acceptance": [
+        "cafe same as s07",
+        "shopping future s09 same location",
+        "no brand lettering",
+        "lamb gait natural"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    },
+    {
+      "shot_id": "s01",
+      "priority": 3,
+      "segment": "E: family setup",
+      "seconds": 5,
+      "start_ms": 0,
+      "end_ms": 5000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "In one 5s miniature interior 3:4 framing, family of three wool-felt stop-motion dolls at handcrafted home table gently unfolds a fabric wish list of icons (produce, cafe, gifts, no written text). Original small green-scarf/bag cream wool lamb peers near door, holding miniature shovel, close-up genuine fibers and warm cinematic light. Match same family faces and costumes planned for s11. Camera moves slightly to door toward s02 running-out shot.",
+      "prev_next_continuity": "Start at wool felt home, 3 consistent family characters plus little original lamb. End shows doorway to street where s02 original lamb will run out.",
+      "qa_acceptance": [
+        "same future s11 family",
+        "wish icons not words",
+        "clear visual motivation",
+        "door matches source s02 scene"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    },
+    {
+      "shot_id": "s07",
+      "priority": 3,
+      "segment": "F: cafe digging second coin",
+      "seconds": 5,
+      "start_ms": 30000,
+      "end_ms": 35000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "Needle-felt cafe courtyard close-medium tracking: tiny exact original cream wool sheep with green bag uses a small shovel to DIG ONCE at .9s then a SECOND separate dig at 2.1s, only after 2.9s a SINGLE plain gold felt coin glints in soil, sheep picks up exactly one, puts it inside green bag. Wool soil, felt planter, tactile realism, match s06 and s08 cafe buildings, no coin lettering (official CD lettering is deterministic post-only).",
+      "prev_next_continuity": "Start at s06 planter; finish small sheep stows one unmarked wool coin in bag and turns toward s08 cafe exit.",
+      "qa_acceptance": [
+        "two distinct digs before coin",
+        "exactly one new coin",
+        "no model letters",
+        "same plaza s06"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    },
+    {
+      "shot_id": "s09",
+      "priority": 3,
+      "segment": "G: shopping digging third coin",
+      "seconds": 5,
+      "start_ms": 40000,
+      "end_ms": 45000,
+      "source_state": "REAL_REV5_MOTION_MISSING",
+      "generation_prompt": "Tactile handmade wool shopping miniature, original small cream wool lamb with same green scarf/bag shovels soil once at 1.0s and AGAIN at 2.2s; ONE single unlettered gold felt coin appears only after 2.9s, lamb takes it and looks tired, carries now-full green bag away toward contiguous street. Buildings and wool display cases three-dimensional, natural bokeh and studio miniature shadow, no unapproved logos, no written numbers.",
+      "prev_next_continuity": "Start at s08 same shopping mound; finish tired sheep with full bag approaching s10 track-away.",
+      "qa_acceptance": [
+        "two distinct digs",
+        "only third newly found coin",
+        "must setup tired s10",
+        "no counterfeit brand text"
+      ],
+      "approved_for_paid_run": false,
+      "approved_for_publication": false
+    }
+  ],
+  "acceptance_gate": {
+    "owner_source_viewpoint_rights_verified": false,
+    "owner_new_external_media_transfer_authorized": false,
+    "actual_historical_model_invoice_verified": false,
+    "owner_paid_generation_run_authorized": false,
+    "provider_budget_cap_enforceable": false,
+    "can_trigger_model_run_now": false,
+    "publication_approved": false,
+    "all_real_shots_ready": false,
+    "existing_G4_offline_ingest_reused": "scripts/run_g4_existing_episode_offline.py",
+    "model_test_request_format": "video 360p 9:16 native, 3:4 1080x1440 letterboxed/reframed NOT stretched",
+    "max_new_model_calls_without_owner_authorization": 0
+  },
+  "acceptance_timeline": [
+    {
+      "step": "P0",
+      "name": "Check actual invoice & Owner permissions for specific image hashes and source references",
+      "status": "OWNER_GATE"
+    },
+    {
+      "step": "P1",
+      "name": "Generate matching s03/s04 adjacent 5s aerial/street pair with exactly one verified transfer and fee bound",
+      "status": "BLOCKED"
+    },
+    {
+      "step": "P2",
+      "name": "Generate matching s10/s11 pullout/family pair; direct visual owner review of character and spatial continuity",
+      "status": "BLOCKED"
+    },
+    {
+      "step": "P3",
+      "name": "Generate missing s06/s08 travel only after anchor style accepted",
+      "status": "BLOCKED"
+    },
+    {
+      "step": "P4",
+      "name": "Complete s01/s07/s09 three story beats; deterministic coin stamp in post",
+      "status": "BLOCKED"
+    },
+    {
+      "step": "P5",
+      "name": "Offline ingest using existing reusable pipeline, 12 shot QA and owner review; never auto-release",
+      "status": "BLOCKED"
+    }
+  ]
+}
