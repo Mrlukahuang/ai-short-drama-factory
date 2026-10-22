@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜3D城市小羊沿街奔跑 + 摄像机连续性验收（PR #237）
+
+**Stage G4 / Req R4.4 / deliverable: 在现有可播放60秒立体微缩城市基础上实现真实运动轨迹和两次铲土预演，不再重复建新城市。** 起始 main `8c203a20af941015130ad6a588394d2d29619a9c`、PR #236 真FFmpeg成功且7项全绿。新增 `scripts/citydiscount_street_motion.py`，将 s03→s04、s06→s07→s08→s09→s10→s11 的世界XY起止点与摄影机六参数共同约束为匹配（历史s05是真AI切入镜头，不冒充3D无缝连拍）；小羊沿道路中心线L型转弯，不会斜穿立体建筑方块；复用Owner原始PNG作为 billboard，僅对整体做±2.7°倾斜、上下跳步、贴地阴影和脚步示意，分两次挥铲后才展示**未经标准核准的示意币**。此次仍不是rigged三维动画，没有新生成真AI视频、人审/品牌币/完整真实镜头验收。测试逐段验道路线、首尾衔接相机位置、跳步摆动及两次挥铲；复用旧s02/s05真实视频和s12官方Logo，GitHub专项工作流实编码60s MP4＋回执。0新Google/付费调用，旧真实账单UNKNOWN。PR https://github.com/Mrlukahuang/ai-short-drama-factory/pull/237；只有专项视频Artifact成功并且Scope/Python/Fake所有检查全绿，方可自治合并。G4 NOT_READY/G5冻结。
+
+---
+
 # 2026-10-22 G4/R4.4｜CityDiscount 60秒“立体城市+小羊穿梭”首次实际代码版（PR #236）
 
 Stage: G4 / Req R4.4 / deliverable: 使用**真实 XYZ 坐标空间、随镜头重新投影的立体毛毡城市**取代旧版二维底图，复用已有 s02/s05 真人类AI小羊片、s12 官方Logo结尾和精确SHA来源，在GitHub Actions实际生成可看的 60s/1080×1440/H264+AAC 技术画样。Owner 明确对旧#235地面平面地图不满意，要求 3D 城市，羊在楼块间穿梭。新增 `scripts/citydiscount_3d_diorama.py`：立体XYZ屋顶/墙体/道路、动态相机方位角/俯仰/推近拉远、街道路径连续，小羊保留原版PNG作为二维 billboard，按深度排序可被前景楼遮挡；现有rev5编片器改为实际使用该世界几何投影，不再给新帧用平面底图。另增强自动测试、现有GitHub工作流及新的独立Artifact名字。全部代码仅本地Pillow/FFmpeg，供应商新调用数0；原Google实账仍 UNKNOWN。**这是可动的低多边形3D几何摄影机预演，不是正式3D模型贴图/真实 rigged小羊/全部AI 12镜/出版验收。** PR https://github.com/Mrlukahuang/ai-short-drama-factory/pull/236 ，当前实际FFmpeg及原仓库CI结果必须核对；待全部7项检查success方可依AMEND-004自主合并。G4 NOT_READY，G5暂停。
