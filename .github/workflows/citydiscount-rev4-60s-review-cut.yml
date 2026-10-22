@@ -1,0 +1,95 @@
+name: CityDiscount rev4 60s real-existing-media technical cut (zero API)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/build_citydiscount_rev4_review_cut.py
+      - tests/test_citydiscount_rev4_review_cut.py
+      - .github/workflows/citydiscount-rev4-60s-review-cut.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/build_citydiscount_rev4_review_cut.py
+      - .github/workflows/citydiscount-rev4-60s-review-cut.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rev4-existing-clips-review-cut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DRAMA_ENABLE_PAID_GENERATION: 'NO'
+      DRAMA_FACTORY_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing offline tools only (never Google SDK)
+        run: |
+          python -m pip install 'pillow>=11,<13'
+          if ! command -v ffmpeg || ! command -v ffprobe; then
+            sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+          fi
+          if [ ! -f /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc ]; then
+            sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+          fi
+      - name: Download historical REAL s02 (run/artifact pinned, no generation)
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-s02-REAL-original-small-sheep-run-1080x1440-NOT-FINAL
+          run-id: 39583047905
+          github-token: ${{ github.token }}
+          path: artifacts/existing-s02
+      - name: Download historical REAL s05 (one actual Google model call was already made)
+        uses: actions/download-artifact@v4
+        with:
+          name: CityDiscount-s05-REAL-original-small-sheep-run-1080x1440-NOT-FINAL
+          run-id: 39596195021
+          github-token: ${{ github.token }}
+          path: artifacts/existing-s05
+      - name: Download old real s03 Auckland environment plate ONLY
+        uses: actions/download-artifact@v4
+        with:
+          name: citydiscount-s03-city-plate-not-final-episode
+          run-id: 39441034483
+          github-token: ${{ github.token }}
+          path: artifacts/existing-s03
+      - name: Make real 12 x 5s 1080x1440 MP4; 2 actual character clips, remaining unambiguously marked
+        run: |
+          python scripts/build_citydiscount_rev4_review_cut.py \
+            --s02 artifacts/existing-s02/s02-real/s02_raw_omni_9x16.mp4 \
+            --s02-receipt artifacts/existing-s02/s02-real/receipt.json \
+            --s03 artifacts/existing-s03/s03-real/s03_city_plate.mp4 \
+            --s05 artifacts/existing-s05/s05-real/s05_raw_omni_9x16.mp4 \
+            --s05-receipt artifacts/existing-s05/s05-real/receipt.json \
+            --out artifacts/cd-rev4-60s-review
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("artifacts/cd-rev4-60s-review")
+          r=json.loads((root/"receipt.json").read_text("utf-8"))
+          assert r["schema"]=="g4-cd-rev4-technical-review-cut.v1"
+          assert r["existing_real_rev4_character_motion_shots"]==["s02","s05"]
+          assert r["old_environment_reference_only"]==["s03"]
+          assert r["format"]["width"]==1080 and r["format"]["height"]==1440
+          assert len(r["source_provenance"])==12
+          assert len(r["missing_real_rev4_shots"])==10
+          assert r["new_provider_calls"]==0 and r["all_real_12_shot_episode"] is False
+          assert r["publish_approved"] is False and r["g4_exited"] is False
+          assert "silent AAC" in r["audio"]
+          assert (root/"CityDiscount_rev4_60s_3x4_TECHNICAL_NOT_FINAL.mp4").is_file()
+          PY
+      - name: Upload review MP4 and sanitized receipt ONLY (never original raw clips)
+        uses: actions/upload-artifact@v4
+        with:
+          name: CityDiscount-rev4-60s-1080x1440-existing-2-real-shots-TECHNICAL-NOT-FINAL
+          path: |
+            artifacts/cd-rev4-60s-review/CityDiscount_rev4_60s_3x4_TECHNICAL_NOT_FINAL.mp4
+            artifacts/cd-rev4-60s-review/receipt.json
+          retention-days: 7
+          if-no-files-found: error
