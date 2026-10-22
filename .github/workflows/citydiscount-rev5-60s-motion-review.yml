@@ -11,6 +11,7 @@ on:
     branches: [main]
     paths:
       - scripts/build_citydiscount_rev5_60s_moving_previs.py
+      - scripts/citydiscount_3d_diorama.py
       - .github/workflows/citydiscount-rev5-60s-motion-review.yml
   workflow_dispatch: {}
 permissions:
@@ -81,7 +82,7 @@ jobs:
       - name: Upload one actual 60s MP4 and receipt (no raw original video files)
         uses: actions/upload-artifact@v4
         with:
-          name: CityDiscount-rev5-60s-CAMERA-ZOOMS-2REAL-SHOTS-NOT-FINAL
+          name: CityDiscount-rev5-60s-XYZ-3D-MINI-CITY-SHEEP-NOT-FINAL
           path: |
             artifacts/cd-rev5-60s/CityDiscount_rev5_60s_CINEMATIC_CAMERA_PREVIS_NOT_FINAL.mp4
             artifacts/cd-rev5-60s/receipt.json
