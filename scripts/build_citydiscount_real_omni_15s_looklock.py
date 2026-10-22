@@ -2,7 +2,7 @@
 """G4/R4.4: quality-reference cut from 2 EXISTING REAL original-lamb videos.
 
 No model calls, media uploads, new generated sheep, new city, or new prices.
-15 seconds = raw s02 5s + raw s05 5s + exact original 2D globe/Logo 5s.
+15 seconds = real s02 5s + locally REDACTED real s05 5s + existing official logo 5s.
 Owner identity/camera/commercial approval remains pending.
 """
 from __future__ import annotations
@@ -17,7 +17,8 @@ EXPECTED={
  "s05":"4ed60c4e769ab36e21186733931e89c23d1dcbb776e3274389216a2bb742fc56",
  "s12":"273516cacbc07d750fd0262de6897ddd3a879ed5e22fa58fd1f5a49e09c6b8c1",
 }
-OUTPUT="CityDiscount_REAL_OMNI_LAMB_LOOK_LOCK_15s_NOT_FINAL.mp4"
+CLEAN_S05_SHA="7a4a7e5f261a641dd7035698a5aad3a9a331bf51a70c5ccd7565677a2694a652"
+OUTPUT="CityDiscount_REAL_OMNI_LAMB_CLEAN_S05_LOOK_LOCK_15s_NOT_FINAL.mp4"
 NONSTRETCHED_FILTER=(
  "[0:v]split=2[original][back];"
  "[back]scale=1080:1920:flags=lanczos,crop=1080:1440:0:240,"
@@ -48,9 +49,10 @@ def ffprobe(src:Path)->dict:
 def invoke(cmd:list[str])->None:
     subprocess.run(cmd,check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
 
-def render(s02:Path,s05:Path,s12:Path,out:Path)->dict:
-    sources={key:checked(f,EXPECTED[key]) for key,f in [
-        ("s02",s02),("s05",s05),("s12",s12)]}
+def render(s02:Path,s05_clean:Path,s12:Path,out:Path)->dict:
+    sources={"s02":checked(s02,EXPECTED["s02"]),
+             "s05":checked(s05_clean,CLEAN_S05_SHA),
+             "s12":checked(s12,EXPECTED["s12"])}
     for sid,src in sources.items():
         data=ffprobe(src)
         vids=[v for v in data["streams"] if v["codec_type"]=="video"]
@@ -94,7 +96,13 @@ def render(s02:Path,s05:Path,s12:Path,out:Path)->dict:
     receipt={
         "schema":"g4-citydiscount-real-omni-look-lock-15s.v1",
         "ordered_segments":["s02","s05","s12"],
-        "source_raw_sha256":EXPECTED,
+        "historical_original_source_sha256":EXPECTED,
+        "actual_movie_source_sha256":{"s02":EXPECTED["s02"],"s05":CLEAN_S05_SHA,"s12":EXPECTED["s12"]},
+        "s05_hallucinated_shop_sign_locally_redacted":True,
+        "s05_is_same_old_real_omni_not_new_generation":True,
+        "s05_original_unedited_sha256":EXPECTED["s05"],
+        "s05_two_digs_owner_approved":False,
+        "s05_official_cd_coin_design_approved":False,
         "source_kinds":["EXISTING_REAL_OMNI_LAMB",
                         "EXISTING_REAL_OMNI_LAMB",
                         "EXISTING_2D_GLOBE_OWNER_EXACT_LOGO"],
@@ -124,11 +132,12 @@ def render(s02:Path,s05:Path,s12:Path,out:Path)->dict:
 def main()->None:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--s02",type=Path,required=True)
-    parser.add_argument("--s05",type=Path,required=True)
+    parser.add_argument("--s05-clean",type=Path,required=True,
+                        help="SHA-pinned local redaction of the ORIGINAL real Omni s05; never original unreviewed source")
     parser.add_argument("--s12",type=Path,required=True)
     parser.add_argument("--out",type=Path,required=True)
     x=parser.parse_args()
-    record=render(x.s02,x.s05,x.s12,x.out)
+    record=render(x.s02,x.s05_clean,x.s12,x.out)
     print(json.dumps({"sha256":record["movie_sha256"],
                       "duration":record["output_duration_seconds"],
                       "new_paid_calls":0,"not_final":True}))
