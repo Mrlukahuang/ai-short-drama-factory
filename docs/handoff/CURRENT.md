@@ -1,3 +1,9 @@
+# 2026-10-22 G4/R4.4｜基于真60秒抽帧的家庭镜头/可见性修复 + 12镜审片表（PR待创建）
+
+起点为已合并 #238，main `463bd313ab35b4c456151ef8c24c60e58ef19fbf`。本轮实际下载解压 GitHub Actions `39734835845` Artifact `12406796304` 后，FFmpeg 解码生成12格抽帧；肉眼发现实际短板：s01/s11家人和金币交接难以分辨、s03–s10小羊被楼块遮住、形象与真Omni s02/s05风格明显不同。本PR只在原XYZ毛毡城市追加**不冒充正式定妆的3个家庭3D布娃娃**，在羊经过的近景把邻近房屋屋顶柔性降低成娃娃屋剖面，增加屋顶毛毡缝线，原版小羊脸/真Omni s02/s05/官方Logo源不动。新 `scripts/citydiscount_visual_contact_sheet.py` 在实际编码的60秒H264/AAC MP4上按12×2.5秒中点抽真实帧做 `CONTACT_SHEET_12_SHOTS.png`，检查MP4 SHA与receipt、连同 `visual_review.json` 上传，但 `visual_quality_pass=null`、人物审片/家庭交接 `null`，不得从CI绿灯推断人工审片PASS。验收独立7项CI/真实FFmpeg与新审片表均SUCCESS才并入；如CI红停住修理。新增模型调用0，旧账单UNKNOWN；G4 NOT_READY、G5暂停。详 `docs/CITYDISCOUNT_REV5_VISUAL_QA.md`。
+
+---
+
 # 2026-10-22 G4/R4.4｜CityDiscount 3D 小羊身体／四肢 + 立体城市连续缩入地球（新交付待CI）
 
 Stage: G4 / Req: R4.4 / deliverable: 从已合并的 PR #237、main `5856b833d4f2013ccd3226b10fd51d292094c021` 继续，不重做旧真AI s02/s05、旧Logo/静态基础动画。新增 `scripts/citydiscount_volumetric_lamb.py` ：使用本地世界XYZ椭球几何绘制毛毡身体、头颈、毛卷和4条独立随步频摆动的腿；原Owner小羊脸使用从仓库已SHA校验图片裁出的原始像素贴片，**没有通过真实3D角色身份验收，不是全 rigged 3D 角色**。新增 `scripts/citydiscount_city_to_globe_bridge.py`：编片时将s11真实XYZ微缩城市末帧平顺收进已有毛毡地球素材，保留s12从56.6秒起3.4秒官方Logo停留及原Owner结尾“都市折扣🌟，您的省钱助手小羊薅薅。”。编片器保留上游真实Omni镜头s02/s05的源SHA，纯Pillow+FFmpeg本地运行，**不调用新付费AI、不上传源PNG到新服务**，实际源码/CI证据仅能证明内部技术预演，不能宣称完整真12镜或已可商业发布；G4 NOT_READY、G5继续禁止。新PR通过独立GitHub 60s视频Runner与原全部强制检查SUCCESS方可自合并；若失败不得把代码提交视作可看影片。
